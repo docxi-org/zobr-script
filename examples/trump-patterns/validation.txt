@@ -1,0 +1,5 @@
+✓ examples/trump-patterns/pattern-1.zobr
+✓ examples/trump-patterns/pattern-2.zobr
+✓ examples/trump-patterns/pattern-3.zobr
+
+3 file(s): 0 error(s), 0 warning(s)

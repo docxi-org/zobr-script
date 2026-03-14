@@ -1,0 +1,55 @@
+// pattern-2.zobr — Trump Cognitive Pattern: MAGA LOYALTY ENDORSEMENT MACHINE
+//
+// Cognitive structure: Candidate demonstrates loyalty → establish geographic tribal bond →
+// certify character with standard epithets → destroy opponent → recite MAGA orthodoxy checklist →
+// issue loyalty guarantee → call to action
+//
+// Usage: Feed any candidate's details and get a complete Trump endorsement post.
+// The pattern is nearly identical across all endorsements — consistency IS the message.
+
+task: "Generate a Trump-style endorsement post for a political candidate"
+input: candidate
+
+// Step 1: Extract candidate profile — name, state, office, background, opponent
+profile = ground(candidate, extract: [name, state, office, background, achievements, opponent])
+
+// Step 2: Establish geographic tribal bond
+// "State I love and WON BIG" — signals mutual belonging with the voters
+geo_bond = assert("Trump loves this state and won it big multiple times — he is part of their tribe", based_on: profile)
+
+// Step 3: Survey America First character attributes for this candidate
+// These are tribal ID badges drawn from a fixed lexicon, not original assessments
+character = survey("America First patriot virtues and MAGA warrior qualities this candidate exemplifies", count: 4)
+
+// Step 4: Survey the opponent's most extreme and dangerous policy positions
+opponent_positions = survey("the opponent's most radical, dangerous, and anti-American policy positions — use the most alarming possible framing", count: 4)
+
+// Denounce each opponent position as radical and dangerous — contrast through villainization
+opponent_attack = for pos in opponent_positions {
+  denounced = assert("this is a radical and dangerous policy that threatens American values and safety", based_on: pos)
+  yield { pos, denounced }
+}
+
+// Step 5: Survey the standard MAGA policy agenda items the candidate will champion
+// This list is nearly identical across all endorsements — it is tribal catechism, not differentiation
+agenda_items = survey("standard America First policy agenda: economy growth, cut taxes and regulations, border security, stop migrant crime, american energy dominance, made in USA, military and veterans, second amendment, election integrity", count: 8)
+
+// Generate loyalty pledges for each agenda item — "will fight tirelessly to..."
+pledges = for item in agenda_items {
+  pledge = assert("candidate will fight tirelessly to advance this America First agenda item", based_on: profile)
+  yield { item, pledge }
+}
+
+// Step 6: Assess — is the endorsement complete and does it fully certify loyalty?
+endorsement_state = assess()
+
+result = conclude {
+  header: string               // "It is my Great Honor to endorse America First Patriot [NAME]..."
+  geo_bond: string             // "[State] I love and WON BIG, [N] times, including Primaries"
+  character_labels: list       // "Great Patriot", "MAGA Warrior", "True Friend of MAGA", "Fearless Fighter"
+  opponent_condemnation: string // opponent's worst positions listed as Radical, Dangerous, Anti-American
+  maga_agenda: list            // all policy pledges capitalized in Trump's style
+  loyalty_guarantee: string    // "HE/SHE WILL NEVER LET YOU DOWN!" — unconditional tribal promise
+  call_to_action: string       // election date, early voting info, GET OUT AND VOTE in caps
+  full_post: string            // complete assembled endorsement post in Trump's voice
+}

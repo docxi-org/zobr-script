@@ -1,0 +1,56 @@
+// pattern-3.zobr — Trump Cognitive Pattern: ENEMY DEGRADATION CASCADE
+//
+// Cognitive structure: Target resists or criticizes → assign humiliating nickname →
+// attribute malice as obvious fact → enumerate defects in escalating cascade →
+// rank in historical hall of shame → deliver verdict → issue consequence
+//
+// Usage: Feed any critic, opponent, or non-compliant entity and get a Trump attack post.
+// The nickname replacement and defect cascade are the two core cognitive engines.
+
+task: "Generate a Trump-style attack post against a political enemy or media critic"
+input: target
+
+// Step 1: Extract the enemy's profile — who they are, what they did, who they work for
+profile = ground(target, extract: [name, role, what_they_said_or_did, affiliation, past_failures])
+
+// Step 2: Assign a humiliating nickname — the most important cognitive move
+// The nickname encodes the verdict and replaces the person's identity permanently
+// Phonetic distortion or semantic degradation: Margaret → Maggot, Newsom → Newscum
+nickname = reframe(profile, lens: "degrade the enemy's name through phonetic distortion or semantic humiliation that encodes their core character flaw — the nickname should feel inevitable, not clever")
+
+// Step 3: Attribute malicious intent as obvious fact — not opinion, not allegation
+// "hates to report", "fully knows and understands", "insists on" — stated as shared reality
+malice = assert("this person acts purely out of hatred, jealousy, or deliberate corruption — their bad intent is not disputed, it is obvious to any reasonable person", based_on: profile)
+
+// Step 4: Survey all defects in every dimension: cognitive, moral, political, personal
+// The list must be comprehensive — leave no category of failure unaddressed
+defects = survey("all cognitive failures, moral defects, political disasters, and personal shortcomings of this enemy — include their professional failures, ethical violations, and character flaws", count: 5)
+
+// Step 5: Amplify each defect to maximum severity — the cascade builds weight
+cascade = for defect in defects {
+  amplified = reframe(defect, lens: "make this defect sound catastrophic, historically unprecedented, and absolutely disqualifying — use ALL CAPS for the verdict word")
+  yield amplified
+}
+
+// Step 6: Rank in historical hall of shame — place alongside already-convicted failures
+// "even worse than Crazy Liz Cheney, Cryin' Adam Kinzinger" — demotion by association
+shame_rank = contrast(profile, with: "other historically failed and disgraced politicians — Liz Cheney, Adam Kinzinger, Fake News media figures — enemy belongs in their company or is even worse")
+
+// Step 7: Assess the devastation — is the case complete and the verdict inescapable?
+severity = assess()
+
+// Step 8: Synthesize final verdict and consequences
+// The verdict must be absolute and categorical — no hedging, no qualification
+// "as a Congressman, and a Human Being" is the ultimate reduction
+verdict = synthesize([nickname, cascade, shame_rank], method: "deliver the most devastating possible final categorical judgment — LOSER, MISFIT, COMPLETE AND TOTAL DISASTER — followed by a specific concrete consequence: lawsuit, vote them out, firing, legal referral, never hire them")
+
+result = conclude {
+  nickname_intro: string          // "[Degrading Nickname], just another [contemptuous label]..."
+  malice_statement: string        // stated as fact: "fully knows", "hates to report", "deliberately"
+  defect_cascade: list            // escalating list of failures — cognitive → moral → political → personal
+  historical_shame_rank: string   // "WORST ever", "even worse than Crazy Liz Cheney..."
+  final_verdict: string           // "COMPLETE AND TOTAL DISASTER as a [role], and a Human Being"
+  consequences: string            // lawsuit, vote them out, fired, never hired, legal referral
+  formal_close: string            // brief authority marker — "President DJT" or "President DONALD J. TRUMP"
+  full_post: string               // complete assembled attack post in Trump's voice, ready to publish
+}

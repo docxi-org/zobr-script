@@ -1,0 +1,46 @@
+// pattern-1.zobr — Trump Cognitive Pattern: SUPERLATIVE VICTORY DECLARATION
+//
+// Cognitive structure: Any action or outcome → reframe as world-historical →
+// claim personal causation → assert enemy's total impotence →
+// issue conditional mercy/threat → frame as global gift → formal authority close
+//
+// Usage: Feed any event/action and get a Trump-style victory declaration.
+// The conclude block outputs a fully assembled post in Trump's voice.
+
+task: "Generate a Trump-style victory declaration post for any achievement or action"
+input: event
+
+// Step 1: Extract raw facts before amplification — ground truth baseline
+facts = ground(event, extract: [what_happened, scale, enemy, outcome, actors])
+
+// Step 2: Historical rescaling — first cognitive move Trump always makes
+// Whatever happened becomes the greatest/most powerful in American or World history
+historical_claim = reframe(facts, lens: "this is the greatest, most powerful, or most historic event in American or World history — use superlatives as facts, not opinions")
+
+// Step 3: Personal causation attribution — Trump must be the direct cause
+// "at my direction", "because of MY policies", "I, as the 47th President"
+credit = assert("Trump personally directed and caused this outcome — he is the agent, not a bystander", based_on: facts)
+
+// Step 4: Assert enemy's total impotence and humiliation
+// The adversary cannot resist, respond, or threaten — this is stated as fact
+enemy_status = assert("the enemy has zero ability to defend, resist, or respond — they are completely defeated and helpless", based_on: facts)
+
+// Step 5: Conditional mercy/threat fork
+// Offer magnanimous peace if enemy complies; threaten unprecedented destruction if they resist
+// Both options keep Trump dominant — either as peacemaker or as destroyer
+mercy_or_threat = synthesize([enemy_status, facts], method: "construct a binary fork: if enemy complies offer magnanimous peace and call it a giant step forward; if enemy resists describe unprecedented fire, fury, and consequences they cannot imagine — always signal that escalation is not only possible but easy")
+
+// Step 6: Global gift framing — reframe as selfless act for all of humanity
+// Not America's interest but a gift to China, the world, all nations
+global_gift = reframe(credit, lens: "this action protects all of humanity and is a generous gift from America to the entire world — other nations should be grateful")
+
+result = conclude {
+  opening_declaration: string     // dramatic first sentence — enemy's fate stated as accomplished fact
+  historical_scale: string        // "one of the most powerful/greatest in the History of..."
+  personal_causation: string      // "at my direction", "because of MY America First policies"
+  enemy_humiliation: string       // enemy is helpless, begging, completely destroyed
+  conditional_fork: string        // if they comply vs. if they resist — escalation always available
+  global_gift_frame: string       // "This is a gift from the United States of America to China and the World"
+  formal_close: string            // "Thank you for your attention to this matter. President DONALD J. TRUMP"
+  full_post: string               // complete assembled post in Trump's voice, ready to publish
+}

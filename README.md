@@ -104,8 +104,8 @@ The validator checks:
 
 In the current version, a ZS script is executed by an LLM as interpreter:
 
-1. Include the [system prompt](docs/system-prompt.md) as system message — it contains the full operation semantics, control flow rules, and output format instructions
-2. Pass a `.zobr` script as user message
+1. Provide the [language spec](docs/spec.md) and [system prompt](docs/system-prompt.md) as context — together they define the full operation semantics, control flow rules, and output format
+2. Pass a `.zobr` script as the task
 3. The LLM executes operations step by step, tracking variables and following control flow
 4. Output is structured according to the `conclude` block
 

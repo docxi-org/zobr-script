@@ -1,0 +1,73 @@
+// reflection.zobr — Emerging Technology Policy Debate Analysis
+// Reusable cognitive pattern for analyzing any technology regulation debate
+// Generalizable: works for AI, biotech, crypto, autonomous vehicles, etc.
+// Origin: extracted from AI safety regulation analysis, March 2026
+
+task: "Analyze the current state of a policy debate on emerging technology regulation"
+input: technology_domain
+
+// Phase 1: Map the regulatory landscape
+actors = survey("key actors shaping the regulation debate — governments, companies, international bodies",
+  from: technology_domain, count: 5)
+
+frameworks = survey("regulatory frameworks being proposed or enacted",
+  from: technology_domain, count: 4)
+
+// Phase 2: Deep analysis per actor — stated vs hidden interests
+actor_analysis = for a in actors {
+  position = ground(a, extract: [stated_position, actions, investments])
+  hidden = doubt(position)
+  credibility = assess()
+  yield { actor: a, position, hidden_interests: hidden, credibility }
+}
+
+// Phase 3: Identify and articulate the core tension
+pro_innovation = assert("regulation should be minimal to preserve competitive advantage and development speed",
+  based_on: actor_analysis)
+pro_safety = assert("regulation is necessary to prevent harm and ensure public trust",
+  based_on: actor_analysis)
+core_tension = contrast(pro_innovation, with: pro_safety)
+
+// Phase 4: Stress-test both positions through iterative doubt
+loop 2 times {
+  innovation_flaw = doubt(pro_innovation)
+  safety_flaw = doubt(pro_safety)
+
+  state = assess()
+  if state.status == stuck {
+    pivot("reframe through geopolitical competition lens")
+  }
+
+  pro_innovation = reframe(pro_innovation, considering: innovation_flaw)
+  pro_safety = reframe(pro_safety, considering: safety_flaw)
+}
+
+// Phase 5: Historical precedent — learn from past technology regulation debates
+precedent = analogy(technology_domain, from: "historical technology regulation")
+
+// Phase 6: Blind spot analysis — what is not being discussed
+scope(wide, "what voices and concerns are absent from the debate")
+blind_spots = doubt(actor_analysis)
+
+// Phase 7: Synthesize into trajectory prediction
+trajectory = synthesize([actor_analysis, core_tension, precedent, blind_spots],
+  method: "identify the most likely regulatory trajectory and key decision points")
+
+// Phase 8: Power dynamics lens — who really benefits
+power_view = reframe(trajectory, lens: "cui bono — who gains and loses power regardless of stated positions")
+
+result = conclude {
+  landscape: string
+  key_actors: list
+  regulatory_approaches: list
+  core_tension: string
+  innovation_case: string
+  safety_case: string
+  historical_parallel: string
+  blind_spots: list
+  likely_trajectory: string
+  power_dynamics: string
+  recommendations: list
+  confidence: low | medium | high
+  open_questions: list
+}

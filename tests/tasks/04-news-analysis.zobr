@@ -1,0 +1,51 @@
+// 04-news-analysis.zobr — Practical: political news analysis
+// Tests: full pipeline, real-world application, structured output
+// Origin: Evald + Dmitry collaboration, 2026-03-13
+
+task: "Analyze a political news article for hidden interests and narrative gaps"
+input: news_text
+
+// Phase 1: Extract factual base
+source = ground(news_text, extract: [facts, quotes, dates, actors, stated_reasons])
+
+// Phase 2: Map the field
+stakeholders = survey("who is affected — who benefits, who loses, who is silent",
+  from: source, count: 5)
+
+// Phase 3: Deep analysis per stakeholder
+analysis = for s in stakeholders {
+  motive = assert(s.interest, based_on: source)
+  hidden = doubt(motive)
+  alt = contrast(motive, with: "what they say publicly")
+  yield {
+    actor: s,
+    stated_motive: motive,
+    possible_hidden: hidden,
+    gap: alt
+  }
+}
+
+// Phase 4: Narrative analysis
+official_narrative = ground(source, extract: [stated_reasons, framing])
+probable_reality = synthesize(analysis, method: "compare stated vs probable motives")
+narrative_gap = contrast(official_narrative, with: probable_reality)
+
+// Phase 5: Deeper lens
+deeper = reframe(news_text, lens: "cui bono — follow the money and power")
+
+// Phase 6: What's missing?
+scope(wide, "what is NOT being discussed that should be")
+blind_spots = doubt(source)
+
+result = conclude {
+  summary: string
+  what_happened: string
+  official_narrative: string
+  probable_reality: string
+  who_benefits: list
+  who_loses: list
+  narrative_gaps: list
+  blind_spots: list
+  confidence: low | medium | high
+  watch_for: list
+}

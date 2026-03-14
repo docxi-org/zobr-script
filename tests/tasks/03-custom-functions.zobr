@@ -1,0 +1,49 @@
+// 03-custom-functions.zobr — User-defined functions
+// Tests: define, function calls, composition
+
+task: "Evaluate the claim: consciousness is an illusion"
+input: claim = "Consciousness is an illusion created by information processing"
+
+// Define custom cognitive functions
+define steelman(position) {
+  prompt: "Find the strongest possible version of this position.
+    Strengthen arguments, add evidence, remove weak points.
+    Be maximally charitable."
+  input: position
+  output: strengthened_position
+}
+
+define devils_advocate(position) {
+  prompt: "Attack this position as forcefully as possible.
+    Find the most damaging objection — not a strawman,
+    but a genuine threat to the core argument."
+  input: position
+  output: { objection: string, damage_level: low | medium | high }
+}
+
+// Execute
+strong_claim = steelman(claim)
+attack = devils_advocate(strong_claim)
+
+if attack.damage_level == high {
+  // Claim doesn't survive — reframe
+  new_claim = reframe(claim, considering: attack.objection)
+  strong_new = steelman(new_claim)
+  final_attack = devils_advocate(strong_new)
+} else {
+  // Claim survives — ground it further
+  new_claim = strong_claim
+  final_attack = attack
+}
+
+evidence_for = ground(new_claim, extract: [neuroscience, philosophy])
+evidence_against = ground(final_attack.objection, extract: [phenomenology, experience])
+
+result = conclude {
+  original_claim: string
+  refined_claim: string
+  best_support: string
+  best_objection: string
+  survives_scrutiny: bool
+  confidence: low | medium | high
+}

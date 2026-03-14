@@ -1,0 +1,67 @@
+task: "Verify grammar fixes: reserved words as keys, array literals in for-in"
+
+// ===== TEST 1: Array literal in for...in =====
+risks = for topic in ["bias", "hallucination", "dependency"] {
+  analysis = survey(topic, count: 2)
+  evidence = ground(analysis)
+  yield { topic: topic, evidence }
+}
+
+// ===== TEST 2: Numeric array in for...in =====
+counts = for n in [1, 2, 3] {
+  yield n
+}
+
+// ===== TEST 3: Reserved words as object keys in yield =====
+tagged = for item in risks {
+  yield {
+    task: "risk analysis",
+    input: item,
+    result: item.evidence,
+    scope: "narrow",
+    for: "testing purposes",
+    if: "applicable",
+    loop: "none",
+    yield: "data",
+    define: "custom",
+    import: "external",
+    conclude: "summary"
+  }
+}
+
+// ===== TEST 4: Reserved words as conclude field names =====
+summary = conclude {
+  task: "grammar validation"
+  input: "reserved word handling"
+  result: tagged
+  scope: "complete"
+  survey: risks
+  for: counts
+  assert: "all tests passed"
+  doubt: "none"
+  yield: tagged
+}
+
+// ===== TEST 5: Reserved words as named arguments =====
+grounded = ground(risks, extract: [key_findings])
+
+// ===== TEST 6: Mixed — reserved keys + array for-in + nested objects =====
+models = for model in ["opus", "sonnet", "haiku"] {
+  score = survey(model, count: 1)
+  assessment = assess(scale: low | medium | high)
+  yield {
+    input: model,
+    result: score,
+    assessment
+  }
+}
+
+// ===== TEST 7: All builtin operation names as conclude keys =====
+final = conclude {
+  survey: models
+  ground: grounded
+  contrast: "none needed"
+  synthesize: "all tests pass"
+  reframe: "no issues"
+  assess: "complete"
+}

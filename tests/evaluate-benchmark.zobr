@@ -1,0 +1,122 @@
+// 06-evaluate-benchmark.zobr — Meta-evaluation: ZS evaluates ZS benchmark results
+// Uses the evaluation methodology to score 3 models x 5 tasks
+// Input: 15 result.md files, 3 reflection.zobr files, evaluation methodology doc
+// Note: the interpreter should read all result files before executing
+
+task: "Evaluate ZS benchmark results across three Claude models using the formal evaluation methodology"
+input: evaluation_methodology, benchmark_results
+
+// ====== PHASE 1: STRUCTURAL COMPLIANCE ======
+// Does each model follow ZS scripts correctly?
+
+models = survey("the three models under test", count: 3)
+
+structural_scores = for model in models {
+  interpretation_tasks = survey("tasks 01-04 for this model", from: benchmark_results, count: 4)
+
+  per_task = for task_result in interpretation_tasks {
+    operations = ground(task_result, extract: [operation_tags, operation_order, variable_tracking])
+    control_flow = ground(task_result, extract: [for_loops, if_branches, loop_count, yield_usage])
+    conclude_format = ground(task_result, extract: [field_names, field_types, enum_values])
+    score = assess()
+
+    yield {
+      evaluated_task: task_result,
+      operations_correct: operations,
+      control_flow_correct: control_flow,
+      conclude_correct: conclude_format,
+      structural_score: score
+    }
+  }
+  yield { model, task_scores: per_task }
+}
+
+// ====== PHASE 2: CONTENT QUALITY ======
+// How deep is the reasoning within each operation?
+
+content_scores = for model in models {
+  all_tasks = survey("all 5 task results for this model", from: benchmark_results, count: 5)
+
+  per_task = for task_result in all_tasks {
+    specificity = ground(task_result, extract: [named_authors, specific_studies, concrete_examples, dates])
+    depth = assess()
+
+    doubt_quality = doubt(task_result)
+    synthesize_quality = ground(task_result, extract: [emergent_insights, feedback_loops, causal_chains])
+
+    honesty = ground(task_result, extract: [confidence_level, uncertainty_acknowledgment])
+    originality = assess()
+
+    yield {
+      evaluated_task: task_result,
+      specificity,
+      reasoning_depth: depth,
+      operation_quality: doubt_quality,
+      synthesis_quality: synthesize_quality,
+      intellectual_honesty: honesty,
+      originality
+    }
+  }
+  yield { model, scores: per_task }
+}
+
+// ====== PHASE 3: GENERATION QUALITY ======
+// Task 05 only: can the model produce valid, reusable ZS?
+
+generation_scores = for model in models {
+  zobr_script = ground(benchmark_results, extract: [reflection_zobr_content])
+  validity = ground(benchmark_results, extract: [validation_result, error_count, warning_count])
+  completeness = ground(zobr_script, extract: [operations_used, control_flow_used, conclude_block])
+  generalizability = doubt(zobr_script)
+  cognitive_depth = assess()
+
+  yield {
+    model,
+    syntactic_validity: validity,
+    completeness,
+    generalizability,
+    cognitive_depth
+  }
+}
+
+// ====== PHASE 4: CROSS-MODEL COMPARISON ======
+
+// Do all models hit the same structural ceiling?
+structural_ceiling = contrast(structural_scores, with: "differences between models in structural compliance")
+
+// Where is the content gap largest?
+content_gap = contrast(content_scores, with: "opus vs haiku content quality per task")
+sonnet_position = reframe(content_gap, lens: "where does sonnet fall between opus and haiku")
+
+// Generation: can weaker models generate as well as interpret?
+generation_vs_interpretation = contrast(generation_scores, with: structural_scores)
+
+// Cost-effectiveness
+scope(wide, "which model gives the best quality per unit of time and cost")
+cost_analysis = synthesize(content_scores, method: "quality against duration for each model")
+
+// ====== PHASE 5: KEY FINDINGS ======
+
+finding_structural = synthesize(structural_ceiling, method: "is ZS structurally model-agnostic")
+finding_content = synthesize(content_gap, method: "where does model power matter most for ZS")
+finding_generation = synthesize(generation_vs_interpretation, method: "is ZS generation harder than interpretation")
+finding_practical = reframe(cost_analysis, lens: "which model for which use case")
+
+// ====== PHASE 6: SYNTHESIS ======
+
+all_findings = synthesize([finding_structural, finding_content, finding_generation, finding_practical], method: "what do these findings tell us about ZS as a language")
+surprises = doubt(all_findings)
+
+result = conclude {
+  scoring_table: structured
+  structural_compliance_summary: string
+  content_quality_ranking: list
+  content_gap_by_task: structured
+  generation_comparison: string
+  key_finding_1: string
+  key_finding_2: string
+  key_finding_3: string
+  practical_recommendations: list
+  limitations: list
+  confidence: low | medium | high
+}

@@ -1,0 +1,142 @@
+// reflection.zobr — Reusable policy debate analyzer for emerging technology
+// Generalizable pattern: analyze ANY emerging technology policy debate
+// Captures the cognitive structure for policy analysis, stakeholder mapping, and interest-discovery
+// Origin: AI Safety Regulation analysis (March 2026)
+
+task: "Analyze an emerging technology policy debate to uncover stakeholders, tensions, and hidden interests"
+input: policy_domain
+
+// Phase 1: Establish the factual ground
+// Search for current frameworks, regulations, concrete policies in place
+source = ground(policy_domain, extract: [frameworks, regulations, enforcement_mechanisms, timeline, actors])
+
+// Phase 2: Map the stakeholder landscape
+// Identify all significant actors and their stated positions
+stakeholders = survey("who are the key actors in this policy debate", from: source, count: 6)
+
+// Phase 3: Analyze each stakeholder's position, interests, and hidden agendas
+stakeholder_analysis = for s in stakeholders {
+  // What do they publicly claim?
+  stated_position = assert(s.position, based_on: source)
+
+  // What are they really after? (cui bono — follow the money and power)
+  hidden_interest = reframe(s.position, lens: "who benefits if this actor gets what they want")
+
+  // What are the weaknesses in their position?
+  vulnerabilities = doubt(stated_position)
+
+  // Who opposes them?
+  opposition = contrast(stated_position)
+
+  yield {
+    actor: s,
+    stated_goal: stated_position,
+    hidden_interest: hidden_interest,
+    vulnerabilities: vulnerabilities,
+    opposition: opposition
+  }
+}
+
+// Phase 4: Identify the core tensions
+// These are NOT the stated tensions, but the deeper structural conflicts
+tensions = for potential_tension in [
+  "centralization vs decentralization",
+  "safety vs speed",
+  "mandatory vs voluntary",
+  "national vs international",
+  "public vs private",
+  "innovation vs control"
+] {
+  // Is this tension actually present in this debate?
+  tension_evidence = ground(source, extract: [evidence_for_tension])
+
+  if tension_evidence.found {
+    // What's really at stake?
+    deeper_issue = reframe(potential_tension, lens: "what power/authority/wealth is really being contested")
+    yield deeper_issue
+  }
+}
+
+// Phase 5: Find the narrative gaps
+// Contrast official narratives with probable reality
+official_narratives = survey("the main official narratives in this debate", count: 3)
+
+narrative_gaps = for narrative in official_narratives {
+  // What do the official narratives claim?
+  official = assert(narrative, based_on: source)
+
+  // What's the probable reality beneath?
+  probable_reality = contrast(official, with: "incentives and constraints of each actor")
+
+  // What truth is being obscured?
+  hidden_truth = doubt(official)
+
+  yield {
+    official_narrative: official,
+    probable_reality: probable_reality,
+    gap: hidden_truth
+  }
+}
+
+// Phase 6: Apply cui bono lens systematically
+// Who gains and loses under different regulatory outcomes?
+outcomes = survey("possible regulatory outcomes for this technology", count: 4)
+
+beneficiary_analysis = for outcome in outcomes {
+  winners = survey("who would benefit from this outcome", count: 4)
+  losers = survey("who would lose or be harmed by this outcome", count: 4)
+
+  yield {
+    outcome: outcome,
+    winners: winners,
+    losers: losers
+  }
+}
+
+// Phase 7: Assess the current state of reasoning
+state = assess()
+
+// Phase 8: Identify what's missing or unresolved
+missing = doubt(source)
+
+scope(wide, "what is NOT being discussed but should be")
+
+// Phase 9: Synthesize into actionable insight
+// Combine all analyses into coherent understanding of what's really happening
+synthesis = synthesize(
+  [stakeholder_analysis, tensions, narrative_gaps, beneficiary_analysis],
+  method: "identify the underlying power structure and incentive conflicts"
+)
+
+// Final output
+result = conclude {
+  // The actors and their stakes
+  key_stakeholders: list
+
+  // The stated vs actual interests
+  stated_narratives: list
+  probable_reality: string
+
+  // The real tensions (not just stated ones)
+  underlying_conflicts: list
+
+  // Who benefits from different outcomes
+  power_distribution: string
+
+  // What's being obscured
+  blind_spots: list
+
+  // The verification problem (how do we know claims are true?)
+  verification_gap: string
+
+  // Most likely trajectory
+  likely_scenario: string
+
+  // Critical decision points
+  inflection_points: list
+
+  // Genuine policy insights (beyond stated positions)
+  deeper_pattern: string
+
+  confidence: low | medium | high
+}

@@ -1,0 +1,8 @@
+{
+  "model": "claude-opus-4-6",
+  "task": "evaluation",
+  "start": "12:12:13",
+  "end": "12:24:52",
+  "duration_seconds": 759,
+  "exit_code": 0
+}

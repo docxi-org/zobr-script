@@ -1,0 +1,26 @@
+{
+  "name": "zobr-script",
+  "version": "0.1.0",
+  "description": "ZS (Zobr Script) — cognitive scripting language checker",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "zobr-check": "dist/cli.js"
+  },
+  "scripts": {
+    "build:grammar": "peggy --format es -o src/parser.js src/grammar.pegjs",
+    "build:ts": "tsc",
+    "build": "npm run build:grammar && npm run build:ts",
+    "check": "node dist/cli.js"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "peggy": "^4.2.0",
+    "typescript": "^5.7.0"
+  },
+  "files": [
+    "dist/",
+    "docs/"
+  ],
+  "license": "Apache-2.0"
+}

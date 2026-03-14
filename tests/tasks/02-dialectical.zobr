@@ -1,0 +1,37 @@
+// 02-dialectical.zobr — Dialectical reasoning with doubt and contrast
+// Tests: assert, doubt, contrast, reframe, synthesize, loop
+
+task: "Should AI systems be granted legal personhood?"
+
+thesis = assert("AI systems should be granted limited legal personhood",
+  based_on: "increasing autonomy of AI agents in economic and social roles")
+
+// Stress-test the thesis
+loop 2 times {
+  challenge = doubt(thesis)
+  counter = contrast(thesis)
+
+  state = assess()
+  if state.status == stuck {
+    pivot("approach from a different angle")
+  }
+
+  thesis = reframe(thesis, considering: challenge)
+}
+
+// Consider analogy
+precedent = analogy(thesis, from: "corporate personhood history")
+
+// Final synthesis
+final = synthesize([thesis, counter, precedent],
+  method: "find the position that accounts for all concerns")
+
+result = conclude {
+  position: string
+  strongest_argument_for: string
+  strongest_argument_against: string
+  historical_parallel: string
+  recommendation: string
+  confidence: low | medium | high
+  open_questions: list
+}

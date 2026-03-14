@@ -1,0 +1,20 @@
+// 01-simple.zobr — Basic ZS script: linear reasoning
+// Tests: survey, ground, synthesize, conclude
+
+task: "What are the main risks of over-reliance on AI in education?"
+
+risks = survey("risks of AI over-reliance in education", count: 4)
+
+evidence = for r in risks {
+  concrete = ground(r, extract: [examples, studies])
+  yield { risk: r, evidence: concrete }
+}
+
+overview = synthesize(evidence, method: "prioritize by severity")
+
+result = conclude {
+  top_risks: list
+  most_critical: string
+  recommendation: string
+  confidence: low | medium | high
+}

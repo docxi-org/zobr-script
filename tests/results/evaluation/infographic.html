@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZS Benchmark — Evaluation Infographic</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #0a0e17;
+    color: #e0e6ed;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+    margin: 24px auto 0;
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    background: linear-gradient(135deg, #c7d2fe 0%, #a78bfa 50%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header .subtitle {
+    font-size: 16px;
+    color: #7c85a0;
+    font-weight: 400;
+  }
+  .header .meta {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #4b5563;
+  }
+  .header .meta span { margin: 0 12px; }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #6366f1;
+    margin-bottom: 20px;
+    padding-left: 2px;
+  }
+
+  /* ── Composite scores hero ── */
+  .hero-scores {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 56px;
+  }
+  .hero-card {
+    flex: 1;
+    background: linear-gradient(145deg, #111827, #1a2035);
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .hero-card.opus::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+  .hero-card.sonnet::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+  .hero-card.haiku::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+  .hero-card .model-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .hero-card .score {
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hero-card.opus .score { color: #a78bfa; }
+  .hero-card.sonnet .score { color: #22d3ee; }
+  .hero-card.haiku .score { color: #fbbf24; }
+
+  .hero-card .score-label {
+    font-size: 12px;
+    color: #4b5563;
+    font-weight: 500;
+  }
+  .hero-card .tier {
+    margin-top: 16px;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: 600;
+  }
+  .hero-card.opus .tier { background: rgba(99,102,241,0.15); color: #a78bfa; }
+  .hero-card.sonnet .tier { background: rgba(6,182,212,0.15); color: #22d3ee; }
+  .hero-card.haiku .tier { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+  /* ── Scoring matrix ── */
+  .matrix-section {
+    margin-bottom: 56px;
+  }
+  .matrix {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+  }
+  .matrix th, .matrix td {
+    padding: 12px 16px;
+    text-align: center;
+  }
+  .matrix thead th {
+    background: #111827;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #1e293b;
+  }
+  .matrix thead th:first-child {
+    text-align: left;
+    border-radius: 8px 0 0 0;
+  }
+  .matrix thead th:last-child {
+    border-radius: 0 8px 0 0;
+  }
+  .matrix tbody td {
+    border-bottom: 1px solid #1e293b;
+  }
+  .matrix tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: #94a3b8;
+  }
+  .matrix tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .matrix .row-composite td {
+    font-weight: 700;
+    border-top: 2px solid #1e293b;
+    border-bottom: none;
+    padding-top: 16px;
+  }
+  .matrix .row-composite td:first-child {
+    color: #e0e6ed;
+  }
+
+  /* Score cells with color coding */
+  .score-cell {
+    font-weight: 700;
+    font-size: 15px;
+    border-radius: 6px;
+    min-width: 44px;
+    display: inline-block;
+    padding: 4px 0;
+  }
+  .s10 { color: #34d399; }
+  .s9 { color: #6ee7b7; }
+  .s8 { color: #a7f3d0; }
+  .s7 { color: #fde68a; }
+  .s6 { color: #fca5a5; }
+  .dim { font-size: 11px; color: #4b5563; font-weight: 400; padding-left: 4px; }
+
+  /* ── Bar charts ── */
+  .bars-section {
+    margin-bottom: 56px;
+  }
+  .bars-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  .bar-group {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .bar-group h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  .bar-label {
+    font-size: 11px;
+    color: #6b7280;
+    width: 46px;
+    text-align: right;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .bar-track {
+    flex: 1;
+    height: 24px;
+    background: #1a2035;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    position: relative;
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    min-width: 36px;
+  }
+  .bar-fill.opus { background: linear-gradient(90deg, #4f46e5, #6366f1); }
+  .bar-fill.sonnet { background: linear-gradient(90deg, #0891b2, #06b6d4); }
+  .bar-fill.haiku { background: linear-gradient(90deg, #d97706, #f59e0b); }
+
+  /* ── Radar chart (CSS only) ── */
+  .radar-section {
+    margin-bottom: 56px;
+  }
+  .radar-container {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    gap: 40px;
+    align-items: center;
+  }
+  .radar-svg-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+  .radar-legend {
+    width: 260px;
+    flex-shrink: 0;
+  }
+  .radar-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+  .radar-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .radar-legend-dot.opus { background: #6366f1; }
+  .radar-legend-dot.sonnet { background: #06b6d4; }
+  .radar-legend-dot.haiku { background: #f59e0b; }
+  .radar-legend-name {
+    font-weight: 600;
+    color: #94a3b8;
+  }
+  .radar-legend-score {
+    margin-left: auto;
+    font-weight: 700;
+  }
+  .radar-legend-score.opus { color: #a78bfa; }
+  .radar-legend-score.sonnet { color: #22d3ee; }
+  .radar-legend-score.haiku { color: #fbbf24; }
+
+  /* ── Timing section ── */
+  .timing-section {
+    margin-bottom: 56px;
+  }
+  .timing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .timing-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .timing-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+  .timing-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #1e293b;
+  }
+  .timing-row:last-child { border-bottom: none; }
+  .timing-model { font-weight: 500; font-size: 14px; }
+  .timing-value { font-weight: 700; font-size: 14px; }
+  .timing-value.opus { color: #a78bfa; }
+  .timing-value.sonnet { color: #22d3ee; }
+  .timing-value.haiku { color: #fbbf24; }
+
+  /* ── Content gap ── */
+  .gap-section {
+    margin-bottom: 56px;
+  }
+  .gap-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .gap-task {
+    width: 170px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .gap-bar-container {
+    flex: 1;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .gap-segment {
+    height: 28px;
+    border-radius: 4px;
+    position: relative;
+  }
+  .gap-segment.haiku-zone {
+    background: linear-gradient(90deg, #92400e, #d97706);
+  }
+  .gap-segment.gap-zone {
+    background: repeating-linear-gradient(
+      135deg,
+      transparent,
+      transparent 3px,
+      rgba(239,68,68,0.15) 3px,
+      rgba(239,68,68,0.15) 6px
+    );
+    border: 1px dashed rgba(239,68,68,0.3);
+    border-radius: 4px;
+  }
+  .gap-segment.opus-zone {
+    background: linear-gradient(90deg, #4338ca, #6366f1);
+  }
+  .gap-value {
+    font-size: 12px;
+    font-weight: 700;
+    width: 30px;
+    text-align: center;
+    color: #ef4444;
+    flex-shrink: 0;
+  }
+
+  /* ── Findings ── */
+  .findings-section {
+    margin-bottom: 56px;
+  }
+  .finding-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .finding-num {
+    font-size: 32px;
+    font-weight: 900;
+    color: #1e293b;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+    background: linear-gradient(135deg, #4338ca, #6366f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .finding-body h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e0e6ed;
+    margin-bottom: 6px;
+  }
+  .finding-body p {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+
+  /* ── Recommendations table ── */
+  .rec-section {
+    margin-bottom: 56px;
+  }
+  .rec-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .rec-table th {
+    background: #0f172a;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 2px solid #1e293b;
+  }
+  .rec-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #1e293b;
+    vertical-align: top;
+  }
+  .rec-table tr:last-child td { border-bottom: none; }
+  .rec-table .model-tag {
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: inline-block;
+  }
+  .model-tag.opus { background: rgba(99,102,241,0.15); color: #a78bfa; }
+  .model-tag.sonnet { background: rgba(6,182,212,0.15); color: #22d3ee; }
+  .model-tag.haiku { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px 0;
+    border-top: 1px solid #1e293b;
+    color: #374151;
+    font-size: 12px;
+  }
+  .footer a {
+    color: #6366f1;
+    text-decoration: none;
+  }
+
+  /* ── About / Intro sections ── */
+  .intro-section {
+    margin-bottom: 56px;
+  }
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .intro-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .intro-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e0e6ed;
+    margin-bottom: 14px;
+  }
+  .intro-card p, .intro-card li {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.7;
+  }
+  .intro-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .intro-card li {
+    padding: 4px 0;
+    padding-left: 18px;
+    position: relative;
+  }
+  .intro-card li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4f46e5;
+  }
+  .intro-card code {
+    background: rgba(99,102,241,0.15);
+    color: #a78bfa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .intro-full {
+    grid-column: 1 / -1;
+  }
+  .code-example {
+    background: #0a0e17;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 14px;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #94a3b8;
+    overflow-x: auto;
+  }
+  .code-example .kw { color: #818cf8; }
+  .code-example .str { color: #34d399; }
+  .code-example .op { color: #f59e0b; }
+  .code-example .var { color: #e0e6ed; }
+  .code-example .cmt { color: #4b5563; }
+
+  .task-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .task-item {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .task-item .task-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .task-item .task-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e6ed;
+    margin-bottom: 4px;
+  }
+  .task-item .task-desc {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+  .op-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .op-tag {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .op-tag.discovery { background: rgba(34,211,238,0.12); color: #22d3ee; }
+  .op-tag.argument { background: rgba(167,139,250,0.12); color: #a78bfa; }
+  .op-tag.synthesis { background: rgba(52,211,153,0.12); color: #34d399; }
+  .op-tag.meta { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  .op-tag.output { background: rgba(248,113,113,0.12); color: #f87171; }
+
+  .op-tag[data-op] {
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    user-select: none;
+  }
+  .op-tag[data-op]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .op-tag[data-op].active {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+    transform: translateY(-1px);
+  }
+
+  .op-detail {
+    margin-top: 16px;
+    background: #0a0e17;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 16px 20px;
+    animation: opDetailIn 0.2s ease;
+  }
+  @keyframes opDetailIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .op-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .op-detail-name {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 18px;
+    font-weight: 800;
+    color: #e0e6ed;
+  }
+  .op-detail-category {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .op-detail-category.cat-discovery { background: rgba(34,211,238,0.12); color: #22d3ee; }
+  .op-detail-category.cat-argument { background: rgba(167,139,250,0.12); color: #a78bfa; }
+  .op-detail-category.cat-synthesis { background: rgba(52,211,153,0.12); color: #34d399; }
+  .op-detail-category.cat-meta { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  .op-detail-category.cat-output { background: rgba(248,113,113,0.12); color: #f87171; }
+
+  .op-detail-desc {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .op-detail-sig {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #6366f1;
+    background: rgba(99,102,241,0.08);
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+  .op-detail-example {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: #6b7280;
+    padding: 8px 12px;
+    border-left: 2px solid #1e293b;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <h1>ZS Benchmark Evaluation</h1>
+    <div class="subtitle">3 models &times; 5 tasks &times; 3 dimensions</div>
+    <div class="meta">
+      <span>Evaluator: Claude Opus 4.6</span>
+      <span>&bull;</span>
+      <span>Date: 2026-03-14</span>
+      <span>&bull;</span>
+      <span>15 result files + 3 reflection.zobr</span>
+    </div>
+  </div>
+
+  <!-- ═══ WHAT IS ZS ═══ -->
+  <div class="intro-section">
+    <div class="section-title">What is ZS (Zobr Script)?</div>
+    <div class="intro-grid">
+      <div class="intro-card">
+        <h3>Cognitive scripting language for LLMs</h3>
+        <p>
+          ZS provides formal constructs for describing reasoning processes &mdash;
+          not as rigid instructions, but as composable cognitive operations with variables,
+          control flow, and result formatting.
+        </p>
+        <p style="margin-top:10px">
+          Think of it as <strong style="color:#e0e6ed">SQL for thinking</strong>: you define
+          <em>what</em> cognitive steps to take, the LLM decides <em>how</em> to execute them.
+        </p>
+        <p style="margin-top:10px">
+          Scripts are executed by an LLM as interpreter: the model reads a <code>.zobr</code>
+          file, executes operations step by step, tracks variables, follows control flow,
+          and produces structured output.
+        </p>
+      </div>
+      <div class="intro-card" id="ops-card">
+        <h3>12 built-in operations <span style="font-size:11px; color:#4b5563; font-weight:400; margin-left:6px">click to explore</span></h3>
+        <div class="op-grid" id="ops-grid">
+          <span class="op-tag discovery" data-op="survey">survey</span>
+          <span class="op-tag discovery" data-op="ground">ground</span>
+          <span class="op-tag argument" data-op="assert">assert</span>
+          <span class="op-tag argument" data-op="doubt">doubt</span>
+          <span class="op-tag argument" data-op="contrast">contrast</span>
+          <span class="op-tag argument" data-op="analogy">analogy</span>
+          <span class="op-tag synthesis" data-op="synthesize">synthesize</span>
+          <span class="op-tag synthesis" data-op="reframe">reframe</span>
+          <span class="op-tag meta" data-op="assess">assess</span>
+          <span class="op-tag meta" data-op="pivot">pivot</span>
+          <span class="op-tag meta" data-op="scope">scope</span>
+          <span class="op-tag output" data-op="conclude">conclude</span>
+        </div>
+        <div id="op-detail" class="op-detail">
+          <div class="op-detail-header">
+            <span class="op-detail-name" id="op-detail-name">survey</span>
+            <span class="op-detail-category" id="op-detail-cat">Discovery</span>
+          </div>
+          <div class="op-detail-desc" id="op-detail-desc">
+            Explore a topic and identify key elements (positions, factors, perspectives).
+          </div>
+          <div class="op-detail-sig" id="op-detail-sig">
+            survey(topic, count?: N) &rarr; list
+          </div>
+          <div class="op-detail-example" id="op-detail-example">
+            positions = survey("main positions on consciousness", count: 3)
+          </div>
+        </div>
+        <p style="margin-top:14px">
+          Plus: variables, <code>for</code>/<code>if</code>/<code>loop</code> control flow,
+          user-defined functions (<code>define</code>), <code>yield</code>, imports,
+          <code>@last</code>/<code>@N</code> references.
+        </p>
+      </div>
+      <div class="intro-card intro-full">
+        <h3>Example: how a ZS script looks</h3>
+        <div class="code-example">
+<span class="kw">task:</span> <span class="str">"Evaluate risks of AI in education"</span><br>
+<br>
+<span class="var">risks</span> = <span class="op">survey</span>(<span class="str">"main risks of AI in education"</span>, <span class="kw">count:</span> 4)<br>
+<span class="var">evidence</span> = <span class="kw">for</span> r <span class="kw">in</span> risks {<br>
+&nbsp;&nbsp;<span class="var">concrete</span> = <span class="op">ground</span>(r, <span class="kw">extract:</span> [examples, studies])<br>
+&nbsp;&nbsp;<span class="kw">yield</span> { risk: r, evidence: concrete }<br>
+}<br>
+<span class="var">overview</span> = <span class="op">synthesize</span>(evidence, <span class="kw">method:</span> <span class="str">"rank by severity and interconnection"</span>)<br>
+<br>
+<span class="var">result</span> = <span class="op">conclude</span> {<br>
+&nbsp;&nbsp;top_risks: <span class="kw">list</span><br>
+&nbsp;&nbsp;most_critical: <span class="kw">string</span><br>
+&nbsp;&nbsp;recommendation: <span class="kw">string</span><br>
+&nbsp;&nbsp;confidence: low | medium | high<br>
+}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ APPLICABILITY ═══ -->
+  <div class="findings-section">
+    <div class="section-title">Applicability &amp; use cases</div>
+
+    <div class="intro-grid" style="margin-bottom:24px">
+      <div class="intro-card intro-full">
+        <h3>What ZS gives you</h3>
+        <p>
+          ZS is a <strong style="color:#e0e6ed">reasoning amplifier</strong>, not a capability test.
+          It doesn&rsquo;t make weak models strong &mdash; it makes all models <em>structured</em>.
+          A Haiku execution of a ZS script produces more useful output than a free-form Haiku response
+          to the same question, because the script forces the model to decompose reasoning, show its work,
+          and format conclusions. The benchmark confirms: even the smallest model follows ZS scripts
+          with 92.5% structural fidelity.
+        </p>
+        <p style="margin-top:10px">
+          When reasoning structure is provided externally by the script, the model&rsquo;s job shifts
+          from <em>organizing thought</em> to <em>filling containers with content</em>.
+          This is why Sonnet achieves near-parity with Opus (9.3 vs 9.4) &mdash;
+          structured scripts compress the capability gap between tiers.
+        </p>
+      </div>
+    </div>
+
+    <div class="intro-grid">
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f4dc;</span> Repeatable analysis patterns
+        </h3>
+        <p>
+          Encode your best analytical workflow once as a <code>.zobr</code> script,
+          then apply it to new inputs. A political news analysis script works on any article.
+          A due diligence script works on any company. The reasoning pattern is reusable &mdash;
+          the content changes.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Example: <code>news-analysis.zobr</code> runs the same 6-phase pipeline
+          (ground &rarr; stakeholders &rarr; motives &rarr; narrative gap &rarr; cui bono &rarr; blind spots)
+          on every article, ensuring nothing is missed.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f9ea;</span> Quality assurance for AI reasoning
+        </h3>
+        <p>
+          ZS scripts make reasoning auditable. Instead of a black-box LLM response,
+          you get labeled operations (<code>[doubt]</code>, <code>[contrast]</code>)
+          with visible variable flow. You can verify that the model actually considered
+          counterarguments, not just generated a one-sided summary.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Critical for compliance, legal analysis, medical reasoning &mdash;
+          anywhere you need to show <em>how</em> a conclusion was reached, not just <em>what</em> it is.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f3af;</span> Cost optimization via model routing
+        </h3>
+        <p>
+          Benchmark shows different tasks need different models.
+          Use Haiku for structural tasks (surveys, fact extraction) at 2.5&times; speed,
+          Sonnet for most analytical work, Opus only for deep dialectical reasoning.
+          ZS scripts make this routing explicit: the same script runs on any model.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Generate scripts with Sonnet (best architecturally), execute with Haiku at scale &mdash;
+          valid structured reasoning at a fraction of the cost.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f4a1;</span> Knowledge capture from AI sessions
+        </h3>
+        <p>
+          When an agent produces exceptional reasoning in a conversation,
+          the reasoning pattern can be distilled into a <code>.zobr</code> script &mdash;
+          a reusable artifact. The benchmark proves all three models can generate
+          valid, parameterized scripts (Task 05: 0 errors across all models).
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Dual-purpose: humans write scripts as tasks for LLMs,
+          agents export their reasoning as <code>.zobr</code> files for future use.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f393;</span> Education &amp; critical thinking
+        </h3>
+        <p>
+          ZS externalizes the structure of rigorous thinking: survey before asserting,
+          doubt your own claims, contrast with the strongest counter, synthesize &mdash; don&rsquo;t summarize.
+          Students and analysts can learn these patterns by reading and writing scripts.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          A <code>dialectical.zobr</code> template teaches iterative thesis refinement
+          better than a textbook paragraph about dialectics.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f310;</span> Multi-agent cognitive workflows
+        </h3>
+        <p>
+          ZS scripts can serve as shared protocols between agents.
+          One agent runs <code>survey</code> and <code>ground</code>,
+          another runs <code>doubt</code> and <code>contrast</code>,
+          a third <code>synthesize</code>s the results.
+          The script defines the workflow; agents fill the operations.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Part of the <a href="https://github.com/docxi-org/black-zobr" style="color:#6366f1; text-decoration:none">Black Zobr</a>
+          federated co-thinking ecosystem.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BENCHMARK TASKS ═══ -->
+  <div class="intro-section">
+    <div class="section-title">Benchmark: 5 tasks &times; 3 models</div>
+    <div class="intro-grid">
+      <div class="intro-card intro-full">
+        <h3>Tasks</h3>
+        <div class="task-list">
+          <div class="task-item">
+            <div class="task-num">Task 01</div>
+            <div class="task-name">Simple pipeline</div>
+            <div class="task-desc">Linear chain: survey &rarr; for loop with ground &rarr; synthesize &rarr; conclude. Tests basic operation flow, variable tracking, yield.</div>
+          </div>
+          <div class="task-item">
+            <div class="task-num">Task 02</div>
+            <div class="task-name">Dialectical reasoning</div>
+            <div class="task-desc">Iterative thesis refinement: assert &rarr; loop 2&times; {doubt &rarr; contrast &rarr; assess &rarr; if stuck: pivot &rarr; reframe}. Tests thesis evolution and conditional branching.</div>
+          </div>
+          <div class="task-item">
+            <div class="task-num">Task 03</div>
+            <div class="task-name">Custom functions</div>
+            <div class="task-desc">User-defined <code>steelman</code> and <code>devils_advocate</code> functions with prompt, dot access (<code>attack.damage_level</code>), if/else branching.</div>
+          </div>
+          <div class="task-item">
+            <div class="task-num">Task 04</div>
+            <div class="task-name">News analysis</div>
+            <div class="task-desc">6-phase pipeline with web search: ground &rarr; survey(5 stakeholders) &rarr; for loop {assert, doubt, contrast} &rarr; reframe(cui bono) &rarr; scope(wide). 10+ conclude fields.</div>
+          </div>
+          <div class="task-item" style="grid-column: 1 / -1;">
+            <div class="task-num">Task 05</div>
+            <div class="task-name">Reflection &amp; generation</div>
+            <div class="task-desc">
+              The model analyzes a topic (AI safety regulation), then <strong>generates a reusable <code>.zobr</code> script</strong>
+              encoding the reasoning pattern, and validates it with <code>zobr-check</code>. Tests both content quality and ZS code generation.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="intro-card">
+        <h3>Models under test</h3>
+        <ul>
+          <li><strong style="color:#a78bfa">Claude Opus 4.6</strong> &mdash; most capable, deepest reasoning</li>
+          <li><strong style="color:#22d3ee">Claude Sonnet 4.6</strong> &mdash; mid-tier, balance of speed and quality</li>
+          <li><strong style="color:#fbbf24">Claude Haiku 4.5</strong> &mdash; fastest, most cost-effective</li>
+        </ul>
+        <h3 style="margin-top:20px">Evaluation dimensions</h3>
+        <ul>
+          <li><strong style="color:#e0e6ed">Structural compliance</strong> (0&ndash;10) &mdash; does the model follow the ZS script correctly?</li>
+          <li><strong style="color:#e0e6ed">Content quality</strong> (0&ndash;10) &mdash; how deep, specific, and insightful is the reasoning?</li>
+          <li><strong style="color:#e0e6ed">Generation quality</strong> (0&ndash;10) &mdash; can the model produce a valid, reusable .zobr script?</li>
+        </ul>
+      </div>
+      <div class="intro-card">
+        <h3>Methodology</h3>
+        <ul>
+          <li>Each model runs each task independently via <code>claude&nbsp;-p</code> (headless mode)</li>
+          <li>Full isolation: no project context, no MCP servers, no cross-task state</li>
+          <li><code>--effort high</code> for consistent thinking depth</li>
+          <li>Models read the ZS spec + system prompt, then execute the .zobr script</li>
+          <li>Results captured as inference transcripts + model output files</li>
+          <li>Evaluation performed by Opus 4.6 executing <code>evaluate-benchmark.zobr</code> &mdash; a ZS script evaluating ZS results (meta-evaluation)</li>
+        </ul>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          15 runs total (5 tasks &times; 3 models), 0 failures. Total benchmark time: ~48 minutes.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ COMPOSITE SCORES ═══ -->
+  <div class="section-title">Model composite scores</div>
+  <div class="hero-scores">
+    <div class="hero-card opus">
+      <div class="model-name">Opus 4.6</div>
+      <div class="score">9.4</div>
+      <div class="score-label">/ 10</div>
+      <div class="tier">Expert-level reasoning</div>
+    </div>
+    <div class="hero-card sonnet">
+      <div class="model-name">Sonnet 4.6</div>
+      <div class="score">9.3</div>
+      <div class="score-label">/ 10</div>
+      <div class="tier">Near-parity with Opus</div>
+    </div>
+    <div class="hero-card haiku">
+      <div class="model-name">Haiku 4.5</div>
+      <div class="score">7.9</div>
+      <div class="score-label">/ 10</div>
+      <div class="tier">Competent &amp; structured</div>
+    </div>
+  </div>
+
+  <!-- ═══ FULL SCORING MATRIX ═══ -->
+  <div class="matrix-section">
+    <div class="section-title">Complete scoring matrix</div>
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th style="width:30%">Task</th>
+          <th>Dimension</th>
+          <th>Opus 4.6</th>
+          <th>Sonnet 4.6</th>
+          <th>Haiku 4.5</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>01 &mdash; Simple pipeline</td>
+          <td>Structural</td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s9">9</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Content</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s8">8</span></td>
+          <td><span class="score-cell s7">7</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Composite</td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s9">9.0</span></td>
+          <td><span class="score-cell s8">8.0</span></td>
+        </tr>
+
+        <tr>
+          <td>02 &mdash; Dialectical</td>
+          <td>Structural</td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s9">9</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Content</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s6">6</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Composite</td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s7">7.5</span></td>
+        </tr>
+
+        <tr>
+          <td>03 &mdash; Custom functions</td>
+          <td>Structural</td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s9">9</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Content</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s7">7</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Composite</td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s8">8.0</span></td>
+        </tr>
+
+        <tr>
+          <td>04 &mdash; News analysis</td>
+          <td>Structural</td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Content</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s7">7</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Composite</td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s8">8.5</span></td>
+        </tr>
+
+        <tr>
+          <td>05 &mdash; Reflection</td>
+          <td>Content</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s7">7</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Generation</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s8">8</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Composite</td>
+          <td><span class="score-cell s9">9.0</span></td>
+          <td><span class="score-cell s9">9.0</span></td>
+          <td><span class="score-cell s7">7.5</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ DIMENSION BARS ═══ -->
+  <div class="bars-section">
+    <div class="section-title">Scores by dimension</div>
+    <div class="bars-grid">
+      <div class="bar-group">
+        <h3>Structural Compliance</h3>
+        <div class="bar-row">
+          <span class="bar-label">Opus</span>
+          <div class="bar-track"><div class="bar-fill opus" style="width:100%">10.0</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Sonnet</span>
+          <div class="bar-track"><div class="bar-fill sonnet" style="width:100%">10.0</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Haiku</span>
+          <div class="bar-track"><div class="bar-fill haiku" style="width:92.5%">9.25</div></div>
+        </div>
+      </div>
+      <div class="bar-group">
+        <h3>Content Quality</h3>
+        <div class="bar-row">
+          <span class="bar-label">Opus</span>
+          <div class="bar-track"><div class="bar-fill opus" style="width:90%">9.0</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Sonnet</span>
+          <div class="bar-track"><div class="bar-fill sonnet" style="width:88%">8.8</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Haiku</span>
+          <div class="bar-track"><div class="bar-fill haiku" style="width:68%">6.8</div></div>
+        </div>
+      </div>
+      <div class="bar-group">
+        <h3>Generation Quality</h3>
+        <div class="bar-row">
+          <span class="bar-label">Opus</span>
+          <div class="bar-track"><div class="bar-fill opus" style="width:90%">9</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Sonnet</span>
+          <div class="bar-track"><div class="bar-fill sonnet" style="width:90%">9</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Haiku</span>
+          <div class="bar-track"><div class="bar-fill haiku" style="width:80%">8</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RADAR CHART (SVG) ═══ -->
+  <div class="radar-section">
+    <div class="section-title">Task performance profile</div>
+    <div class="radar-container">
+      <div class="radar-svg-wrap">
+        <svg viewBox="0 0 400 400" width="380" height="380">
+          <defs>
+            <style>
+              .radar-grid { stroke: #1e293b; fill: none; stroke-width: 1; }
+              .radar-axis { stroke: #1e293b; stroke-width: 1; }
+              .radar-label { font-family: 'Inter', sans-serif; font-size: 12px; fill: #6b7280; font-weight: 500; }
+            </style>
+          </defs>
+          <!-- Grid rings -->
+          <g transform="translate(200,200)">
+            <!-- Rings at 60%, 70%, 80%, 90%, 100% -->
+            <polygon class="radar-grid" points="0,-160 152.2,-49.4 94.1,129.4 -94.1,129.4 -152.2,-49.4"/>
+            <polygon class="radar-grid" points="0,-144 137,-44.5 84.7,116.5 -84.7,116.5 -137,-44.5"/>
+            <polygon class="radar-grid" points="0,-128 121.8,-39.6 75.3,103.5 -75.3,103.5 -121.8,-39.6"/>
+            <polygon class="radar-grid" points="0,-112 106.6,-34.6 65.9,90.6 -65.9,90.6 -106.6,-34.6"/>
+            <polygon class="radar-grid" points="0,-96 91.4,-29.7 56.5,77.7 -56.5,77.7 -91.4,-29.7"/>
+
+            <!-- Axes -->
+            <line class="radar-axis" x1="0" y1="0" x2="0" y2="-160"/>
+            <line class="radar-axis" x1="0" y1="0" x2="152.2" y2="-49.4"/>
+            <line class="radar-axis" x1="0" y1="0" x2="94.1" y2="129.4"/>
+            <line class="radar-axis" x1="0" y1="0" x2="-94.1" y2="129.4"/>
+            <line class="radar-axis" x1="0" y1="0" x2="-152.2" y2="-49.4"/>
+
+            <!-- Labels -->
+            <text class="radar-label" x="0" y="-170" text-anchor="middle">01 Simple</text>
+            <text class="radar-label" x="166" y="-46" text-anchor="start">02 Dialectical</text>
+            <text class="radar-label" x="104" y="148" text-anchor="middle">03 Functions</text>
+            <text class="radar-label" x="-104" y="148" text-anchor="middle">04 News</text>
+            <text class="radar-label" x="-166" y="-46" text-anchor="end">05 Reflection</text>
+
+            <!-- Scale labels -->
+            <text class="radar-label" x="8" y="-155" text-anchor="start" font-size="9" fill="#374151">10</text>
+            <text class="radar-label" x="8" y="-123" text-anchor="start" font-size="9" fill="#374151">9</text>
+            <text class="radar-label" x="8" y="-91" text-anchor="start" font-size="9" fill="#374151">8</text>
+            <text class="radar-label" x="8" y="-59" text-anchor="start" font-size="9" fill="#374151">7</text>
+
+            <!-- Opus: 9.5, 9.5, 9.5, 9.5, 9.0 -->
+            <!-- scale: score mapped to radius, 6=96, 7=112, 8=128, 9=144, 10=160, linear: r = (score-5)*32 -->
+            <!-- 9.5 → 144+8=152, 9.0 → 128+16=144 -->
+            <!-- Pentagon vertices at angles: -90, -90+72=-18, -90+144=54, -90+216=126, -90+288=198 deg -->
+            <!-- At radius r: x=r*cos(a), y=r*sin(a) -->
+            <!-- 9.5: r=152. Pts: (0,-152), (144.6,-47), (89.4,123), (-89.4,123), (-144.6,-47) -->
+            <!-- 9.0: r=144. -->
+            <polygon fill="rgba(99,102,241,0.15)" stroke="#6366f1" stroke-width="2"
+              points="0,-152 144.6,-47 89.4,123 -89.4,123 -136.9,-44.5"/>
+            <!-- 9.0 at vertex 5 (angle 198): 144*cos(198°), 144*sin(198°) = 144*(-0.951), 144*(-0.309) = -136.9, -44.5 -->
+
+            <!-- Sonnet: 9.0, 9.5, 9.5, 9.5, 9.0 -->
+            <!-- 9.0→r=144, 9.5→r=152 -->
+            <polygon fill="rgba(6,182,212,0.12)" stroke="#06b6d4" stroke-width="2"
+              points="0,-144 144.6,-47 89.4,123 -89.4,123 -136.9,-44.5"/>
+
+            <!-- Haiku: 8.0, 7.5, 8.0, 8.5, 7.5 -->
+            <!-- 8.0→r=128, 7.5→r=120, 8.5→r=136 -->
+            <!-- 8.0: (0,-128) -->
+            <!-- 7.5 at -18°: 120*cos(-18°), 120*sin(-18°) = 114.1, -37.1 -->
+            <!-- 8.0 at 54°: 128*cos(54°), 128*sin(54°) = 75.3, 103.5 -->
+            <!-- 8.5 at 126°: 136*cos(126°), 136*sin(126°) = -79.9, 110 -->
+            <!-- 7.5 at 198°: 120*cos(198°), 120*sin(198°) = -114.1, -37.1 -->
+            <polygon fill="rgba(245,158,11,0.12)" stroke="#f59e0b" stroke-width="2"
+              points="0,-128 114.1,-37.1 75.3,103.5 -79.9,110 -114.1,-37.1"/>
+
+            <!-- Dots -->
+            <g fill="#6366f1">
+              <circle cx="0" cy="-152" r="4"/>
+              <circle cx="144.6" cy="-47" r="4"/>
+              <circle cx="89.4" cy="123" r="4"/>
+              <circle cx="-89.4" cy="123" r="4"/>
+              <circle cx="-136.9" cy="-44.5" r="4"/>
+            </g>
+            <g fill="#06b6d4">
+              <circle cx="0" cy="-144" r="4"/>
+              <circle cx="144.6" cy="-47" r="4"/>
+              <circle cx="89.4" cy="123" r="4"/>
+              <circle cx="-89.4" cy="123" r="4"/>
+              <circle cx="-136.9" cy="-44.5" r="4"/>
+            </g>
+            <g fill="#f59e0b">
+              <circle cx="0" cy="-128" r="4"/>
+              <circle cx="114.1" cy="-37.1" r="4"/>
+              <circle cx="75.3" cy="103.5" r="4"/>
+              <circle cx="-79.9" cy="110" r="4"/>
+              <circle cx="-114.1" cy="-37.1" r="4"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="radar-legend">
+        <div class="radar-legend-item">
+          <div class="radar-legend-dot opus"></div>
+          <span class="radar-legend-name">Opus 4.6</span>
+          <span class="radar-legend-score opus">9.4</span>
+        </div>
+        <div class="radar-legend-item">
+          <div class="radar-legend-dot sonnet"></div>
+          <span class="radar-legend-name">Sonnet 4.6</span>
+          <span class="radar-legend-score sonnet">9.3</span>
+        </div>
+        <div class="radar-legend-item">
+          <div class="radar-legend-dot haiku"></div>
+          <span class="radar-legend-name">Haiku 4.5</span>
+          <span class="radar-legend-score haiku">7.9</span>
+        </div>
+        <div style="margin-top: 24px; font-size: 12px; color: #4b5563; line-height: 1.6;">
+          Composite score per task (avg of structural, content, and generation dimensions).
+          Outer ring = 10, inner ring = 6.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONTENT GAP ═══ -->
+  <div class="gap-section">
+    <div class="section-title">Content quality gap (Opus vs Haiku)</div>
+    <!-- Each bar: Haiku score | gap zone | Opus score extends to -->
+    <div class="gap-row">
+      <div class="gap-task">01 — Simple</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:70%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:20%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;2</div>
+    </div>
+    <div class="gap-row">
+      <div class="gap-task">02 — Dialectical</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:60%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:30%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;3</div>
+    </div>
+    <div class="gap-row">
+      <div class="gap-task">03 — Custom functions</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:70%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:20%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;2</div>
+    </div>
+    <div class="gap-row">
+      <div class="gap-task">04 — News analysis</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:70%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:20%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;2</div>
+    </div>
+    <div class="gap-row">
+      <div class="gap-task">05 — Reflection</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:70%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:20%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;2</div>
+    </div>
+    <div style="font-size: 12px; color: #4b5563; margin-top: 12px; padding-left: 186px;">
+      Largest gap on dialectical reasoning (iterative refinement, domain knowledge, emergent synthesis)
+    </div>
+  </div>
+
+  <!-- ═══ TIMING ═══ -->
+  <div class="timing-section">
+    <div class="section-title">Performance &amp; efficiency</div>
+    <div class="timing-grid">
+      <div class="timing-card">
+        <h3>Average time per task</h3>
+        <div class="timing-row">
+          <span class="timing-model">Haiku 4.5</span>
+          <span class="timing-value haiku">110s &nbsp;(1.8 min)</span>
+        </div>
+        <div class="timing-row">
+          <span class="timing-model">Opus 4.6</span>
+          <span class="timing-value opus">189s &nbsp;(3.2 min)</span>
+        </div>
+        <div class="timing-row">
+          <span class="timing-model">Sonnet 4.6</span>
+          <span class="timing-value sonnet">273s &nbsp;(4.6 min)</span>
+        </div>
+      </div>
+      <div class="timing-card">
+        <h3>Total benchmark time</h3>
+        <div class="timing-row">
+          <span class="timing-model">Haiku 4.5</span>
+          <span class="timing-value haiku">548s &nbsp;(9.1 min)</span>
+        </div>
+        <div class="timing-row">
+          <span class="timing-model">Opus 4.6</span>
+          <span class="timing-value opus">946s &nbsp;(15.8 min)</span>
+        </div>
+        <div class="timing-row">
+          <span class="timing-model">Sonnet 4.6</span>
+          <span class="timing-value sonnet">1365s &nbsp;(22.8 min)</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 12px; color: #4b5563; margin-top: 12px;">
+      Sonnet unexpectedly slowest (2.5&times; Haiku, 1.4&times; Opus) despite being mid-tier &mdash; may reflect API routing, not model properties.
+    </div>
+  </div>
+
+  <!-- ═══ KEY FINDINGS ═══ -->
+  <div class="findings-section">
+    <div class="section-title">Key findings</div>
+    <div class="finding-card">
+      <div class="finding-num">1</div>
+      <div class="finding-body">
+        <h4>ZS is structurally model-agnostic</h4>
+        <p>All three models follow ZS scripts with high fidelity (9.25&ndash;10.0). Operations executed in order, variables tracked, control flow followed. The 0.75-point gap is cosmetic, not semantic.</p>
+      </div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">2</div>
+      <div class="finding-body">
+        <h4>Content gap concentrates in dialectical tasks</h4>
+        <p>The Opus&ndash;Haiku gap peaks at 3 points on Task 02 (iterative refinement, domain knowledge, emergent synthesis). Structural tasks show smaller gaps. ZS amplifies reasoning where it&rsquo;s hardest.</p>
+      </div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">3</div>
+      <div class="finding-body">
+        <h4>Sonnet achieves near-parity with Opus (9.3 vs 9.4)</h4>
+        <p>Structured scripts reduce the capability gap between tiers. When reasoning structure is externalized, the model&rsquo;s job shifts to filling containers with content &mdash; and Sonnet fills them nearly as well.</p>
+      </div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">4</div>
+      <div class="finding-body">
+        <h4>All models generate valid ZS scripts</h4>
+        <p>All three reflection.zobr files pass zobr-check with 0 errors. Generation capability scales with interpretation &mdash; no &ldquo;generation penalty.&rdquo; ZS script generation is a practical workflow.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RECOMMENDATIONS ═══ -->
+  <div class="rec-section">
+    <div class="section-title">Model selection guide</div>
+    <table class="rec-table">
+      <thead>
+        <tr>
+          <th>Use case</th>
+          <th>Model</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Structural tasks (extract, classify, survey)</td>
+          <td><span class="model-tag haiku">Haiku</span></td>
+          <td>1.7&times; faster than Opus; structural compliance ~perfect</td>
+        </tr>
+        <tr>
+          <td>Dialectical reasoning (doubt, contrast, reframe loops)</td>
+          <td><span class="model-tag opus">Opus</span></td>
+          <td>Content depth gap largest on iterative reasoning</td>
+        </tr>
+        <tr>
+          <td>News / political analysis</td>
+          <td><span class="model-tag sonnet">Sonnet</span> <span class="model-tag opus">Opus</span></td>
+          <td>Both expert-level; Sonnet adds source critique</td>
+        </tr>
+        <tr>
+          <td>Script generation</td>
+          <td><span class="model-tag sonnet">Sonnet</span></td>
+          <td>Most architecturally sophisticated; fully generalizable</td>
+        </tr>
+        <tr>
+          <td>High-volume batch processing</td>
+          <td><span class="model-tag haiku">Haiku</span></td>
+          <td>2.5&times; faster than Sonnet; valid reasoning at scale</td>
+        </tr>
+        <tr>
+          <td>Philosophy / deep analysis</td>
+          <td><span class="model-tag opus">Opus</span></td>
+          <td>Broadest references; most original framings</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ FOOTER ═══ -->
+  <div class="footer">
+    ZS Benchmark Evaluation &bull; Evaluator: Claude Opus 4.6 &bull; 2026-03-14
+    <br>
+    <span style="margin-top:4px; display:inline-block;">
+      <a href="https://github.com/docxi-org/black-zobr">Black Zobr</a> &bull; Apache License 2.0
+    </span>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  var ops = {
+    survey: {
+      cat: 'Discovery', catClass: 'cat-discovery',
+      desc: 'Explore a topic and identify key elements — positions, factors, perspectives. Returns a list of identified items with brief descriptions.',
+      sig: 'survey(topic, count?: N, from?: source) → list',
+      example: 'positions = survey("main positions on consciousness", count: 3)'
+    },
+    ground: {
+      cat: 'Discovery', catClass: 'cat-discovery',
+      desc: 'Connect a claim or topic to concrete evidence, facts, or experience. Extracts structured data from sources.',
+      sig: 'ground(claim, extract?: [fields]) → evidence',
+      example: 'evidence = ground(news_article, extract: [facts, quotes, dates])'
+    },
+    assert: {
+      cat: 'Argument', catClass: 'cat-argument',
+      desc: 'State a position with reasoning. Takes a thesis and optionally a source to base the argument on.',
+      sig: 'assert(thesis, based_on?: source) → claim',
+      example: 'claim = assert("consciousness is computational", based_on: evidence)'
+    },
+    doubt: {
+      cat: 'Argument', catClass: 'cat-argument',
+      desc: 'Problematize a claim — find weaknesses, hidden assumptions, edge cases. Must provide genuine critique, not strawmen.',
+      sig: 'doubt(target) → critique',
+      example: 'weakness = doubt(claim)\n// "The performative contradiction: to call consciousness an illusion\n//  requires a subject experiencing the illusion"'
+    },
+    contrast: {
+      cat: 'Argument', catClass: 'cat-argument',
+      desc: 'Find or construct an opposing position or counterexample. Must present the strongest counter-argument, not a weak alternative.',
+      sig: 'contrast(target, with?: alternative) → counter',
+      example: 'counter = contrast(claim, with: "phenomenological perspective")'
+    },
+    analogy: {
+      cat: 'Argument', catClass: 'cat-argument',
+      desc: 'Transfer understanding from another domain. Creates a mapping between source and target domains to reveal hidden structure.',
+      sig: 'analogy(target, from?: domain) → mapping',
+      example: 'insight = analogy(problem, from: "evolutionary biology")'
+    },
+    synthesize: {
+      cat: 'Synthesis', catClass: 'cat-synthesis',
+      desc: 'Combine multiple positions or findings into a higher-level understanding. Must produce emergent insight, not just a summary.',
+      sig: 'synthesize(sources, method?: approach) → unified',
+      example: 'unified = synthesize([thesis, counter, evidence],\n  method: "find common ground")'
+    },
+    reframe: {
+      cat: 'Synthesis', catClass: 'cat-synthesis',
+      desc: 'Reformulate a problem or position in different terms. Changes the lens through which the issue is viewed.',
+      sig: 'reframe(target, lens?: perspective) → new_view',
+      example: 'deeper = reframe(news_text, lens: "cui bono")'
+    },
+    assess: {
+      cat: 'Meta', catClass: 'cat-meta',
+      desc: 'Reflective pause — evaluate the current state of reasoning. Returns status (open/converging/stuck), tension, and what\'s missing.',
+      sig: 'assess(scale?: enum) → { status, tension, missing }',
+      example: 'state = assess()\nif state.status == stuck { pivot("new approach") }'
+    },
+    pivot: {
+      cat: 'Meta', catClass: 'cat-meta',
+      desc: 'Explicitly change reasoning strategy. Signals that the current approach is insufficient and a new direction is needed.',
+      sig: 'pivot(reason) → (side effect)',
+      example: 'pivot("linear analysis insufficient, switching to dialectical")'
+    },
+    scope: {
+      cat: 'Meta', catClass: 'cat-meta',
+      desc: 'Narrow or widen the focus of inquiry. Controls the analytical zoom level — from specific mechanisms to systemic connections.',
+      sig: 'scope(narrow|wide, focus?) → (side effect)',
+      example: 'scope(wide, "how does this connect to embodied cognition")'
+    },
+    conclude: {
+      cat: 'Output', catClass: 'cat-output',
+      desc: 'Define the structure and format of the final result. Fields specify the output schema — types include string, list, bool, and enums.',
+      sig: 'conclude { field: type, ... } → structured result',
+      example: 'result = conclude {\n  thesis: string\n  confidence: low | medium | high\n  key_evidence: list\n  open_questions: list\n}'
+    }
+  };
+
+  var grid = document.getElementById('ops-grid');
+  var detail = document.getElementById('op-detail');
+  var nameEl = document.getElementById('op-detail-name');
+  var catEl = document.getElementById('op-detail-cat');
+  var descEl = document.getElementById('op-detail-desc');
+  var sigEl = document.getElementById('op-detail-sig');
+  var exEl = document.getElementById('op-detail-example');
+
+  function show(opName) {
+    var d = ops[opName];
+    if (!d) return;
+    nameEl.textContent = opName;
+    catEl.textContent = d.cat;
+    catEl.className = 'op-detail-category ' + d.catClass;
+    descEl.textContent = d.desc;
+    sigEl.textContent = d.sig;
+    exEl.textContent = d.example;
+    detail.style.animation = 'none';
+    detail.offsetHeight; // reflow
+    detail.style.animation = '';
+
+    var tags = grid.querySelectorAll('.op-tag');
+    for (var i = 0; i < tags.length; i++) {
+      tags[i].classList.toggle('active', tags[i].getAttribute('data-op') === opName);
+    }
+  }
+
+  grid.addEventListener('click', function(e) {
+    var tag = e.target.closest('[data-op]');
+    if (tag) show(tag.getAttribute('data-op'));
+  });
+
+  // Show survey by default
+  show('survey');
+})();
+</script>
+
+</body>
+</html>

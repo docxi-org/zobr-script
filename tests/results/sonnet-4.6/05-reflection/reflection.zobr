@@ -1,0 +1,119 @@
+// reflection.zobr — Generalizable pattern for analyzing emerging technology policy debates
+// Generated from ZS benchmark task 05 (AI safety regulation analysis)
+// Author: Claude Sonnet 4.6, 2026-03-14
+//
+// Usage: apply this script to any technology domain where regulation is contested —
+// biotech, social media, autonomous vehicles, synthetic biology, nuclear, etc.
+
+task: "Analyze the regulatory policy debate around an emerging technology domain"
+input: technology_domain
+
+// ─── Phase 1: Map the field ───────────────────────────────────────────────────
+
+// Who are the players?
+actors = survey("key stakeholders in the regulatory debate over technology_domain", count: 5)
+
+// What frameworks exist or are proposed?
+frameworks = survey("regulatory frameworks, legislative proposals, and governance approaches for technology_domain", count: 4)
+
+// Ground the analysis in documented facts
+factual_base = ground(technology_domain, extract: [key_events, enacted_rules, proposals, deadlines, enforcement_actions])
+
+// ─── Phase 2: Stakeholder analysis ────────────────────────────────────────────
+
+// For each actor: stated position → weaknesses → likely real interest
+actor_analysis = for actor in actors {
+  position = assert(actor.stance, based_on: factual_base)
+  weakness = doubt(position)
+  real_interest = reframe(position, lens: "cui bono — what does this actor actually gain or protect")
+  yield {
+    actor: actor,
+    stated_position: position,
+    weakness: weakness,
+    real_interest: real_interest
+  }
+}
+
+// ─── Phase 3: Framework analysis ─────────────────────────────────────────────
+
+// For each framework: what does it actually do, what does it miss?
+framework_analysis = for f in frameworks {
+  strengths = ground(f, extract: [key_provisions, enforcement_mechanisms, covered_risks])
+  gaps = doubt(f)
+  alternative = contrast(f, with: "what a different regulatory philosophy would prioritize")
+  yield {
+    framework: f,
+    strengths: strengths,
+    gaps: gaps,
+    alternative: alternative
+  }
+}
+
+// ─── Phase 4: Core tension mapping ───────────────────────────────────────────
+
+// Construct both sides of the core debate
+pro_regulation = assert("regulation of technology_domain is necessary for public safety and accountability",
+  based_on: factual_base)
+anti_regulation = contrast(pro_regulation,
+  with: "innovation, competitiveness, and freedom from premature constraint")
+
+// Find the structural trade-off underneath the surface debate
+tension_core = synthesize([pro_regulation, anti_regulation],
+  method: "identify the fundamental structural trade-off that cannot be dissolved by compromise")
+
+// ─── Phase 5: Power dynamics ──────────────────────────────────────────────────
+
+// Who controls the definition of "safe"?
+power_lens = reframe(tension_core,
+  lens: "who has the power to define what counts as safe, harmful, or acceptable risk")
+
+// Are the proposed frameworks being shaped to protect incumbents?
+capture_risk = doubt(frameworks)
+
+// ─── Phase 6: Assess reasoning state ─────────────────────────────────────────
+
+state = assess()
+if state.status == stuck {
+  pivot("normative analysis misses the political economy — reframe through power and interest")
+  tension_core = reframe(tension_core, lens: "follow power, money, and geopolitical interest")
+}
+
+// ─── Phase 7: Historical and structural context ───────────────────────────────
+
+// Find a precedent that illuminates the structural dynamics
+historical = analogy(tension_core, from: "prior contested technology regulation debates")
+
+// Step back: what larger forces shape this debate?
+scope(wide, "geopolitical competition, economic incentives, and structural power that constrain all regulatory choices")
+
+// ─── Phase 8: Synthesis and trajectory ───────────────────────────────────────
+
+// Combine all analysis into a structural picture
+global_picture = synthesize([actor_analysis, framework_analysis, tension_core, power_lens, historical],
+  method: "identify the structural forces that will determine the regulatory outcome regardless of stated intentions")
+
+// What is actually going to happen and why?
+trajectory = assert("where this debate is heading based on structural forces, not stated goals",
+  based_on: global_picture)
+
+// What could falsify or derail this trajectory?
+open_risks = doubt(trajectory)
+
+// ─── Output ───────────────────────────────────────────────────────────────────
+
+result = conclude {
+  technology_domain: string
+  summary: string
+  key_actors: list
+  regulatory_approaches: list
+  core_tension: string
+  hidden_interests: list
+  power_dynamics: string
+  regulatory_capture_risk: string
+  historical_parallel: string
+  trajectory: string
+  risks_to_trajectory: list
+  confidence: low | medium | high
+  watch_for: list
+  open_questions: list
+}

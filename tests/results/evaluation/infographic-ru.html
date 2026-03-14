@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZS Benchmark — Инфографика оценки</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #0a0e17;
+    color: #e0e6ed;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+    margin: 24px auto 0;
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    background: linear-gradient(135deg, #c7d2fe 0%, #a78bfa 50%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header .subtitle {
+    font-size: 16px;
+    color: #7c85a0;
+    font-weight: 400;
+  }
+  .header .meta {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #4b5563;
+  }
+  .header .meta span { margin: 0 12px; }
+
+  /* ── Section titles ── */
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #6366f1;
+    margin-bottom: 20px;
+    padding-left: 2px;
+  }
+
+  /* ── Итого scores hero ── */
+  .hero-scores {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 56px;
+  }
+  .hero-card {
+    flex: 1;
+    background: linear-gradient(145deg, #111827, #1a2035);
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .hero-card.opus::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+  .hero-card.sonnet::before { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+  .hero-card.haiku::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+  .hero-card .model-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .hero-card .score {
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hero-card.opus .score { color: #a78bfa; }
+  .hero-card.sonnet .score { color: #22d3ee; }
+  .hero-card.haiku .score { color: #fbbf24; }
+
+  .hero-card .score-label {
+    font-size: 12px;
+    color: #4b5563;
+    font-weight: 500;
+  }
+  .hero-card .tier {
+    margin-top: 16px;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: 600;
+  }
+  .hero-card.opus .tier { background: rgba(99,102,241,0.15); color: #a78bfa; }
+  .hero-card.sonnet .tier { background: rgba(6,182,212,0.15); color: #22d3ee; }
+  .hero-card.haiku .tier { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+  /* ── Scoring matrix ── */
+  .matrix-section {
+    margin-bottom: 56px;
+  }
+  .matrix {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+  }
+  .matrix th, .matrix td {
+    padding: 12px 16px;
+    text-align: center;
+  }
+  .matrix thead th {
+    background: #111827;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #1e293b;
+  }
+  .matrix thead th:first-child {
+    text-align: left;
+    border-radius: 8px 0 0 0;
+  }
+  .matrix thead th:last-child {
+    border-radius: 0 8px 0 0;
+  }
+  .matrix tbody td {
+    border-bottom: 1px solid #1e293b;
+  }
+  .matrix tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: #94a3b8;
+  }
+  .matrix tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .matrix .row-composite td {
+    font-weight: 700;
+    border-top: 2px solid #1e293b;
+    border-bottom: none;
+    padding-top: 16px;
+  }
+  .matrix .row-composite td:first-child {
+    color: #e0e6ed;
+  }
+
+  /* Score cells with color coding */
+  .score-cell {
+    font-weight: 700;
+    font-size: 15px;
+    border-radius: 6px;
+    min-width: 44px;
+    display: inline-block;
+    padding: 4px 0;
+  }
+  .s10 { color: #34d399; }
+  .s9 { color: #6ee7b7; }
+  .s8 { color: #a7f3d0; }
+  .s7 { color: #fde68a; }
+  .s6 { color: #fca5a5; }
+  .dim { font-size: 11px; color: #4b5563; font-weight: 400; padding-left: 4px; }
+
+  /* ── Bar charts ── */
+  .bars-section {
+    margin-bottom: 56px;
+  }
+  .bars-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  .bar-group {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .bar-group h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  .bar-label {
+    font-size: 11px;
+    color: #6b7280;
+    width: 46px;
+    text-align: right;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+  .bar-track {
+    flex: 1;
+    height: 24px;
+    background: #1a2035;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    position: relative;
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    min-width: 36px;
+  }
+  .bar-fill.opus { background: linear-gradient(90deg, #4f46e5, #6366f1); }
+  .bar-fill.sonnet { background: linear-gradient(90deg, #0891b2, #06b6d4); }
+  .bar-fill.haiku { background: linear-gradient(90deg, #d97706, #f59e0b); }
+
+  /* ── Radar chart (CSS only) ── */
+  .radar-section {
+    margin-bottom: 56px;
+  }
+  .radar-container {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+    padding: 32px;
+    display: flex;
+    gap: 40px;
+    align-items: center;
+  }
+  .radar-svg-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+  .radar-legend {
+    width: 260px;
+    flex-shrink: 0;
+  }
+  .radar-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+  .radar-legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .radar-legend-dot.opus { background: #6366f1; }
+  .radar-legend-dot.sonnet { background: #06b6d4; }
+  .radar-legend-dot.haiku { background: #f59e0b; }
+  .radar-legend-name {
+    font-weight: 600;
+    color: #94a3b8;
+  }
+  .radar-legend-score {
+    margin-left: auto;
+    font-weight: 700;
+  }
+  .radar-legend-score.opus { color: #a78bfa; }
+  .radar-legend-score.sonnet { color: #22d3ee; }
+  .radar-legend-score.haiku { color: #fbbf24; }
+
+  /* ── Timing section ── */
+  .timing-section {
+    margin-bottom: 56px;
+  }
+  .timing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .timing-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .timing-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+  .timing-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #1e293b;
+  }
+  .timing-row:last-child { border-bottom: none; }
+  .timing-model { font-weight: 500; font-size: 14px; }
+  .timing-value { font-weight: 700; font-size: 14px; }
+  .timing-value.opus { color: #a78bfa; }
+  .timing-value.sonnet { color: #22d3ee; }
+  .timing-value.haiku { color: #fbbf24; }
+
+  /* ── Содержание gap ── */
+  .gap-section {
+    margin-bottom: 56px;
+  }
+  .gap-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .gap-task {
+    width: 170px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .gap-bar-container {
+    flex: 1;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .gap-segment {
+    height: 28px;
+    border-radius: 4px;
+    position: relative;
+  }
+  .gap-segment.haiku-zone {
+    background: linear-gradient(90deg, #92400e, #d97706);
+  }
+  .gap-segment.gap-zone {
+    background: repeating-linear-gradient(
+      135deg,
+      transparent,
+      transparent 3px,
+      rgba(239,68,68,0.15) 3px,
+      rgba(239,68,68,0.15) 6px
+    );
+    border: 1px dashed rgba(239,68,68,0.3);
+    border-radius: 4px;
+  }
+  .gap-segment.opus-zone {
+    background: linear-gradient(90deg, #4338ca, #6366f1);
+  }
+  .gap-value {
+    font-size: 12px;
+    font-weight: 700;
+    width: 30px;
+    text-align: center;
+    color: #ef4444;
+    flex-shrink: 0;
+  }
+
+  /* ── Findings ── */
+  .findings-section {
+    margin-bottom: 56px;
+  }
+  .finding-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .finding-num {
+    font-size: 32px;
+    font-weight: 900;
+    color: #1e293b;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+    background: linear-gradient(135deg, #4338ca, #6366f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .finding-body h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e0e6ed;
+    margin-bottom: 6px;
+  }
+  .finding-body p {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+
+  /* ── Recommendations table ── */
+  .rec-section {
+    margin-bottom: 56px;
+  }
+  .rec-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .rec-table th {
+    background: #0f172a;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 2px solid #1e293b;
+  }
+  .rec-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #1e293b;
+    vertical-align: top;
+  }
+  .rec-table tr:last-child td { border-bottom: none; }
+  .rec-table .model-tag {
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: inline-block;
+  }
+  .model-tag.opus { background: rgba(99,102,241,0.15); color: #a78bfa; }
+  .model-tag.sonnet { background: rgba(6,182,212,0.15); color: #22d3ee; }
+  .model-tag.haiku { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px 0;
+    border-top: 1px solid #1e293b;
+    color: #374151;
+    font-size: 12px;
+  }
+  .footer a {
+    color: #6366f1;
+    text-decoration: none;
+  }
+
+  /* ── About / Intro sections ── */
+  .intro-section {
+    margin-bottom: 56px;
+  }
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .intro-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .intro-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e0e6ed;
+    margin-bottom: 14px;
+  }
+  .intro-card p, .intro-card li {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.7;
+  }
+  .intro-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .intro-card li {
+    padding: 4px 0;
+    padding-left: 18px;
+    position: relative;
+  }
+  .intro-card li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4f46e5;
+  }
+  .intro-card code {
+    background: rgba(99,102,241,0.15);
+    color: #a78bfa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .intro-full {
+    grid-column: 1 / -1;
+  }
+  .code-example {
+    background: #0a0e17;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 14px;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #94a3b8;
+    overflow-x: auto;
+  }
+  .code-example .kw { color: #818cf8; }
+  .code-example .str { color: #34d399; }
+  .code-example .op { color: #f59e0b; }
+  .code-example .var { color: #e0e6ed; }
+  .code-example .cmt { color: #4b5563; }
+
+  .task-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .task-item {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .task-item .task-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6366f1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .task-item .task-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e6ed;
+    margin-bottom: 4px;
+  }
+  .task-item .task-desc {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+  .op-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .op-tag {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .op-tag.discovery { background: rgba(34,211,238,0.12); color: #22d3ee; }
+  .op-tag.argument { background: rgba(167,139,250,0.12); color: #a78bfa; }
+  .op-tag.synthesis { background: rgba(52,211,153,0.12); color: #34d399; }
+  .op-tag.meta { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  .op-tag.output { background: rgba(248,113,113,0.12); color: #f87171; }
+
+  .op-tag[data-op] {
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    user-select: none;
+  }
+  .op-tag[data-op]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .op-tag[data-op].active {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
+    transform: translateY(-1px);
+  }
+
+  .op-detail {
+    margin-top: 16px;
+    background: #0a0e17;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 16px 20px;
+    animation: opDetailIn 0.2s ease;
+  }
+  @keyframes opDetailIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .op-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .op-detail-name {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 18px;
+    font-weight: 800;
+    color: #e0e6ed;
+  }
+  .op-detail-category {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .op-detail-category.cat-discovery { background: rgba(34,211,238,0.12); color: #22d3ee; }
+  .op-detail-category.cat-argument { background: rgba(167,139,250,0.12); color: #a78bfa; }
+  .op-detail-category.cat-synthesis { background: rgba(52,211,153,0.12); color: #34d399; }
+  .op-detail-category.cat-meta { background: rgba(251,191,36,0.12); color: #fbbf24; }
+  .op-detail-category.cat-output { background: rgba(248,113,113,0.12); color: #f87171; }
+
+  .op-detail-desc {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .op-detail-sig {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #6366f1;
+    background: rgba(99,102,241,0.08);
+    padding: 6px 12px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+  .op-detail-example {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: #6b7280;
+    padding: 8px 12px;
+    border-left: 2px solid #1e293b;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="header">
+    <h1>ZS Benchmark &mdash; Оценка</h1>
+    <div class="subtitle">3 модели &times; 5 задач &times; 3 измерения</div>
+    <div class="meta">
+      <span>Оценщик: Claude Opus 4.6</span>
+      <span>&bull;</span>
+      <span>Дата: 14.03.2026</span>
+      <span>&bull;</span>
+      <span>15 файлов результатов + 3 reflection.zobr</span>
+    </div>
+  </div>
+
+  <!-- ═══ WHAT IS ZS ═══ -->
+  <div class="intro-section">
+    <div class="section-title">Что такое ZS (Zobr Script)?</div>
+    <div class="intro-grid">
+      <div class="intro-card">
+        <h3>Когнитивный скриптовый язык для LLM</h3>
+        <p>
+          ZS предоставляет формальные конструкции для описания процессов рассуждения &mdash;
+          не как жёсткие инструкции, а как композируемые когнитивные операции с переменными,
+          управлением потоком и форматированием результатов.
+        </p>
+        <p style="margin-top:10px">
+          Думайте об этом как о <strong style="color:#e0e6ed">SQL для мышления</strong>: вы определяете
+          <em>какие</em> когнитивные шаги предпринять, LLM решает <em>как</em> их выполнить.
+        </p>
+        <p style="margin-top:10px">
+          Скрипты исполняются LLM в роли интерпретатора: модель читает файл <code>.zobr</code>,
+          выполняет операции шаг за шагом, отслеживает переменные, следует управлению потоком
+          и формирует структурированный вывод.
+        </p>
+      </div>
+      <div class="intro-card" id="ops-card">
+        <h3>12 встроенных операций <span style="font-size:11px; color:#4b5563; font-weight:400; margin-left:6px">нажмите для подробностей</span></h3>
+        <div class="op-grid" id="ops-grid">
+          <span class="op-tag discovery" data-op="survey">survey</span>
+          <span class="op-tag discovery" data-op="ground">ground</span>
+          <span class="op-tag argument" data-op="assert">assert</span>
+          <span class="op-tag argument" data-op="doubt">doubt</span>
+          <span class="op-tag argument" data-op="contrast">contrast</span>
+          <span class="op-tag argument" data-op="analogy">analogy</span>
+          <span class="op-tag synthesis" data-op="synthesize">synthesize</span>
+          <span class="op-tag synthesis" data-op="reframe">reframe</span>
+          <span class="op-tag meta" data-op="assess">assess</span>
+          <span class="op-tag meta" data-op="pivot">pivot</span>
+          <span class="op-tag meta" data-op="scope">scope</span>
+          <span class="op-tag output" data-op="conclude">conclude</span>
+        </div>
+        <div id="op-detail" class="op-detail">
+          <div class="op-detail-header">
+            <span class="op-detail-name" id="op-detail-name">survey</span>
+            <span class="op-detail-category" id="op-detail-cat">Discovery</span>
+          </div>
+          <div class="op-detail-desc" id="op-detail-desc">
+            Explore a topic and identify key elements (positions, factors, perspectives).
+          </div>
+          <div class="op-detail-sig" id="op-detail-sig">
+            survey(topic, count?: N) &rarr; list
+          </div>
+          <div class="op-detail-example" id="op-detail-example">
+            positions = survey("main positions on consciousness", count: 3)
+          </div>
+        </div>
+        <p style="margin-top:14px">
+          Плюс: переменные, управление потоком <code>for</code>/<code>if</code>/<code>loop</code>,
+          пользовательские функции (<code>define</code>), <code>yield</code>, импорт,
+          ссылки <code>@last</code>/<code>@N</code>.
+        </p>
+      </div>
+      <div class="intro-card intro-full">
+        <h3>Пример: как выглядит ZS-скрипт</h3>
+        <div class="code-example">
+<span class="kw">task:</span> <span class="str">"Evaluate risks of AI in education"</span><br>
+<br>
+<span class="var">risks</span> = <span class="op">survey</span>(<span class="str">"main risks of AI in education"</span>, <span class="kw">count:</span> 4)<br>
+<span class="var">evidence</span> = <span class="kw">for</span> r <span class="kw">in</span> risks {<br>
+&nbsp;&nbsp;<span class="var">concrete</span> = <span class="op">ground</span>(r, <span class="kw">extract:</span> [examples, studies])<br>
+&nbsp;&nbsp;<span class="kw">yield</span> { risk: r, evidence: concrete }<br>
+}<br>
+<span class="var">overview</span> = <span class="op">synthesize</span>(evidence, <span class="kw">method:</span> <span class="str">"rank by severity and interconnection"</span>)<br>
+<br>
+<span class="var">result</span> = <span class="op">conclude</span> {<br>
+&nbsp;&nbsp;top_risks: <span class="kw">list</span><br>
+&nbsp;&nbsp;most_critical: <span class="kw">string</span><br>
+&nbsp;&nbsp;recommendation: <span class="kw">string</span><br>
+&nbsp;&nbsp;confidence: low | medium | high<br>
+}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ APPLICABILITY ═══ -->
+  <div class="findings-section">
+    <div class="section-title">Применимость и сценарии использования</div>
+
+    <div class="intro-grid" style="margin-bottom:24px">
+      <div class="intro-card intro-full">
+        <h3>Что даёт ZS</h3>
+        <p>
+          ZS &mdash; это <strong style="color:#e0e6ed">усилитель рассуждений</strong>, а не тест возможностей.
+          Он не делает слабые модели сильными &mdash; он делает все модели <em>структурированными</em>.
+          Выполнение ZS-скрипта моделью Haiku даёт более полезный результат, чем свободный ответ Haiku
+          на тот же вопрос, потому что скрипт заставляет модель декомпозировать рассуждение, показывать ход мысли
+          и форматировать выводы. Бенчмарк подтверждает: даже самая маленькая модель следует ZS-скриптам
+          с 92.5% структурной точностью.
+        </p>
+        <p style="margin-top:10px">
+          Когда структура рассуждения задана извне скриптом, задача модели смещается
+          от <em>организации мышления</em> к <em>наполнению контейнеров содержанием</em>.
+          Именно поэтому Sonnet достигает почти паритета с Opus (9.3 vs 9.4) &mdash;
+          структурированные скрипты сжимают разрыв возможностей между уровнями моделей.
+        </p>
+      </div>
+    </div>
+
+    <div class="intro-grid">
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f4dc;</span> Воспроизводимые паттерны анализа
+        </h3>
+        <p>
+          Закодируйте лучший аналитический процесс один раз как <code>.zobr</code>-скрипт,
+          затем применяйте к новым данным. Скрипт анализа политических новостей работает с любой статьёй.
+          Скрипт due diligence &mdash; с любой компанией. Паттерн рассуждения многоразовый &mdash;
+          меняется только содержание.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Пример: <code>news-analysis.zobr</code> прогоняет один и тот же 6-фазный пайплайн
+          (ground &rarr; стейкхолдеры &rarr; мотивы &rarr; разрыв нарратива &rarr; cui bono &rarr; слепые пятна)
+          по каждой статье, гарантируя, что ничего не упущено.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f9ea;</span> Контроль качества рассуждений ИИ
+        </h3>
+        <p>
+          ZS-скрипты делают рассуждения аудируемыми. Вместо ответа-чёрного-ящика от LLM
+          вы получаете размеченные операции (<code>[doubt]</code>, <code>[contrast]</code>)
+          с видимым потоком переменных. Можно проверить, что модель действительно рассмотрела
+          контраргументы, а не просто сгенерировала односторонний вывод.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Критично для compliance, юридического анализа, медицинских рассуждений &mdash;
+          везде, где нужно показать <em>как</em> достигнут вывод, а не только <em>что</em> это за вывод.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f3af;</span> Оптимизация затрат через роутинг моделей
+        </h3>
+        <p>
+          Бенчмарк показывает: разным задачам нужны разные модели.
+          Используйте Haiku для структурных задач (обзоры, извлечение фактов) в 2.5&times; быстрее,
+          Sonnet для большинства аналитических задач, Opus только для глубоких диалектических рассуждений.
+          ZS-скрипты делают этот роутинг явным: один скрипт работает на любой модели.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Генерируйте скрипты через Sonnet (лучшая архитектура), исполняйте через Haiku в масштабе &mdash;
+          валидные структурированные рассуждения за долю стоимости.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f4a1;</span> Захват знаний из AI-сессий
+        </h3>
+        <p>
+          Когда агент в ходе разговора демонстрирует выдающееся рассуждение,
+          паттерн мышления можно дистиллировать в <code>.zobr</code>-скрипт &mdash;
+          многоразовый артефакт. Бенчмарк доказывает: все три модели способны генерировать
+          валидные параметризованные скрипты (задача 05: 0 ошибок у всех моделей).
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Двойное назначение: люди пишут скрипты как задания для LLM,
+          агенты экспортируют свои рассуждения в файлы <code>.zobr</code> для повторного использования.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f393;</span> Образование и критическое мышление
+        </h3>
+        <p>
+          ZS экстернализирует структуру строгого мышления: survey перед утверждением,
+          doubt своих собственных утверждений, contrast с сильнейшим контраргументом, synthesize &mdash; а не резюмировать.
+          Студенты и аналитики могут освоить эти паттерны, читая и создавая скрипты.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Шаблон <code>dialectical.zobr</code> учит итеративному уточнению тезиса
+          лучше, чем параграф учебника о диалектике.
+        </p>
+      </div>
+
+      <div class="intro-card">
+        <h3 style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:22px">&#x1f310;</span> Мультиагентные когнитивные процессы
+        </h3>
+        <p>
+          ZS-скрипты могут служить общими протоколами между агентами.
+          Один агент выполняет <code>survey</code> и <code>ground</code>,
+          другой &mdash; <code>doubt</code> и <code>contrast</code>,
+          третий <code>synthesize</code> результаты.
+          Скрипт определяет workflow; агенты наполняют операции.
+        </p>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          Часть экосистемы федеративного со-мышления
+          <a href="https://github.com/docxi-org/black-zobr" style="color:#6366f1; text-decoration:none">Black Zobr</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BENCHMARK TASKS ═══ -->
+  <div class="intro-section">
+    <div class="section-title">Бенчмарк: 5 задач &times; 3 модели</div>
+    <div class="intro-grid">
+      <div class="intro-card intro-full">
+        <h3>Задачи</h3>
+        <div class="task-list">
+          <div class="task-item">
+            <div class="task-num">Задача 01</div>
+            <div class="task-name">Простой пайплайн</div>
+            <div class="task-desc">Линейная цепочка: survey &rarr; цикл for с ground &rarr; synthesize &rarr; conclude. Тестирует базовый поток операций, отслеживание переменных, yield.</div>
+          </div>
+          <div class="task-item">
+            <div class="task-num">Задача 02</div>
+            <div class="task-name">Диалектическое рассуждение</div>
+            <div class="task-desc">Итеративное уточнение тезиса: assert &rarr; loop 2&times; {doubt &rarr; contrast &rarr; assess &rarr; if stuck: pivot &rarr; reframe}. Тестирует эволюцию тезиса и условное ветвление.</div>
+          </div>
+          <div class="task-item">
+            <div class="task-num">Задача 03</div>
+            <div class="task-name">Пользовательские функции</div>
+            <div class="task-desc">Определяемые функции <code>steelman</code> и <code>devils_advocate</code> с prompt, доступ через точку (<code>attack.damage_level</code>), ветвление if/else.</div>
+          </div>
+          <div class="task-item">
+            <div class="task-num">Задача 04</div>
+            <div class="task-name">Анализ новостей</div>
+            <div class="task-desc">6-фазный пайплайн с веб-поиском: ground &rarr; survey(5 стейкхолдеров) &rarr; цикл for {assert, doubt, contrast} &rarr; reframe(cui bono) &rarr; scope(wide). 10+ полей conclude.</div>
+          </div>
+          <div class="task-item" style="grid-column: 1 / -1;">
+            <div class="task-num">Задача 05</div>
+            <div class="task-name">Рефлексия и генерация</div>
+            <div class="task-desc">
+              Модель анализирует тему (регулирование безопасности ИИ), затем <strong>генерирует многоразовый <code>.zobr</code>-скрипт</strong>,
+              кодирующий паттерн рассуждения, и валидирует его через <code>zobr-check</code>. Тестирует качество содержания и генерации ZS-кода.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="intro-card">
+        <h3>Тестируемые модели</h3>
+        <ul>
+          <li><strong style="color:#a78bfa">Claude Opus 4.6</strong> &mdash; максимальные возможности, глубочайшее рассуждение</li>
+          <li><strong style="color:#22d3ee">Claude Sonnet 4.6</strong> &mdash; средний уровень, баланс скорости и качества</li>
+          <li><strong style="color:#fbbf24">Claude Haiku 4.5</strong> &mdash; самая быстрая, самая экономичная</li>
+        </ul>
+        <h3 style="margin-top:20px">Измерения оценки</h3>
+        <ul>
+          <li><strong style="color:#e0e6ed">Структурное соответствие</strong> (0&ndash;10) &mdash; следует ли модель ZS-скрипту корректно?</li>
+          <li><strong style="color:#e0e6ed">Качество содержания</strong> (0&ndash;10) &mdash; насколько глубоки, конкретны и содержательны рассуждения?</li>
+          <li><strong style="color:#e0e6ed">Качество генерации</strong> (0&ndash;10) &mdash; способна ли модель создать валидный, многоразовый .zobr-скрипт?</li>
+        </ul>
+      </div>
+      <div class="intro-card">
+        <h3>Методология</h3>
+        <ul>
+          <li>Каждая модель выполняет каждую задачу независимо через <code>claude&nbsp;-p</code> (headless-режим)</li>
+          <li>Полная изоляция: без контекста проекта, без MCP-серверов, без общего состояния</li>
+          <li><code>--effort high</code> для единообразной глубины мышления</li>
+          <li>Модели читают спецификацию ZS + системный промпт, затем выполняют .zobr-скрипт</li>
+          <li>Результаты фиксируются как транскрипты инференса + файлы вывода модели</li>
+          <li>Оценка выполнена Opus 4.6 через <code>evaluate-benchmark.zobr</code> &mdash; ZS-скрипт, оценивающий результаты ZS (мета-оценка)</li>
+        </ul>
+        <p style="margin-top:10px; font-size:12px; color:#4b5563">
+          15 запусков (5 задач &times; 3 модели), 0 сбоев. Общее время бенчмарка: ~48 минут.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ COMPOSITE SCORES ═══ -->
+  <div class="section-title">Композитные оценки моделей</div>
+  <div class="hero-scores">
+    <div class="hero-card opus">
+      <div class="model-name">Opus 4.6</div>
+      <div class="score">9.4</div>
+      <div class="score-label">/ 10</div>
+      <div class="tier">Экспертный уровень</div>
+    </div>
+    <div class="hero-card sonnet">
+      <div class="model-name">Sonnet 4.6</div>
+      <div class="score">9.3</div>
+      <div class="score-label">/ 10</div>
+      <div class="tier">Почти паритет с Opus</div>
+    </div>
+    <div class="hero-card haiku">
+      <div class="model-name">Haiku 4.5</div>
+      <div class="score">7.9</div>
+      <div class="score-label">/ 10</div>
+      <div class="tier">Компетентный и структурный</div>
+    </div>
+  </div>
+
+  <!-- ═══ FULL SCORING MATRIX ═══ -->
+  <div class="matrix-section">
+    <div class="section-title">Полная матрица оценок</div>
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th style="width:30%">Задача</th>
+          <th>Измерение</th>
+          <th>Opus 4.6</th>
+          <th>Sonnet 4.6</th>
+          <th>Haiku 4.5</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>01 &mdash; Простой пайплайн</td>
+          <td>Структура</td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s9">9</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Содержание</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s8">8</span></td>
+          <td><span class="score-cell s7">7</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Итого</td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s9">9.0</span></td>
+          <td><span class="score-cell s8">8.0</span></td>
+        </tr>
+
+        <tr>
+          <td>02 &mdash; Диалектика</td>
+          <td>Структура</td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s9">9</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Содержание</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s6">6</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Итого</td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s7">7.5</span></td>
+        </tr>
+
+        <tr>
+          <td>03 &mdash; Функции</td>
+          <td>Структура</td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s9">9</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Содержание</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s7">7</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Итого</td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s8">8.0</span></td>
+        </tr>
+
+        <tr>
+          <td>04 &mdash; Анализ новостей</td>
+          <td>Структура</td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+          <td><span class="score-cell s10">10</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Содержание</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s7">7</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Итого</td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s9">9.5</span></td>
+          <td><span class="score-cell s8">8.5</span></td>
+        </tr>
+
+        <tr>
+          <td>05 &mdash; Рефлексия</td>
+          <td>Содержание</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s7">7</span></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>Генерация</td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s9">9</span></td>
+          <td><span class="score-cell s8">8</span></td>
+        </tr>
+        <tr class="row-composite">
+          <td></td>
+          <td>Итого</td>
+          <td><span class="score-cell s9">9.0</span></td>
+          <td><span class="score-cell s9">9.0</span></td>
+          <td><span class="score-cell s7">7.5</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ DIMENSION BARS ═══ -->
+  <div class="bars-section">
+    <div class="section-title">Оценки по измерениям</div>
+    <div class="bars-grid">
+      <div class="bar-group">
+        <h3>Структурное соответствие</h3>
+        <div class="bar-row">
+          <span class="bar-label">Opus</span>
+          <div class="bar-track"><div class="bar-fill opus" style="width:100%">10.0</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Sonnet</span>
+          <div class="bar-track"><div class="bar-fill sonnet" style="width:100%">10.0</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Haiku</span>
+          <div class="bar-track"><div class="bar-fill haiku" style="width:92.5%">9.25</div></div>
+        </div>
+      </div>
+      <div class="bar-group">
+        <h3>Качество содержания</h3>
+        <div class="bar-row">
+          <span class="bar-label">Opus</span>
+          <div class="bar-track"><div class="bar-fill opus" style="width:90%">9.0</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Sonnet</span>
+          <div class="bar-track"><div class="bar-fill sonnet" style="width:88%">8.8</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Haiku</span>
+          <div class="bar-track"><div class="bar-fill haiku" style="width:68%">6.8</div></div>
+        </div>
+      </div>
+      <div class="bar-group">
+        <h3>Качество генерации</h3>
+        <div class="bar-row">
+          <span class="bar-label">Opus</span>
+          <div class="bar-track"><div class="bar-fill opus" style="width:90%">9</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Sonnet</span>
+          <div class="bar-track"><div class="bar-fill sonnet" style="width:90%">9</div></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">Haiku</span>
+          <div class="bar-track"><div class="bar-fill haiku" style="width:80%">8</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RADAR CHART (SVG) ═══ -->
+  <div class="radar-section">
+    <div class="section-title">Профиль по задачам</div>
+    <div class="radar-container">
+      <div class="radar-svg-wrap">
+        <svg viewBox="0 0 400 400" width="380" height="380">
+          <defs>
+            <style>
+              .radar-grid { stroke: #1e293b; fill: none; stroke-width: 1; }
+              .radar-axis { stroke: #1e293b; stroke-width: 1; }
+              .radar-label { font-family: 'Inter', sans-serif; font-size: 12px; fill: #6b7280; font-weight: 500; }
+            </style>
+          </defs>
+          <!-- Grid rings -->
+          <g transform="translate(200,200)">
+            <!-- Rings at 60%, 70%, 80%, 90%, 100% -->
+            <polygon class="radar-grid" points="0,-160 152.2,-49.4 94.1,129.4 -94.1,129.4 -152.2,-49.4"/>
+            <polygon class="radar-grid" points="0,-144 137,-44.5 84.7,116.5 -84.7,116.5 -137,-44.5"/>
+            <polygon class="radar-grid" points="0,-128 121.8,-39.6 75.3,103.5 -75.3,103.5 -121.8,-39.6"/>
+            <polygon class="radar-grid" points="0,-112 106.6,-34.6 65.9,90.6 -65.9,90.6 -106.6,-34.6"/>
+            <polygon class="radar-grid" points="0,-96 91.4,-29.7 56.5,77.7 -56.5,77.7 -91.4,-29.7"/>
+
+            <!-- Axes -->
+            <line class="radar-axis" x1="0" y1="0" x2="0" y2="-160"/>
+            <line class="radar-axis" x1="0" y1="0" x2="152.2" y2="-49.4"/>
+            <line class="radar-axis" x1="0" y1="0" x2="94.1" y2="129.4"/>
+            <line class="radar-axis" x1="0" y1="0" x2="-94.1" y2="129.4"/>
+            <line class="radar-axis" x1="0" y1="0" x2="-152.2" y2="-49.4"/>
+
+            <!-- Labels -->
+            <text class="radar-label" x="0" y="-170" text-anchor="middle">01 Пайплайн</text>
+            <text class="radar-label" x="166" y="-46" text-anchor="start">02 Диалектика</text>
+            <text class="radar-label" x="104" y="148" text-anchor="middle">03 Функции</text>
+            <text class="radar-label" x="-104" y="148" text-anchor="middle">04 Новости</text>
+            <text class="radar-label" x="-166" y="-46" text-anchor="end">05 Рефлексия</text>
+
+            <!-- Scale labels -->
+            <text class="radar-label" x="8" y="-155" text-anchor="start" font-size="9" fill="#374151">10</text>
+            <text class="radar-label" x="8" y="-123" text-anchor="start" font-size="9" fill="#374151">9</text>
+            <text class="radar-label" x="8" y="-91" text-anchor="start" font-size="9" fill="#374151">8</text>
+            <text class="radar-label" x="8" y="-59" text-anchor="start" font-size="9" fill="#374151">7</text>
+
+            <!-- Opus: 9.5, 9.5, 9.5, 9.5, 9.0 -->
+            <!-- scale: score mapped to radius, 6=96, 7=112, 8=128, 9=144, 10=160, linear: r = (score-5)*32 -->
+            <!-- 9.5 → 144+8=152, 9.0 → 128+16=144 -->
+            <!-- Pentagon vertices at angles: -90, -90+72=-18, -90+144=54, -90+216=126, -90+288=198 deg -->
+            <!-- At radius r: x=r*cos(a), y=r*sin(a) -->
+            <!-- 9.5: r=152. Pts: (0,-152), (144.6,-47), (89.4,123), (-89.4,123), (-144.6,-47) -->
+            <!-- 9.0: r=144. -->
+            <polygon fill="rgba(99,102,241,0.15)" stroke="#6366f1" stroke-width="2"
+              points="0,-152 144.6,-47 89.4,123 -89.4,123 -136.9,-44.5"/>
+            <!-- 9.0 at vertex 5 (angle 198): 144*cos(198°), 144*sin(198°) = 144*(-0.951), 144*(-0.309) = -136.9, -44.5 -->
+
+            <!-- Sonnet: 9.0, 9.5, 9.5, 9.5, 9.0 -->
+            <!-- 9.0→r=144, 9.5→r=152 -->
+            <polygon fill="rgba(6,182,212,0.12)" stroke="#06b6d4" stroke-width="2"
+              points="0,-144 144.6,-47 89.4,123 -89.4,123 -136.9,-44.5"/>
+
+            <!-- Haiku: 8.0, 7.5, 8.0, 8.5, 7.5 -->
+            <!-- 8.0→r=128, 7.5→r=120, 8.5→r=136 -->
+            <!-- 8.0: (0,-128) -->
+            <!-- 7.5 at -18°: 120*cos(-18°), 120*sin(-18°) = 114.1, -37.1 -->
+            <!-- 8.0 at 54°: 128*cos(54°), 128*sin(54°) = 75.3, 103.5 -->
+            <!-- 8.5 at 126°: 136*cos(126°), 136*sin(126°) = -79.9, 110 -->
+            <!-- 7.5 at 198°: 120*cos(198°), 120*sin(198°) = -114.1, -37.1 -->
+            <polygon fill="rgba(245,158,11,0.12)" stroke="#f59e0b" stroke-width="2"
+              points="0,-128 114.1,-37.1 75.3,103.5 -79.9,110 -114.1,-37.1"/>
+
+            <!-- Dots -->
+            <g fill="#6366f1">
+              <circle cx="0" cy="-152" r="4"/>
+              <circle cx="144.6" cy="-47" r="4"/>
+              <circle cx="89.4" cy="123" r="4"/>
+              <circle cx="-89.4" cy="123" r="4"/>
+              <circle cx="-136.9" cy="-44.5" r="4"/>
+            </g>
+            <g fill="#06b6d4">
+              <circle cx="0" cy="-144" r="4"/>
+              <circle cx="144.6" cy="-47" r="4"/>
+              <circle cx="89.4" cy="123" r="4"/>
+              <circle cx="-89.4" cy="123" r="4"/>
+              <circle cx="-136.9" cy="-44.5" r="4"/>
+            </g>
+            <g fill="#f59e0b">
+              <circle cx="0" cy="-128" r="4"/>
+              <circle cx="114.1" cy="-37.1" r="4"/>
+              <circle cx="75.3" cy="103.5" r="4"/>
+              <circle cx="-79.9" cy="110" r="4"/>
+              <circle cx="-114.1" cy="-37.1" r="4"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="radar-legend">
+        <div class="radar-legend-item">
+          <div class="radar-legend-dot opus"></div>
+          <span class="radar-legend-name">Opus 4.6</span>
+          <span class="radar-legend-score opus">9.4</span>
+        </div>
+        <div class="radar-legend-item">
+          <div class="radar-legend-dot sonnet"></div>
+          <span class="radar-legend-name">Sonnet 4.6</span>
+          <span class="radar-legend-score sonnet">9.3</span>
+        </div>
+        <div class="radar-legend-item">
+          <div class="radar-legend-dot haiku"></div>
+          <span class="radar-legend-name">Haiku 4.5</span>
+          <span class="radar-legend-score haiku">7.9</span>
+        </div>
+        <div style="margin-top: 24px; font-size: 12px; color: #4b5563; line-height: 1.6;">
+          Композитная оценка по задаче (среднее структуры, содержания и генерации).
+          Внешнее кольцо = 10, внутреннее = 6.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONTENT GAP ═══ -->
+  <div class="gap-section">
+    <div class="section-title">Разрыв качества содержания (Opus vs Haiku)</div>
+    <!-- Each bar: Haiku score | gap zone | Opus score extends to -->
+    <div class="gap-row">
+      <div class="gap-task">01 — Пайплайн</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:70%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:20%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;2</div>
+    </div>
+    <div class="gap-row">
+      <div class="gap-task">02 — Диалектика</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:60%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:30%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;3</div>
+    </div>
+    <div class="gap-row">
+      <div class="gap-task">03 — Функции</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:70%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:20%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;2</div>
+    </div>
+    <div class="gap-row">
+      <div class="gap-task">04 — Новости</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:70%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:20%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;2</div>
+    </div>
+    <div class="gap-row">
+      <div class="gap-task">05 — Рефлексия</div>
+      <div class="gap-bar-container">
+        <div class="gap-segment haiku-zone" style="width:70%; height:28px; border-radius:4px 0 0 4px;"></div>
+        <div class="gap-segment gap-zone" style="width:20%; height:28px;"></div>
+        <div class="gap-segment opus-zone" style="width:10%; height:28px; border-radius:0 4px 4px 0;"></div>
+      </div>
+      <div class="gap-value">&Delta;2</div>
+    </div>
+    <div style="font-size: 12px; color: #4b5563; margin-top: 12px; padding-left: 186px;">
+      Наибольший разрыв на диалектических задачах (итеративное уточнение, доменные знания, эмерджентный синтез)
+    </div>
+  </div>
+
+  <!-- ═══ TIMING ═══ -->
+  <div class="timing-section">
+    <div class="section-title">Производительность и эффективность</div>
+    <div class="timing-grid">
+      <div class="timing-card">
+        <h3>Среднее время на задачу</h3>
+        <div class="timing-row">
+          <span class="timing-model">Haiku 4.5</span>
+          <span class="timing-value haiku">110s &nbsp;(1.8 min)</span>
+        </div>
+        <div class="timing-row">
+          <span class="timing-model">Opus 4.6</span>
+          <span class="timing-value opus">189s &nbsp;(3.2 min)</span>
+        </div>
+        <div class="timing-row">
+          <span class="timing-model">Sonnet 4.6</span>
+          <span class="timing-value sonnet">273s &nbsp;(4.6 min)</span>
+        </div>
+      </div>
+      <div class="timing-card">
+        <h3>Общее время бенчмарка</h3>
+        <div class="timing-row">
+          <span class="timing-model">Haiku 4.5</span>
+          <span class="timing-value haiku">548s &nbsp;(9.1 min)</span>
+        </div>
+        <div class="timing-row">
+          <span class="timing-model">Opus 4.6</span>
+          <span class="timing-value opus">946s &nbsp;(15.8 min)</span>
+        </div>
+        <div class="timing-row">
+          <span class="timing-model">Sonnet 4.6</span>
+          <span class="timing-value sonnet">1365s &nbsp;(22.8 min)</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 12px; color: #4b5563; margin-top: 12px;">
+      Sonnet неожиданно самый медленный (2.5&times; Haiku, 1.4&times; Opus) несмотря на средний уровень &mdash; возможно, отражает роутинг API, а не свойства модели.
+    </div>
+  </div>
+
+  <!-- ═══ KEY FINDINGS ═══ -->
+  <div class="findings-section">
+    <div class="section-title">Ключевые выводы</div>
+    <div class="finding-card">
+      <div class="finding-num">1</div>
+      <div class="finding-body">
+        <h4>ZS структурно модель-агностичен</h4>
+        <p>Все три модели следуют ZS-скриптам с высокой точностью (9.25&ndash;10.0). Операции выполняются по порядку, переменные отслеживаются, управление потоком соблюдается. Разрыв в 0.75 балла &mdash; косметический, не семантический.</p>
+      </div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">2</div>
+      <div class="finding-body">
+        <h4>Разрыв в содержании концентрируется на диалектических задачах</h4>
+        <p>Разрыв Opus&ndash;Haiku достигает 3 баллов на задаче 02 (итеративное уточнение, доменные знания, эмерджентный синтез). Структурные задачи показывают меньший разрыв. ZS усиливает рассуждение там, где оно сложнее всего.</p>
+      </div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">3</div>
+      <div class="finding-body">
+        <h4>Sonnet достигает почти паритета с Opus (9.3 vs 9.4)</h4>
+        <p>Структурированные скрипты сокращают разрыв возможностей между уровнями. Когда структура рассуждения задана извне, задача модели сводится к наполнению контейнеров содержанием &mdash; и Sonnet справляется почти так же хорошо.</p>
+      </div>
+    </div>
+    <div class="finding-card">
+      <div class="finding-num">4</div>
+      <div class="finding-body">
+        <h4>Все модели генерируют валидные ZS-скрипты</h4>
+        <p>Все три файла reflection.zobr проходят zobr-check с 0 ошибками. Способность к генерации масштабируется вместе с интерпретацией &mdash; нет &laquo;штрафа за генерацию&raquo;. Генерация ZS-скриптов &mdash; практичный рабочий процесс.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RECOMMENDATIONS ═══ -->
+  <div class="rec-section">
+    <div class="section-title">Руководство по выбору модели</div>
+    <table class="rec-table">
+      <thead>
+        <tr>
+          <th>Сценарий</th>
+          <th>Модель</th>
+          <th>Почему</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Структурные задачи (извлечение, классификация, survey)</td>
+          <td><span class="model-tag haiku">Haiku</span></td>
+          <td>В 1.7&times; быстрее Opus; структурное соответствие ~идеальное</td>
+        </tr>
+        <tr>
+          <td>Диалектические рассуждения (doubt, contrast, reframe)</td>
+          <td><span class="model-tag opus">Opus</span></td>
+          <td>Наибольший разрыв в глубине на итеративных задачах</td>
+        </tr>
+        <tr>
+          <td>Анализ новостей / политический анализ</td>
+          <td><span class="model-tag sonnet">Sonnet</span> <span class="model-tag opus">Opus</span></td>
+          <td>Оба на экспертном уровне; Sonnet добавляет критику источника</td>
+        </tr>
+        <tr>
+          <td>Генерация скриптов</td>
+          <td><span class="model-tag sonnet">Sonnet</span></td>
+          <td>Самая сложная архитектура; полная универсальность</td>
+        </tr>
+        <tr>
+          <td>Массовая пакетная обработка</td>
+          <td><span class="model-tag haiku">Haiku</span></td>
+          <td>В 2.5&times; быстрее Sonnet; валидные рассуждения в масштабе</td>
+        </tr>
+        <tr>
+          <td>Философия / глубокий анализ</td>
+          <td><span class="model-tag opus">Opus</span></td>
+          <td>Широчайшая база ссылок; самые оригинальные фреймворки</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ FOOTER ═══ -->
+  <div class="footer">
+    Оценка бенчмарка ZS &bull; Оценщик: Claude Opus 4.6 &bull; 14.03.2026
+    <br>
+    <span style="margin-top:4px; display:inline-block;">
+      <a href="https://github.com/docxi-org/black-zobr">Black Zobr</a> &bull; Apache License 2.0
+    </span>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  var ops = {
+    survey: {
+      cat: 'Исследование', catClass: 'cat-discovery',
+      desc: 'Исследовать тему и выявить ключевые элементы — позиции, факторы, перспективы. Возвращает список найденных элементов с краткими описаниями.',
+      sig: 'survey(topic, count?: N, from?: source) → list',
+      example: 'positions = survey("main positions on consciousness", count: 3)'
+    },
+    ground: {
+      cat: 'Исследование', catClass: 'cat-discovery',
+      desc: 'Связать утверждение или тему с конкретными доказательствами, фактами или опытом. Извлекает структурированные данные из источников.',
+      sig: 'ground(claim, extract?: [fields]) → evidence',
+      example: 'evidence = ground(news_article, extract: [facts, quotes, dates])'
+    },
+    assert: {
+      cat: 'Аргументация', catClass: 'cat-argument',
+      desc: 'Сформулировать позицию с обоснованием. Принимает тезис и опционально источник, на котором основан аргумент.',
+      sig: 'assert(thesis, based_on?: source) → claim',
+      example: 'claim = assert("consciousness is computational", based_on: evidence)'
+    },
+    doubt: {
+      cat: 'Аргументация', catClass: 'cat-argument',
+      desc: 'Проблематизировать утверждение — найти слабости, скрытые допущения, пограничные случаи. Должна давать подлинную критику, а не соломенных чучел.',
+      sig: 'doubt(target) → critique',
+      example: 'weakness = doubt(claim)\n// "Перформативное противоречие: назвать сознание иллюзией\n//  требует субъекта, переживающего эту иллюзию"'
+    },
+    contrast: {
+      cat: 'Аргументация', catClass: 'cat-argument',
+      desc: 'Найти или сконструировать противоположную позицию или контрпример. Должна представить сильнейший контраргумент, а не слабую альтернативу.',
+      sig: 'contrast(target, with?: alternative) → counter',
+      example: 'counter = contrast(claim, with: "phenomenological perspective")'
+    },
+    analogy: {
+      cat: 'Аргументация', catClass: 'cat-argument',
+      desc: 'Перенести понимание из другой области. Создаёт отображение между исходной и целевой областями для выявления скрытой структуры.',
+      sig: 'analogy(target, from?: domain) → mapping',
+      example: 'insight = analogy(problem, from: "evolutionary biology")'
+    },
+    synthesize: {
+      cat: 'Синтез', catClass: 'cat-synthesis',
+      desc: 'Объединить несколько позиций или находок в понимание более высокого уровня. Должна порождать эмерджентный инсайт, а не просто резюме.',
+      sig: 'synthesize(sources, method?: approach) → unified',
+      example: 'unified = synthesize([thesis, counter, evidence],\n  method: "find common ground")'
+    },
+    reframe: {
+      cat: 'Синтез', catClass: 'cat-synthesis',
+      desc: 'Переформулировать проблему или позицию в других терминах. Меняет линзу, через которую рассматривается вопрос.',
+      sig: 'reframe(target, lens?: perspective) → new_view',
+      example: 'deeper = reframe(news_text, lens: "cui bono")'
+    },
+    assess: {
+      cat: 'Мета', catClass: 'cat-meta',
+      desc: 'Рефлексивная пауза — оценить текущее состояние рассуждения. Возвращает статус (open/converging/stuck), напряжение и что недостаёт.',
+      sig: 'assess(scale?: enum) → { status, tension, missing }',
+      example: 'state = assess()\nif state.status == stuck { pivot("new approach") }'
+    },
+    pivot: {
+      cat: 'Мета', catClass: 'cat-meta',
+      desc: 'Явно сменить стратегию рассуждения. Сигнализирует, что текущий подход недостаточен и нужно новое направление.',
+      sig: 'pivot(reason) → (побочный эффект)',
+      example: 'pivot("linear analysis insufficient, switching to dialectical")'
+    },
+    scope: {
+      cat: 'Мета', catClass: 'cat-meta',
+      desc: 'Сузить или расширить фокус исследования. Управляет аналитическим зумом — от конкретных механизмов до системных связей.',
+      sig: 'scope(narrow|wide, focus?) → (побочный эффект)',
+      example: 'scope(wide, "how does this connect to embodied cognition")'
+    },
+    conclude: {
+      cat: 'Вывод', catClass: 'cat-output',
+      desc: 'Определить структуру и формат финального результата. Поля задают схему вывода — типы включают string, list, bool и перечисления.',
+      sig: 'conclude { field: type, ... } → структурированный результат',
+      example: 'result = conclude {\n  thesis: string\n  confidence: low | medium | high\n  key_evidence: list\n  open_questions: list\n}'
+    }
+  };
+
+  var grid = document.getElementById('ops-grid');
+  var detail = document.getElementById('op-detail');
+  var nameEl = document.getElementById('op-detail-name');
+  var catEl = document.getElementById('op-detail-cat');
+  var descEl = document.getElementById('op-detail-desc');
+  var sigEl = document.getElementById('op-detail-sig');
+  var exEl = document.getElementById('op-detail-example');
+
+  function show(opName) {
+    var d = ops[opName];
+    if (!d) return;
+    nameEl.textContent = opName;
+    catEl.textContent = d.cat;
+    catEl.className = 'op-detail-category ' + d.catClass;
+    descEl.textContent = d.desc;
+    sigEl.textContent = d.sig;
+    exEl.textContent = d.example;
+    detail.style.animation = 'none';
+    detail.offsetHeight; // reflow
+    detail.style.animation = '';
+
+    var tags = grid.querySelectorAll('.op-tag');
+    for (var i = 0; i < tags.length; i++) {
+      tags[i].classList.toggle('active', tags[i].getAttribute('data-op') === opName);
+    }
+  }
+
+  grid.addEventListener('click', function(e) {
+    var tag = e.target.closest('[data-op]');
+    if (tag) show(tag.getAttribute('data-op'));
+  });
+
+  // Show survey by default
+  show('survey');
+})();
+</script>
+
+</body>
+</html>

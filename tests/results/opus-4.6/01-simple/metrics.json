@@ -1,0 +1,9 @@
+{
+  "model": "claude-opus-4-6",
+  "model_dir": "opus-4.6",
+  "task": "01-simple",
+  "start": "11:37:32",
+  "end": "11:39:20",
+  "duration_seconds": 108,
+  "exit_code": 0
+}

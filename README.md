@@ -109,6 +109,21 @@ In the current version, a ZS script is executed by an LLM as interpreter:
 3. The LLM executes operations step by step, tracking variables and following control flow
 4. Output is structured according to the `conclude` block
 
+## MCP Server
+
+Connect ZS to Claude, Claude Desktop, or any MCP client — no installation needed.
+
+**MCP endpoint:** `https://zobr-script-mcp.docxi-next.workers.dev/mcp`
+
+In claude.ai: Settings → Connectors → Add custom connector → paste the URL above.
+
+Tools provided:
+- `zs_execute` — feed a script, get full spec + interpreter context injected automatically
+- `zs_validate` — full PEG parser + semantic validation (same as `zobr-check`)
+- `zs_operations` — quick reference for all 12 operations
+
+Also available on [Smithery](https://smithery.ai/servers/zobr-script/zobr-script).
+
 ## Benchmark Results
 
 Tested with three Claude models across 5 tasks of increasing complexity:

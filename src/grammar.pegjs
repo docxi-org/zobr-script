@@ -139,6 +139,12 @@ ExpressionStatement
 
 Expression
   = EnumExpression
+  / ConcatExpression
+
+ConcatExpression
+  = head:CallExpression tail:(_ "+" _ right:CallExpression { return right; })+ {
+      return { type: 'ConcatExpression', parts: [head, ...tail], location: location() };
+    }
   / CallExpression
 
 EnumExpression
@@ -253,9 +259,15 @@ ArrayLiteral
     }
 
 ArrayElements
-  = first:Expression rest:(_ "," _ e:Expression { return e; })* {
+  = first:ArrayElement rest:(_ "," _ e:ArrayElement { return e; })* {
       return [first, ...rest];
     }
+
+ArrayElement
+  = key:PropertyKey _ ":" _ value:Expression {
+      return { type: 'KeyValuePair', key, value, location: location() };
+    }
+  / Expression
 
 ObjectLiteral
   = "{" _ props:ObjectProperties? _ "}" {

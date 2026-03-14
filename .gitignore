@@ -2,3 +2,5 @@ node_modules/
 dist/
 src/parser.js
 examples/trump-patterns/data/truth_archive.json
+mcp-server/.wrangler/
+mcp-server/node_modules/

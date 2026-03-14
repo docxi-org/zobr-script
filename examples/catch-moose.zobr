@@ -1,0 +1,38 @@
+task: "Разработать стратегию поимки лося в лесу"
+input: forest_type
+
+terrain = ground(forest_type, extract: [density, water_sources, trails, season])
+
+moose_habits = survey("повадки лося и типичное поведение", count: 5)
+
+routes = for h in moose_habits {
+  location = ground(h, extract: [time_of_day, terrain_preference, signs])
+  feasibility = assess(scale: [impossible, hard, realistic, easy])
+  yield { habit: h, location, feasibility }
+}
+
+best_spots = synthesize(routes, method: "выбрать точки с максимальной вероятностью встречи")
+
+plan_a = assert("засада у водопоя на рассвете", based_on: best_spots)
+plan_a_risk = doubt(plan_a)
+
+plan_b = reframe(plan_a, lens: "а если лось умнее нас")
+plan_b_risk = doubt(plan_b)
+
+comparison = contrast(plan_a, with: plan_b)
+
+if comparison.status == "оба плана сомнительны" {
+  plan_c = pivot("позвонить Лосеву и спросить дорогу")
+}
+
+final = synthesize([plan_a, plan_b, plan_c], method: "выбрать наименее абсурдный")
+
+result = conclude {
+  target: string
+  terrain_analysis: list
+  recommended_plan: string
+  backup_plan: string
+  estimated_success: low | medium | high | "спросить Лосева"
+  equipment: list
+  important_note: string
+}

@@ -124,7 +124,7 @@ Key findings:
 - **Even the smallest model follows scripts with 93% structural fidelity**: ZS is a reasoning amplifier, not a capability test
 - **All models generate valid scripts**: Task 05 (script generation) produced 0 syntax errors across all models
 
-Full results: [benchmark report](tests/results/evaluation/result.md) ・ [infographic](tests/results/evaluation/infographic.html)
+Full results: [benchmark report](tests/results/evaluation/result.md) ・ [infographic](https://docxi-org.github.io/zobr-script/tests/results/evaluation/infographic.html) ・ [на русском](tests/results/evaluation/result-ru.md) ・ [инфографика](https://docxi-org.github.io/zobr-script/tests/results/evaluation/infographic-ru.html)
 
 ## Use Cases
 
@@ -148,7 +148,7 @@ ZS operates at a different level: it formalizes **cognitive operations themselve
 - [Language Specification v0.1](docs/spec.md)
 - [System Prompt for LLM Interpreter](docs/system-prompt.md)
 - [Test Tasks](tests/tasks/)
-- [Benchmark Report](tests/results/evaluation/result.md)
+- [Benchmark Report](tests/results/evaluation/result.md) ・ [на русском](tests/results/evaluation/result-ru.md)
 
 ## Status
 

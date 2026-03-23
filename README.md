@@ -16,6 +16,8 @@ Think of it as **SQL for thinking**: you define *what* cognitive steps to take, 
 
 Scripts are executed by an LLM as interpreter: the model reads a `.zobr` file, executes operations step by step, tracks variables, follows control flow, and produces structured output.
 
+[![ZS (Zobr Script) MCP server](https://glama.ai/mcp/servers/docxi-org/zobr-script/badges/card.svg)](https://glama.ai/mcp/servers/docxi-org/zobr-script)
+
 ## Quick Example
 
 ```

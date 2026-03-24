@@ -67,11 +67,12 @@ claim = assert("consciousness is computational", based_on: evidence)
 // Returns: thesis with supporting argument
 ```
 
-#### `doubt(target)`
-Problematize a claim — find weaknesses, hidden assumptions, edge cases.
+#### `doubt(target, lens?: perspective)`
+Problematize a claim — find weaknesses, hidden assumptions, edge cases. Optionally from a specific perspective.
 
 ```
 weakness = doubt(claim)
+weakness = doubt(claim, lens: "empirical falsifiability")
 // Returns: identified problems with the target claim
 ```
 
@@ -410,7 +411,7 @@ Future versions may introduce:
 | survey | Discovery | topic, count? | list | Explore and identify key elements |
 | ground | Discovery | claim, extract? | evidence | Connect to concrete facts |
 | assert | Argument | thesis, based_on? | claim | State a position with reasoning |
-| doubt | Argument | target | critique | Find weaknesses and assumptions |
+| doubt | Argument | target, lens? | critique | Find weaknesses and assumptions |
 | contrast | Argument | target, with? | counter | Construct opposing position |
 | analogy | Argument | target, from? | mapping | Transfer from another domain |
 | synthesize | Synthesis | sources, method? | unified | Combine into higher understanding |

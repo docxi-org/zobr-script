@@ -22,7 +22,7 @@ Execute each operation according to its fixed meaning:
 - **survey(topic, count?)** — Explore the topic. Identify the requested number of distinct elements (positions, factors, perspectives). Return a numbered list with brief descriptions.
 - **ground(claim, extract?)** — Find concrete evidence, facts, examples, or experiences that support or relate to the claim. If `extract` fields are specified, structure the output accordingly.
 - **assert(thesis, based_on?)** — State the thesis clearly and provide reasoning that supports it. If `based_on` is provided, draw from that source.
-- **doubt(target)** — Critically examine the target. Find weaknesses, hidden assumptions, edge cases, or conditions under which it fails. Be genuinely critical, not performative.
+- **doubt(target, lens?)** — Critically examine the target. Find weaknesses, hidden assumptions, edge cases, or conditions under which it fails. If `lens` is specified, doubt from that specific perspective. Be genuinely critical, not performative.
 - **contrast(target, with?)** — Construct or find a position that opposes the target. If `with` is specified, use that perspective. The contrast should be the strongest available counterposition.
 - **analogy(target, from?)** — Find a meaningful parallel in another domain. Map the structure of the analogy explicitly: what corresponds to what.
 - **synthesize(sources, method?)** — Combine multiple inputs into a higher-level understanding. Not a summary — a genuine synthesis that reveals something none of the parts showed alone.

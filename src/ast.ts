@@ -255,7 +255,7 @@ export const OPERATION_PARAMS: Record<string, { positional: number; named: strin
   survey:     { positional: 1, named: ['count', 'from'] },
   ground:     { positional: 1, named: ['extract'] },
   assert:     { positional: 1, named: ['based_on'] },
-  doubt:      { positional: 1, named: [] },
+  doubt:      { positional: 1, named: ['lens'] },
   contrast:   { positional: 1, named: ['with'] },
   analogy:    { positional: 1, named: ['from'] },
   synthesize: { positional: 1, named: ['method'] },

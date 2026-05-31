@@ -1,0 +1,70 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Deploy via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude='node_modules' --exclude='.env' --exclude='data' --exclude='zs-lib/*.d.ts' --exclude='zs-lib/tsconfig*.json'
+          path: ./
+          remote_path: /opt/zobr-script/
+          remote_host: 80.74.31.205
+          remote_user: root
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Install and restart
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: 80.74.31.205
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            export NVM_DIR="/root/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            cd /opt/zobr-script
+
+            # .env — create if missing, never overwrite
+            if [ ! -f .env ]; then
+              cat > .env << 'ENV'
+            ZS_HOST=127.0.0.1
+            ZS_PORT=1978
+            ZS_LIBRARY=./zs-lib
+            ZS_STORE_PATH=./data/store.sqlite
+            ZS_BUDGET_STEPS=1000
+            ZS_BUDGET_ITERATIONS=100
+            ZS_INVOCATION_TTL=3600
+            ZS_AWAITING_TTL=86400
+            ZS_MAX_ACTIVE_INVOCATIONS=100
+            LOG_LEVEL=info
+            ENV
+              chmod 600 .env
+            fi
+
+            pnpm install --frozen-lockfile
+            pm2 startOrReload ecosystem.config.cjs --update-env
+            pm2 save
+
+      - name: Health check
+        run: |
+          for i in 1 2 3 4 5; do
+            sleep 5
+            if curl -sf https://zs.docxi.org/health > /dev/null; then
+              echo "Health check passed"
+              exit 0
+            fi
+            echo "Attempt $i/5 failed, retrying..."
+          done
+          echo "Health check failed"
+          exit 1

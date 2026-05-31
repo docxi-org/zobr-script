@@ -2,7 +2,7 @@
 // Follows the SDK's simpleStreamableHttp.ts pattern.
 // Returns { app, zsApp, mcpServer } so REST routes can be added later.
 import { randomUUID } from "node:crypto";
-import express from "express";
+import { createMcpExpressApp } from "@modelcontextprotocol/express";
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import { McpServer, isInitializeRequest } from "@modelcontextprotocol/server";
 import type { CallToolResult } from "@modelcontextprotocol/server";
@@ -29,7 +29,7 @@ export interface ZsHttpConfig {
 }
 
 export interface ZsHttpApp {
-  readonly app: express.Express;
+  readonly app: ReturnType<typeof createMcpExpressApp>;
   readonly zsApp: ZsApp;
   readonly mcpServer: McpServer;
 }
@@ -69,8 +69,7 @@ export function createZsHttpApp(config: ZsHttpConfig): ZsHttpApp {
   }
   logger.info({ tools: visibleTools.map((t) => t.name), architectMode }, "registered MCP tools");
 
-  const app = express();
-  app.use(express.json());
+  const app = createMcpExpressApp({ host: "0.0.0.0" });
   const transports = new Map<string, NodeStreamableHTTPServerTransport>();
 
   app.post(mcpPath, async (req: Request, res: Response) => {

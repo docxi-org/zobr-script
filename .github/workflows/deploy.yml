@@ -44,6 +44,7 @@ jobs:
             ZS_STORE_PATH=./data/store.sqlite
             ZS_BUDGET_STEPS=1000
             ZS_BUDGET_ITERATIONS=100
+            ZS_ARCHITECT_MODE=true
             ZS_INVOCATION_TTL=3600
             ZS_AWAITING_TTL=86400
             ZS_MAX_ACTIVE_INVOCATIONS=100

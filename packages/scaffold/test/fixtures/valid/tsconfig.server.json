@@ -1,0 +1,3 @@
+{ "extends": "../../../lib-template/tsconfig.base.json",
+  "files": ["../../../lib-template/zs.server.d.ts"],
+  "include": ["*.srv.ts"] }

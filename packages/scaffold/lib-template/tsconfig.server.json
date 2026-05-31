@@ -1,0 +1,1 @@
+{ "extends": "./tsconfig.base.json", "files": ["zs.server.d.ts"], "include": ["**/*.srv.ts"] }

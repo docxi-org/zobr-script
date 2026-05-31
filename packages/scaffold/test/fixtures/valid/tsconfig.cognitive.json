@@ -1,0 +1,3 @@
+{ "extends": "../../../lib-template/tsconfig.base.json",
+  "files": ["../../../lib-template/zs.cognitive.d.ts"],
+  "include": ["*.cog.ts"] }

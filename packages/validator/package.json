@@ -1,0 +1,14 @@
+{
+  "name": "@zobr/validator",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "test": "vitest run" },
+  "dependencies": {
+    "@zobr/core": "workspace:*",
+    "@zobr/scaffold": "workspace:*",
+    "typescript": "^6.0.3"
+  }
+}

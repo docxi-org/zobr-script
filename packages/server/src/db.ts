@@ -1,0 +1,300 @@
+// SQLite-backed Db/Collection/Notes — the persistent storage layer (doc 12 §4).
+// Equality-match filtering via json_extract. Dot-notation for nested fields.
+import Database from "better-sqlite3";
+import { randomUUID } from "node:crypto";
+
+// ── Types ──
+
+export interface StoreEntry {
+  key: string;
+  type?: string;
+  data: unknown;
+}
+
+export interface Collection<T = unknown> {
+  insertOne(doc: T): string;
+  insertMany(docs: T[]): string[];
+  findOne(filter?: Partial<T>): (T & { _id: string }) | null;
+  find(filter?: Partial<T>): (T & { _id: string })[];
+  updateOne(filter: Partial<T>, patch: Partial<T>): number;
+  updateMany(filter: Partial<T>, patch: Partial<T>): number;
+  deleteOne(filter: Partial<T>): number;
+  deleteMany(filter: Partial<T>): number;
+  count(filter?: Partial<T>): number;
+}
+
+export interface Notes {
+  put(key: string, data: unknown, type?: string): void;
+  get(key: string): unknown | null;
+  delete(key: string): boolean;
+  list(type?: string): StoreEntry[];
+  keys(type?: string): string[];
+}
+
+export interface AgentRecord {
+  agent_id: string;
+  name: string;
+  registered_at: number;
+}
+
+export interface InfraStore {
+  saveTrace(trace: { invocation_id: string; script_ref: string; code_snapshot: string; status: string; events: readonly unknown[]; coverage?: unknown; result?: unknown }): void;
+  getTrace(invocation_id: string): { invocation_id: string; script_ref: string; status: string; events: unknown[]; coverage?: unknown; result?: unknown } | null;
+  recordInvocation(inv: { invocation_id: string; script_ref: string; status: string; agent_id?: string }): void;
+  finishInvocation(invocation_id: string, status: string): void;
+  saveAgent(agent: AgentRecord): void;
+  loadAgents(): AgentRecord[];
+  saveSnapshot(invocation_id: string, script_ref: string, state: string): void;
+  deleteSnapshot(invocation_id: string): void;
+  loadSnapshot(invocation_id: string): { script_ref: string; state: string } | null;
+}
+
+export interface Db {
+  collection<T = unknown>(name: string): Collection<T>;
+  collections(): { name: string; count: number }[];
+  notes: Notes;
+  infra: InfraStore;
+  close(): void;
+}
+
+// ── Implementation ──
+
+function buildWhere(collection: string, filter?: Record<string, unknown>): { clause: string; params: unknown[] } {
+  const conditions = ["collection = ?"];
+  const params: unknown[] = [collection];
+  if (filter !== undefined) {
+    for (const [key, value] of Object.entries(filter)) {
+      conditions.push("json_extract(data, ?) = ?");
+      params.push(`$.${key}`, typeof value === "object" && value !== null ? JSON.stringify(value) : value);
+    }
+  }
+  return { clause: conditions.join(" AND "), params };
+}
+
+export function createDb(path: string): Db {
+  const db = new Database(path);
+  db.pragma("journal_mode = WAL");
+  db.pragma("busy_timeout = 5000");
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS zs_documents (
+      collection TEXT NOT NULL,
+      _id TEXT NOT NULL,
+      data TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      PRIMARY KEY (collection, _id)
+    );
+    CREATE TABLE IF NOT EXISTS zs_notes (
+      key TEXT PRIMARY KEY,
+      type TEXT,
+      data TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS zs_traces (
+      invocation_id TEXT PRIMARY KEY,
+      script_ref TEXT NOT NULL,
+      code_snapshot TEXT NOT NULL,
+      status TEXT NOT NULL,
+      events TEXT NOT NULL,
+      coverage TEXT,
+      result TEXT,
+      created_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS zs_instances (
+      invocation_id TEXT PRIMARY KEY,
+      script_ref TEXT NOT NULL,
+      state TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS zs_invocations (
+      invocation_id TEXT PRIMARY KEY,
+      script_ref TEXT NOT NULL,
+      status TEXT NOT NULL,
+      agent_id TEXT,
+      started_at INTEGER NOT NULL,
+      finished_at INTEGER
+    );
+    CREATE TABLE IF NOT EXISTS zs_agents (
+      agent_id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      registered_at INTEGER NOT NULL
+    );
+  `);
+
+  function collection<T = unknown>(name: string): Collection<T> {
+    return {
+      insertOne(doc: T): string {
+        const _id = randomUUID();
+        const now = Date.now();
+        db.prepare("INSERT INTO zs_documents (collection, _id, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
+          .run(name, _id, JSON.stringify(doc), now, now);
+        return _id;
+      },
+
+      insertMany(docs: T[]): string[] {
+        const insert = db.prepare("INSERT INTO zs_documents (collection, _id, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?)");
+        const ids: string[] = [];
+        const tx = db.transaction(() => {
+          const now = Date.now();
+          for (const doc of docs) {
+            const _id = randomUUID();
+            insert.run(name, _id, JSON.stringify(doc), now, now);
+            ids.push(_id);
+          }
+        });
+        tx();
+        return ids;
+      },
+
+      findOne(filter?: Partial<T>): (T & { _id: string }) | null {
+        const { clause, params } = buildWhere(name, filter as Record<string, unknown> | undefined);
+        const row = db.prepare(`SELECT _id, data FROM zs_documents WHERE ${clause} LIMIT 1`).get(...params) as { _id: string; data: string } | undefined;
+        if (row === undefined) return null;
+        return { ...(JSON.parse(row.data) as T), _id: row._id };
+      },
+
+      find(filter?: Partial<T>): (T & { _id: string })[] {
+        const { clause, params } = buildWhere(name, filter as Record<string, unknown> | undefined);
+        const rows = db.prepare(`SELECT _id, data FROM zs_documents WHERE ${clause}`).all(...params) as { _id: string; data: string }[];
+        return rows.map((r) => ({ ...(JSON.parse(r.data) as T), _id: r._id }));
+      },
+
+      updateOne(filter: Partial<T>, patch: Partial<T>): number {
+        const { clause, params } = buildWhere(name, filter as Record<string, unknown>);
+        const row = db.prepare(`SELECT _id, data FROM zs_documents WHERE ${clause} LIMIT 1`).get(...params) as { _id: string; data: string } | undefined;
+        if (row === undefined) return 0;
+        const merged = { ...JSON.parse(row.data), ...patch };
+        db.prepare("UPDATE zs_documents SET data = ?, updated_at = ? WHERE collection = ? AND _id = ?")
+          .run(JSON.stringify(merged), Date.now(), name, row._id);
+        return 1;
+      },
+
+      updateMany(filter: Partial<T>, patch: Partial<T>): number {
+        const { clause, params } = buildWhere(name, filter as Record<string, unknown>);
+        const rows = db.prepare(`SELECT _id, data FROM zs_documents WHERE ${clause}`).all(...params) as { _id: string; data: string }[];
+        if (rows.length === 0) return 0;
+        const update = db.prepare("UPDATE zs_documents SET data = ?, updated_at = ? WHERE collection = ? AND _id = ?");
+        const tx = db.transaction(() => {
+          const now = Date.now();
+          for (const row of rows) {
+            const merged = { ...JSON.parse(row.data), ...patch };
+            update.run(JSON.stringify(merged), now, name, row._id);
+          }
+        });
+        tx();
+        return rows.length;
+      },
+
+      deleteOne(filter: Partial<T>): number {
+        const { clause, params } = buildWhere(name, filter as Record<string, unknown>);
+        const row = db.prepare(`SELECT _id FROM zs_documents WHERE ${clause} LIMIT 1`).get(...params) as { _id: string } | undefined;
+        if (row === undefined) return 0;
+        db.prepare("DELETE FROM zs_documents WHERE collection = ? AND _id = ?").run(name, row._id);
+        return 1;
+      },
+
+      deleteMany(filter: Partial<T>): number {
+        const { clause, params } = buildWhere(name, filter as Record<string, unknown>);
+        return db.prepare(`DELETE FROM zs_documents WHERE ${clause}`).run(...params).changes;
+      },
+
+      count(filter?: Partial<T>): number {
+        const { clause, params } = buildWhere(name, filter as Record<string, unknown> | undefined);
+        return (db.prepare(`SELECT COUNT(*) as c FROM zs_documents WHERE ${clause}`).get(...params) as { c: number }).c;
+      },
+    };
+  }
+
+  const notes: Notes = {
+    put(key: string, data: unknown, type?: string): void {
+      const now = Date.now();
+      db.prepare(`INSERT INTO zs_notes (key, type, data, created_at, updated_at) VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET type = excluded.type, data = excluded.data, updated_at = excluded.updated_at`)
+        .run(key, type ?? null, JSON.stringify(data), now, now);
+    },
+
+    get(key: string): unknown | null {
+      const row = db.prepare("SELECT data FROM zs_notes WHERE key = ?").get(key) as { data: string } | undefined;
+      return row !== undefined ? JSON.parse(row.data) : null;
+    },
+
+    delete(key: string): boolean {
+      return db.prepare("DELETE FROM zs_notes WHERE key = ?").run(key).changes > 0;
+    },
+
+    list(type?: string): StoreEntry[] {
+      const rows = type !== undefined
+        ? db.prepare("SELECT key, type, data FROM zs_notes WHERE type = ?").all(type) as { key: string; type: string | null; data: string }[]
+        : db.prepare("SELECT key, type, data FROM zs_notes").all() as { key: string; type: string | null; data: string }[];
+      return rows.map((r) => ({ key: r.key, ...(r.type !== null ? { type: r.type } : {}), data: JSON.parse(r.data) }));
+    },
+
+    keys(type?: string): string[] {
+      const rows = type !== undefined
+        ? db.prepare("SELECT key FROM zs_notes WHERE type = ?").all(type) as { key: string }[]
+        : db.prepare("SELECT key FROM zs_notes").all() as { key: string }[];
+      return rows.map((r) => r.key);
+    },
+  };
+
+  // ── Infrastructure persistence ──
+
+  const infra = {
+    saveTrace(trace: { invocation_id: string; script_ref: string; code_snapshot: string; status: string; events: unknown[]; coverage?: unknown; result?: unknown }): void {
+      db.prepare("INSERT OR REPLACE INTO zs_traces (invocation_id, script_ref, code_snapshot, status, events, coverage, result, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+        .run(trace.invocation_id, trace.script_ref, trace.code_snapshot, trace.status, JSON.stringify(trace.events), trace.coverage !== undefined ? JSON.stringify(trace.coverage) : null, trace.result !== undefined ? JSON.stringify(trace.result) : null, Date.now());
+    },
+
+    getTrace(invocation_id: string): { invocation_id: string; script_ref: string; status: string; events: unknown[]; coverage?: unknown; result?: unknown } | null {
+      const row = db.prepare("SELECT * FROM zs_traces WHERE invocation_id = ?").get(invocation_id) as { invocation_id: string; script_ref: string; status: string; events: string; coverage: string | null; result: string | null } | undefined;
+      if (row === undefined) return null;
+      return { invocation_id: row.invocation_id, script_ref: row.script_ref, status: row.status, events: JSON.parse(row.events), ...(row.coverage !== null ? { coverage: JSON.parse(row.coverage) } : {}), ...(row.result !== null ? { result: JSON.parse(row.result) } : {}) };
+    },
+
+    recordInvocation(inv: { invocation_id: string; script_ref: string; status: string; agent_id?: string }): void {
+      db.prepare("INSERT OR REPLACE INTO zs_invocations (invocation_id, script_ref, status, agent_id, started_at) VALUES (?, ?, ?, ?, ?)")
+        .run(inv.invocation_id, inv.script_ref, inv.status, inv.agent_id ?? null, Date.now());
+    },
+
+    finishInvocation(invocation_id: string, status: string): void {
+      db.prepare("UPDATE zs_invocations SET status = ?, finished_at = ? WHERE invocation_id = ?")
+        .run(status, Date.now(), invocation_id);
+    },
+
+    saveAgent(agent: AgentRecord): void {
+      db.prepare("INSERT OR IGNORE INTO zs_agents (agent_id, name, registered_at) VALUES (?, ?, ?)")
+        .run(agent.agent_id, agent.name, agent.registered_at);
+    },
+
+    loadAgents(): AgentRecord[] {
+      return db.prepare("SELECT agent_id, name, registered_at FROM zs_agents").all() as AgentRecord[];
+    },
+
+    saveSnapshot(invocation_id: string, script_ref: string, state: string): void {
+      db.prepare("INSERT OR REPLACE INTO zs_instances (invocation_id, script_ref, state, updated_at) VALUES (?, ?, ?, ?)")
+        .run(invocation_id, script_ref, state, Date.now());
+    },
+
+    deleteSnapshot(invocation_id: string): void {
+      db.prepare("DELETE FROM zs_instances WHERE invocation_id = ?").run(invocation_id);
+    },
+
+    loadSnapshot(invocation_id: string): { script_ref: string; state: string } | null {
+      const row = db.prepare("SELECT script_ref, state FROM zs_instances WHERE invocation_id = ?").get(invocation_id) as { script_ref: string; state: string } | undefined;
+      return row ?? null;
+    },
+  };
+
+  return {
+    collection,
+    collections(): { name: string; count: number }[] {
+      const rows = db.prepare("SELECT collection as name, COUNT(*) as count FROM zs_documents GROUP BY collection").all() as { name: string; count: number }[];
+      return rows;
+    },
+    notes,
+    infra,
+    close() { db.close(); },
+  };
+}

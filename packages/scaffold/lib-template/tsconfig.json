@@ -1,0 +1,1 @@
+{ "files": [], "references": [ { "path": "./tsconfig.cognitive.json" }, { "path": "./tsconfig.server.json" } ] }

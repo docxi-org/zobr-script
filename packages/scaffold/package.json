@@ -1,0 +1,9 @@
+{
+  "name": "@zobr/scaffold",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/ambients.ts",
+  "exports": { ".": "./src/ambients.ts" },
+  "scripts": { "test": "vitest run" }
+}

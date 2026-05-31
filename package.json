@@ -1,0 +1,23 @@
+{
+  "name": "zobr-script-v2",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc -p packages/core/tsconfig.json && tsc -p packages/scaffold/tsconfig.json && tsc -p packages/validator/tsconfig.json && tsc -p packages/protocol/tsconfig.json && tsc -p packages/server/tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "tsx packages/server/src/main.ts",
+    "dev": "tsx watch packages/server/src/main.ts"
+  },
+  "devDependencies": {
+    "@types/node": "22",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "vitest": "^3.0.0"
+  }
+}

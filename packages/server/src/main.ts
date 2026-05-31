@@ -30,6 +30,10 @@ const { app } = createZsHttpApp({
 
 app.get("/health", (_req, res) => { res.json({ ok: true }); });
 
+app.get("/.well-known/oauth-protected-resource", (_req, res) => {
+  res.json({ resource: `https://${_req.headers.host ?? "localhost"}` });
+});
+
 const HOST = process.env["ZS_HOST"] ?? "127.0.0.1";
 
 app.listen(PORT, HOST, () => {

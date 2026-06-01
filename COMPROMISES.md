@@ -24,6 +24,6 @@
 - [x] JWT secret — warning в лог если не задан. ZS_JWT_SECRET добавлен в .env.
 - [x] Seed admin — warning если не задан. ZS_ADMIN_PASSWORD добавлен в .env.
 - [x] Rate limiting на /api/auth/login — 10 req/min per IP.
-- [ ] Нет тестов для API endpoints и auth.
+- [x] Тесты для API: 28 тестов (auth, CRUD, role-based access, user management).
 - [x] MiniStat определён локально в agents.tsx. Используется только там — выносить не нужно.
 - [x] Contract tab — shapes извлекаются через extractCogShapes/extractClassInfo на сервере.

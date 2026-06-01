@@ -128,9 +128,12 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     }
   });
 
-  // Script detail/write/validate — ref can contain slashes (nested folders)
-  // Use sub-router mounted at /scripts to capture the rest of the path
+  // Script detail/write/validate — ref can contain slashes (nested folders).
+  // Express 5 path-to-regexp v8 doesn't support /:ref+ — use sub-router + req.path.
+  function refFromPath(p: string): string { return p.replace(/^\//, ""); }
+
   const scriptsDetail = Router();
+  scriptsDetail.use(json());
 
   scriptsDetail.post("/", auth.middleware(["architect", "admin"]), async (req, res) => {
     try {
@@ -142,42 +145,43 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     }
   });
 
-  scriptsDetail.use("/:ref+/validate", (req, res) => {
-    const ref = (req.params as Record<string, string>)["ref"] as string;
-    const result = zsApp.validate({ cog: req.body.cog, srv: req.body.srv });
-    res.json(result);
-  });
-
-  scriptsDetail.get("/:ref+", async (req, res) => {
-    const ref = (req.params as Record<string, string>)["ref"] as string;
-    const detail = await zsApp.apiGetScriptDetail(ref);
-    if (!detail) {
-      res.status(404).json({ error: { code: "NOT_FOUND", message: `Script not found: ${ref}` } });
+  scriptsDetail.use((req, res, next) => {
+    const path = refFromPath(req.path);
+    if (req.method === "POST" && path.endsWith("/validate")) {
+      try {
+        const body = req.body ?? {};
+        const result = zsApp.validate({ cog: body.cog ?? [], srv: body.srv ?? [] });
+        res.json(result);
+      } catch (e) {
+        res.status(500).json({ error: { code: "VALIDATE_ERROR", message: (e as Error).message } });
+      }
       return;
     }
-    res.json(detail);
-  });
-
-  scriptsDetail.put("/:ref+", auth.middleware(["architect", "admin"]), async (req, res) => {
-    const ref = (req.params as Record<string, string>)["ref"] as string;
-    try {
-      const result = await zsApp.createScript({ ...req.body, script_ref: ref });
-      res.json(result);
-    } catch (e) {
-      logger.error({ err: e }, "PUT /api/scripts error");
-      res.status(500).json({ error: { code: "INTERNAL", message: "Failed to update script" } });
+    if (req.method === "GET" && path) {
+      zsApp.apiGetScriptDetail(path).then((detail) => {
+        if (!detail) { res.status(404).json({ error: { code: "NOT_FOUND", message: `Script not found: ${path}` } }); return; }
+        res.json(detail);
+      }).catch(() => res.status(500).json({ error: { code: "INTERNAL", message: "Failed to load script" } }));
+      return;
     }
-  });
-
-  scriptsDetail.delete("/:ref+", auth.middleware(["architect", "admin"]), async (req, res) => {
-    const ref = (req.params as Record<string, string>)["ref"] as string;
-    try {
-      const result = await zsApp.deleteScript(ref);
-      res.json(result);
-    } catch (e) {
-      logger.error({ err: e }, "DELETE /api/scripts error");
-      res.status(500).json({ error: { code: "INTERNAL", message: "Failed to delete script" } });
+    if (req.method === "PUT" && path) {
+      if (!auth.middleware(["architect", "admin"])) { next(); return; }
+      auth.middleware(["architect", "admin"])(req, res, () => {
+        zsApp.createScript({ ...req.body, script_ref: path })
+          .then((result) => res.json(result))
+          .catch((e) => { logger.error({ err: e }, "PUT script error"); res.status(500).json({ error: { code: "INTERNAL", message: "Failed to update script" } }); });
+      });
+      return;
     }
+    if (req.method === "DELETE" && path) {
+      auth.middleware(["architect", "admin"])(req, res, () => {
+        zsApp.deleteScript(path)
+          .then((result) => res.json(result))
+          .catch((e) => { logger.error({ err: e }, "DELETE script error"); res.status(500).json({ error: { code: "INTERNAL", message: "Failed to delete script" } }); });
+      });
+      return;
+    }
+    next();
   });
 
   router.use("/scripts", scriptsDetail);

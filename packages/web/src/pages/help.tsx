@@ -130,10 +130,10 @@ export function Help({ slug }: { slug?: string }) {
 
         {/* content */}
         <article className="min-w-0 flex-1" style={{ maxWidth: 760 }}>
-          <div className="flex" style={{ gap: 8, marginBottom: 4 }}>
+          <div className="flex" style={{ gap: 8 }}>
             {current.tags.map((t) => <Badge key={t} color="var(--text-2)">{t}</Badge>)}
           </div>
-          <h1 style={{ margin: "6px 0 0", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>{current.title}</h1>
+          <h1 style={{ margin: "4px 0 0", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>{current.title}</h1>
           {current.summary && <p style={{ margin: "10px 0 0", fontSize: 16, color: "var(--text-2)", lineHeight: 1.6 }}>{current.summary}</p>}
           <hr style={{ border: "none", borderTop: "1px solid var(--border)", margin: "20px 0" }} />
           <Markdown body={bodyNoTitle} />

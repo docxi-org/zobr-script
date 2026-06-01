@@ -100,7 +100,9 @@ export async function loadDocs(): Promise<DocsData> {
         if (t && !t.backlinks.includes(d.slug)) t.backlinks.push(d.slug);
       });
     });
-    docs.sort((a, b) => a.category.localeCompare(b.category) || a.order - b.order);
+    const CATEGORY_ORDER: Record<string, number> = { "What is ZS": 0, "Key concepts": 1, "Scripting": 2, "Platform": 3 };
+    const catOrd = (c: string) => CATEGORY_ORDER[c] ?? 99;
+    docs.sort((a, b) => catOrd(a.category) - catOrd(b.category) || a.order - b.order);
     const tree: { category: string; items: DocEntry[] }[] = [];
     docs.forEach((d) => {
       let grp = tree.find((g) => g.category === d.category);

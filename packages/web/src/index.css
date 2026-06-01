@@ -1,0 +1,302 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+@import "tailwindcss";
+
+/* ================================================================
+   Design tokens — ported from ui/app/tokens.css
+   Driven by data-* attrs on <html>:
+     data-theme=dark|light
+     data-density=comfortable|compact
+     data-accent=indigo|violet|teal|blue
+   ================================================================ */
+
+:root {
+  /* ---- trust classes (semantic, stable across themes) ---- */
+  --trust-asserted: oklch(0.80 0.13 80);
+  --trust-verified: oklch(0.72 0.15 152);
+  --trust-authority: oklch(0.70 0.13 250);
+  --trust-error: oklch(0.66 0.19 25);
+
+  /* ---- status ---- */
+  --st-running: oklch(0.70 0.13 250);
+  --st-done: oklch(0.72 0.15 152);
+  --st-halted: oklch(0.74 0.15 60);
+  --st-aborted: oklch(0.74 0.15 60);
+  --st-errored: oklch(0.66 0.19 25);
+  --st-expired: oklch(0.66 0.19 25);
+  --st-suspended: oklch(0.62 0.01 264);
+
+  /* ---- radii / motion / layout ---- */
+  --r-sm: 5px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --content-max: 1440px;
+
+  /* ---- density (comfortable default) ---- */
+  --row-h: 40px;
+  --pad: 24px;
+  --gap: 16px;
+  --fs-base: 14px;
+  --fs-sm: 12.5px;
+  --fs-xs: 11.5px;
+  --fs-h1: 22px;
+  --fs-code: 13px;
+  --cell-py: 10px;
+
+  /* ---- accent fallback = indigo ---- */
+  --accent: oklch(0.62 0.17 274);
+  --accent-fg: oklch(0.98 0.01 274);
+
+  /* ---- fonts ---- */
+  --font-ui: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* ---- density: compact ---- */
+:root[data-density="compact"] {
+  --row-h: 32px;
+  --pad: 16px;
+  --gap: 12px;
+  --fs-base: 13px;
+  --fs-sm: 12px;
+  --fs-xs: 11px;
+  --fs-h1: 19px;
+  --fs-code: 12.5px;
+  --cell-py: 6px;
+}
+
+/* ============================ DARK (default) ============================ */
+:root,
+:root[data-theme="dark"] {
+  --bg-0: oklch(0.165 0.004 264);
+  --bg-1: oklch(0.205 0.005 264);
+  --bg-2: oklch(0.245 0.006 264);
+  --bg-3: oklch(0.285 0.007 264);
+  --bg-inset: oklch(0.145 0.004 264);
+  --border: oklch(0.30 0.006 264);
+  --border-2: oklch(0.38 0.008 264);
+  --text-0: oklch(0.965 0.003 264);
+  --text-1: oklch(0.74 0.006 264);
+  --text-2: oklch(0.58 0.006 264);
+  --text-3: oklch(0.46 0.006 264);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --overlay: rgba(0, 0, 0, 0.55);
+  --tint: 0.18;
+  /* code colors */
+  --cc-id: oklch(0.88 0.01 264);
+  --cc-k: oklch(0.74 0.13 305);
+  --cc-s: oklch(0.78 0.11 145);
+  --cc-c: oklch(0.55 0.02 264);
+  --cc-num: oklch(0.80 0.10 60);
+  --cc-t: oklch(0.80 0.11 220);
+  --cc-fn: oklch(0.82 0.10 250);
+  --cc-zs: oklch(0.78 0.13 30);
+  --cc-p: oklch(0.66 0.01 264);
+  --cc-key: oklch(0.80 0.11 220);
+  color-scheme: dark;
+}
+
+/* ============================ LIGHT ============================ */
+:root[data-theme="light"] {
+  --bg-0: oklch(0.985 0.002 264);
+  --bg-1: oklch(1 0 0);
+  --bg-2: oklch(0.965 0.003 264);
+  --bg-3: oklch(0.93 0.004 264);
+  --bg-inset: oklch(0.975 0.003 264);
+  --border: oklch(0.90 0.004 264);
+  --border-2: oklch(0.83 0.006 264);
+  --text-0: oklch(0.22 0.01 264);
+  --text-1: oklch(0.42 0.01 264);
+  --text-2: oklch(0.55 0.01 264);
+  --text-3: oklch(0.66 0.01 264);
+  --shadow: 0 1px 2px rgba(15, 18, 30, 0.06), 0 10px 28px -16px rgba(15, 18, 30, 0.18);
+  --overlay: rgba(20, 22, 32, 0.35);
+  --tint: 0.12;
+  --trust-asserted: oklch(0.66 0.14 72);
+  --trust-verified: oklch(0.58 0.15 152);
+  --trust-authority: oklch(0.56 0.15 252);
+  --trust-error: oklch(0.57 0.20 27);
+  --st-running: oklch(0.56 0.15 252);
+  --st-done: oklch(0.58 0.15 152);
+  --st-halted: oklch(0.62 0.16 60);
+  --st-aborted: oklch(0.62 0.16 60);
+  --st-errored: oklch(0.57 0.20 27);
+  --st-expired: oklch(0.57 0.20 27);
+  --st-suspended: oklch(0.62 0.01 264);
+  --cc-id: oklch(0.28 0.01 264);
+  --cc-k: oklch(0.48 0.18 305);
+  --cc-s: oklch(0.46 0.13 150);
+  --cc-c: oklch(0.62 0.02 264);
+  --cc-num: oklch(0.52 0.13 50);
+  --cc-t: oklch(0.50 0.13 230);
+  --cc-fn: oklch(0.48 0.15 258);
+  --cc-zs: oklch(0.54 0.17 30);
+  --cc-p: oklch(0.50 0.01 264);
+  --cc-key: oklch(0.50 0.13 230);
+  color-scheme: light;
+}
+
+/* ---- accent variants ---- */
+:root[data-accent="indigo"] {
+  --accent: oklch(0.62 0.17 274);
+  --accent-fg: oklch(0.98 0.01 274);
+}
+:root[data-accent="violet"] {
+  --accent: oklch(0.63 0.19 305);
+  --accent-fg: oklch(0.99 0.01 305);
+}
+:root[data-accent="teal"] {
+  --accent: oklch(0.66 0.12 195);
+  --accent-fg: oklch(0.99 0.01 195);
+}
+:root[data-accent="blue"] {
+  --accent: oklch(0.62 0.16 250);
+  --accent-fg: oklch(0.99 0.01 250);
+}
+
+/* ---- font variants ---- */
+:root[data-font="geist"] {
+  --font-ui: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+}
+:root[data-font="system"] {
+  --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* ================================================================
+   Base resets
+   ================================================================ */
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg-0);
+  color: var(--text-0);
+  font-family: var(--font-ui);
+  font-size: var(--fs-base);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  height: 100%;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--accent) 35%, transparent);
+}
+
+/* scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-2) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+  background-clip: content-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---- utility classes ---- */
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* ---- animations ---- */
+@keyframes zs-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.zs-row {
+  transition: background 0.12s var(--ease);
+}
+.zs-row:hover {
+  background: var(--bg-2);
+}
+
+.zs-divider:hover {
+  background: var(--accent) !important;
+}
+
+/* ---- responsive ---- */
+.zs-sidebar-desktop {
+  height: 100%;
+}
+
+.zs-md-code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  color: var(--cc-zs);
+}
+
+.zs-md a:hover {
+  border-bottom-color: var(--accent) !important;
+}
+
+@media (max-width: 1024px) {
+  .zs-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .zs-sidebar-desktop {
+    display: none;
+  }
+  .zs-hamburger {
+    display: inline-flex !important;
+  }
+  .zs-user-meta {
+    display: none !important;
+  }
+  .zs-help {
+    flex-direction: column !important;
+  }
+  .zs-help-tree {
+    width: 100% !important;
+    position: static !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .zs-help-rel {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -64,6 +64,8 @@ export class ZsApp {
     this.agents = new AgentRegistry(this.#db);
   }
 
+  getDb(): Db | undefined { return this.#db; }
+
   toolNames(): string[] {
     return MCP_TOOLS.map((t) => t.name);
   }
@@ -463,6 +465,85 @@ export class ZsApp {
     const { join } = await import("node:path");
     await rm(join(this.#library.libraryRoot, script_ref), { recursive: true, force: true });
     return { ok: true };
+  }
+
+  // ── REST API methods ──
+
+  get apiConfig() {
+    return {
+      invocationTtlMs: this.#invocationTtlMs,
+      awaitingTtlMs: this.#awaitingTtlMs,
+      maxActiveInvocations: this.#maxActive,
+      budgets: this.service.defaultBudgets,
+    };
+  }
+
+  apiListTraces(opts?: { scriptRef?: string; status?: string; limit?: number; offset?: number }) {
+    if (!this.#db) return [];
+    return this.#db.infra.listTraces(opts);
+  }
+
+  apiCountTraces(opts?: { scriptRef?: string; status?: string }): number {
+    if (!this.#db) return 0;
+    return this.#db.infra.countTraces(opts);
+  }
+
+  apiGetTrace(id: string) {
+    if (!this.#db) return null;
+    return this.#db.infra.getTrace(id);
+  }
+
+  apiStoreCollectionDocs(name: string, filter: Record<string, unknown> | undefined, limit: number, offset: number) {
+    const db = this.#requireDb();
+    const docs = db.collection(name).find(filter);
+    return { collection: name, docs: docs.slice(offset, offset + limit), total: docs.length, limit, offset };
+  }
+
+  apiStoreNotes(type?: string) {
+    return this.#requireDb().notes.list(type);
+  }
+
+  apiListAgents() {
+    if (!this.#db) return [];
+    return this.agents.all().map((a) => ({
+      ...a,
+      active_invocations: this.agents.get(a.agent_id)?.activeInvocations.size ?? 0,
+      total_runs: this.#db!.infra.countAgentInvocations(a.agent_id),
+    }));
+  }
+
+  apiGetAgentDetail(id: string) {
+    const agent = this.agents.get(id);
+    if (!agent) return null;
+    const history = this.#db?.infra.listInvocationsByAgent(id, 30) ?? [];
+    return {
+      agent_id: agent.agentId,
+      name: agent.name,
+      registered_at: agent.registeredAt,
+      active_invocations: [...agent.activeInvocations],
+      total_runs: this.#db?.infra.countAgentInvocations(id) ?? 0,
+      history,
+    };
+  }
+
+  apiActiveInvocations() {
+    const result: unknown[] = [];
+    for (const inst of this.registry.values()) {
+      if (isTerminal(inst.status)) continue;
+      const agentId = this.agents.agentForInvocation(inst.invocation_id);
+      const agent = agentId ? this.agents.get(agentId) : undefined;
+      result.push({
+        invocation_id: inst.invocation_id,
+        script_ref: inst.script_ref,
+        agent_id: agentId ?? null,
+        agent_name: agent?.name ?? null,
+        status: inst.status,
+        started_at: inst.createdAt,
+        last_activity_at: inst.lastActivityAt,
+        events_count: inst.trace.events.length,
+      });
+    }
+    return result;
   }
 }
 

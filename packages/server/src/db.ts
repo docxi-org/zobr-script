@@ -1,6 +1,6 @@
 // SQLite-backed Db/Collection/Notes — the persistent storage layer (doc 12 §4).
 // Equality-match filtering via json_extract. Dot-notation for nested fields.
-import Database from "better-sqlite3";
+import Database, { type Database as DatabaseType } from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 
 // ── Types ──
@@ -47,6 +47,10 @@ export interface InfraStore {
   saveSnapshot(invocation_id: string, script_ref: string, state: string): void;
   deleteSnapshot(invocation_id: string): void;
   loadSnapshot(invocation_id: string): { script_ref: string; state: string } | null;
+  listTraces(opts?: { scriptRef?: string; status?: string; limit?: number; offset?: number }): { invocation_id: string; script_ref: string; code_snapshot: string; status: string; events_count: number; coverage: unknown; result: unknown; created_at: number }[];
+  countTraces(opts?: { scriptRef?: string; status?: string }): number;
+  countAgentInvocations(agentId: string): number;
+  listInvocationsByAgent(agentId: string, limit: number): { invocation_id: string; script_ref: string; status: string; started_at: number; finished_at: number | null }[];
 }
 
 export interface Db {
@@ -54,6 +58,7 @@ export interface Db {
   collections(): { name: string; count: number }[];
   notes: Notes;
   infra: InfraStore;
+  readonly rawDb: DatabaseType;
   close(): void;
 }
 
@@ -120,6 +125,16 @@ export function createDb(path: string): Db {
       agent_id TEXT PRIMARY KEY,
       name TEXT NOT NULL UNIQUE,
       registered_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS zs_users (
+      id TEXT PRIMARY KEY,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'executor',
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at INTEGER NOT NULL,
+      last_login INTEGER
     );
   `);
 
@@ -285,9 +300,52 @@ export function createDb(path: string): Db {
       const row = db.prepare("SELECT script_ref, state FROM zs_instances WHERE invocation_id = ?").get(invocation_id) as { script_ref: string; state: string } | undefined;
       return row ?? null;
     },
+
+    listTraces(opts?: { scriptRef?: string; status?: string; limit?: number; offset?: number }) {
+      const conditions: string[] = [];
+      const params: unknown[] = [];
+      if (opts?.scriptRef) { conditions.push("script_ref = ?"); params.push(opts.scriptRef); }
+      if (opts?.status) { conditions.push("status = ?"); params.push(opts.status); }
+      const where = conditions.length > 0 ? " WHERE " + conditions.join(" AND ") : "";
+      let sql = `SELECT invocation_id, script_ref, code_snapshot, status, events, coverage, result, created_at FROM zs_traces${where} ORDER BY created_at DESC`;
+      if (opts?.limit !== undefined) { sql += " LIMIT ?"; params.push(opts.limit); }
+      if (opts?.offset !== undefined) { sql += " OFFSET ?"; params.push(opts.offset); }
+      const rows = db.prepare(sql).all(...params) as { invocation_id: string; script_ref: string; code_snapshot: string; status: string; events: string; coverage: string | null; result: string | null; created_at: number }[];
+      return rows.map((r) => ({
+        invocation_id: r.invocation_id,
+        script_ref: r.script_ref,
+        code_snapshot: r.code_snapshot,
+        status: r.status,
+        events_count: (JSON.parse(r.events) as unknown[]).length,
+        coverage: r.coverage ? JSON.parse(r.coverage) as unknown : null,
+        result: r.result ? JSON.parse(r.result) as unknown : null,
+        created_at: r.created_at,
+      }));
+    },
+
+    countTraces(opts?: { scriptRef?: string; status?: string }): number {
+      const conditions: string[] = [];
+      const params: unknown[] = [];
+      if (opts?.scriptRef) { conditions.push("script_ref = ?"); params.push(opts.scriptRef); }
+      if (opts?.status) { conditions.push("status = ?"); params.push(opts.status); }
+      const where = conditions.length > 0 ? " WHERE " + conditions.join(" AND ") : "";
+      const row = db.prepare(`SELECT COUNT(*) as c FROM zs_traces${where}`).get(...params) as { c: number } | undefined;
+      return row?.c ?? 0;
+    },
+
+    countAgentInvocations(agentId: string): number {
+      const row = db.prepare("SELECT COUNT(*) as c FROM zs_invocations WHERE agent_id = ?").get(agentId) as { c: number } | undefined;
+      return row?.c ?? 0;
+    },
+
+    listInvocationsByAgent(agentId: string, limit: number) {
+      return db.prepare("SELECT invocation_id, script_ref, status, started_at, finished_at FROM zs_invocations WHERE agent_id = ? ORDER BY started_at DESC LIMIT ?")
+        .all(agentId, limit) as { invocation_id: string; script_ref: string; status: string; started_at: number; finished_at: number | null }[];
+    },
   };
 
   return {
+    rawDb: db,
     collection,
     collections(): { name: string; count: number }[] {
       const rows = db.prepare("SELECT collection as name, COUNT(*) as count FROM zs_documents GROUP BY collection").all() as { name: string; count: number }[];

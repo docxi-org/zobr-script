@@ -75,4 +75,16 @@ export class AgentRegistry {
   findAgentByInvocation(invocationId: string): string | undefined {
     return this.#invToAgent.get(invocationId);
   }
+
+  all(): { agent_id: string; name: string; registered_at: number }[] {
+    return [...this.#agents.values()].map((a) => ({
+      agent_id: a.agentId,
+      name: a.name,
+      registered_at: a.registeredAt,
+    }));
+  }
+
+  agentForInvocation(invocationId: string): string | undefined {
+    return this.#invToAgent.get(invocationId);
+  }
 }

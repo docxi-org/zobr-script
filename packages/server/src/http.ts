@@ -15,6 +15,8 @@ import type { ZsServiceOptions } from "@zobr/protocol";
 import type { Logger } from "./logger";
 import { log as defaultLog } from "./logger";
 import { EXECUTOR_INSTRUCTION, START_PREAMBLE } from "./instructions";
+import { createApiRouter } from "./api-routes";
+import { AuthService } from "./auth";
 
 export interface ZsHttpConfig {
   readonly library: ScriptLibrary | ScriptSourceReader;
@@ -141,6 +143,12 @@ export function createZsHttpApp(config: ZsHttpConfig): ZsHttpApp {
       if (!res.headersSent) res.status(500).send("Internal server error");
     }
   });
+
+  const db = zsApp.getDb();
+  if (db) {
+    const authService = new AuthService(db.rawDb, { logger });
+    app.use("/api", createApiRouter(zsApp, authService, logger));
+  }
 
   return { app, zsApp, mcpServer };
 }

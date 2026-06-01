@@ -44,6 +44,8 @@ export class ZsService {
     this.#preamble = opts.startPreamble;
   }
 
+  get defaultBudgets() { return this.#budgets; }
+
   async start(req: StartReq): Promise<StartRes> {
     const idem = this.#registry.remembered(req.idempotency_key);
     if (idem.hit) return idem.value as StartRes;

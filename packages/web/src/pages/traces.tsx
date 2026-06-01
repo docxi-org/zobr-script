@@ -13,14 +13,7 @@ import { useApi } from "../api/hooks";
 import { useT } from "../i18n/context";
 import type { TraceRow, ScriptEntry } from "../api/types";
 
-const columns: Column<TraceRow>[] = [
-  { key: "id", label: "Invocation", mono: true, sortable: true, maxWidth: 240, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
-  { key: "script", label: "Script", sortable: true, render: (r) => <ScriptChip name={r.script_ref} /> },
-  { key: "status", label: "Status", sortable: true, render: (r) => <StatusBadge status={r.status} /> },
-  { key: "coverage", label: "Coverage", width: 170, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
-  { key: "events", label: "Events", align: "right", sortable: true, mono: true, muted: true, render: (r) => r.events_count },
-  { key: "when", label: "Started", align: "right", sortable: true, mono: true, muted: true, render: (r) => fmtDate(r.created_at) },
-];
+// columns moved inside component for i18n access
 
 export function Traces() {
   const [scriptF, setScriptF] = useState("");
@@ -49,6 +42,24 @@ export function Traces() {
   const reset = <T,>(fn: (v: T) => void) => (v: T) => { fn(v); setOffset(0); };
   const t = useT();
 
+  const columns: Column<TraceRow>[] = [
+    { key: "id", label: t("col.invocation"), mono: true, sortable: true, maxWidth: 240, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
+    { key: "script", label: t("col.script"), sortable: true, render: (r) => <ScriptChip name={r.script_ref} /> },
+    { key: "status", label: t("col.status"), sortable: true, render: (r) => <StatusBadge status={r.status} /> },
+    { key: "coverage", label: t("col.coverage"), width: 170, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
+    { key: "events", label: t("col.events"), align: "right", sortable: true, mono: true, muted: true, render: (r) => r.events_count },
+    { key: "when", label: t("col.started"), align: "right", sortable: true, mono: true, muted: true, render: (r) => fmtDate(r.created_at) },
+  ];
+
+  const statusOptions = [
+    { value: "running", label: t("status.running") },
+    { value: "done", label: t("status.done") },
+    { value: "halted", label: t("status.halted") },
+    { value: "aborted", label: t("status.aborted") },
+    { value: "errored", label: t("status.errored") },
+    { value: "expired", label: t("status.expired") },
+  ];
+
   return (
     <div>
       <div style={{ marginBottom: "var(--gap)" }}>
@@ -59,7 +70,7 @@ export function Traces() {
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: "var(--gap)" }}>
         <Input value={q} onChange={reset(setQ)} placeholder={t("traces.search")} icon="search" style={{ width: 260 }} mono />
         <Select value={scriptF} onChange={reset(setScriptF)} placeholder={t("traces.all_scripts")} options={scriptNames} width={150} />
-        <Select value={statusF} onChange={reset(setStatusF)} placeholder={t("traces.all_statuses")} options={["running", "done", "halted", "aborted", "errored", "expired"]} width={150} />
+        <Select value={statusF} onChange={reset(setStatusF)} placeholder={t("traces.all_statuses")} options={statusOptions} width={150} />
         {active && <Button variant="ghost" size="sm" icon="x" onClick={() => { setScriptF(""); setStatusF(""); setQ(""); setOffset(0); }}>{t("traces.clear")}</Button>}
         <div className="flex-1" />
         <Button variant="default" size="md" icon="refresh" onClick={refetch}>{t("traces.refresh")}</Button>

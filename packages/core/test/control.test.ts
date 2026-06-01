@@ -20,7 +20,7 @@ describe("ControlDriver.report", () => {
     const inst = new Instance(params());
     const r = await new ControlDriver(NO_CONTROLLER).report(inst, "x", { a: 1 });
     expect(r.ok).toBe(true);
-    expect(inst.trace.length).toBe(1);
+    expect(inst.trace.length).toBe(2);
   });
 
   it("rejects a malformed payload at the seam", async () => {

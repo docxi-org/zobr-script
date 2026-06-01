@@ -58,6 +58,13 @@ export class Instance {
     this.budgets = new BudgetTracker(p.budgets);
     if (p.parent_invocation_id !== undefined) this.parent_invocation_id = p.parent_invocation_id;
     this.depth = p.depth ?? 0;
+    this.trace.append({
+      op: "status_transition",
+      realizer: "server",
+      trust: "verified",
+      inputs: [],
+      meta: { from: "created", to: "running", reason: "start" },
+    });
   }
 
   get status(): Status {

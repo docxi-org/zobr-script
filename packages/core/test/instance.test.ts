@@ -11,7 +11,9 @@ describe("Instance", () => {
     expect(i.parent_invocation_id).toBeUndefined();
     expect(typeof i.invocation_id).toBe("string");
     expect(i.store.size).toBe(0);
-    expect(i.trace.length).toBe(0);
+    expect(i.trace.length).toBe(1);
+    expect(i.trace.events[0]?.op).toBe("status_transition");
+    expect(i.trace.events[0]?.meta).toEqual({ from: "created", to: "running", reason: "start" });
   });
 
   it("records child linkage and depth", () => {
@@ -24,9 +26,9 @@ describe("Instance", () => {
     const i = new Instance(params);
     i.transition("done", "conclude reached");
     expect(i.status).toBe("done");
-    expect(i.trace.length).toBe(1);
-    expect(i.trace.events[0]?.op).toBe("status_transition");
-    expect(i.trace.events[0]?.trust).toBe("verified");
+    expect(i.trace.length).toBe(2);
+    expect(i.trace.events[1]?.op).toBe("status_transition");
+    expect(i.trace.events[1]?.trust).toBe("verified");
   });
 
   it("refuses an illegal transition (fail-closed)", () => {

@@ -66,7 +66,7 @@
 - [x] **9.6.3** Frontend router — wildcard match для `/scripts/*`.
 - [x] **9.6.4** MCP tools — zod-схемы: `z.string()`, слэши допустимы. Без изменений.
 - [x] **9.6.5** Frontend Scripts page — плоский список с полным path (работает).
-- [ ] **9.6.6** 🎨 **Дизайнер**: UI для древовидной структуры скриптов. Задание: `spec/ui/03-scripts-tree.md`.
+- [x] **9.6.6** UI для древовидной структуры скриптов — TreeView, ScriptCrumb, folder picker в New Script.
 
 ### 9.4. Deploy
 

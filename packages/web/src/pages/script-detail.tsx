@@ -12,6 +12,27 @@ import { useApi } from "../api/hooks";
 import { api } from "../api/client";
 import type { ScriptSource, TraceRow, Shape } from "../api/types";
 
+function ScriptCrumb({ scriptRef }: { scriptRef: string }) {
+  const segs = scriptRef.split("/");
+  const dirs = segs.slice(0, -1);
+  const base = segs[segs.length - 1]!;
+  return (
+    <div className="mb-3 flex flex-wrap items-center" style={{ gap: 7, fontSize: "var(--fs-sm)" }}>
+      <a href="#/scripts" className="inline-flex items-center" style={{ gap: 6, color: "var(--text-2)", fontWeight: 600 }}>
+        <Icon name="arrowLeft" size={14} /> Scripts
+      </a>
+      {dirs.map((d, i) => (
+        <span key={i} className="flex items-center" style={{ gap: 7 }}>
+          <Icon name="chevronRight" size={13} style={{ color: "var(--text-3)" }} />
+          <span className="mono" style={{ color: "var(--text-2)", fontWeight: 600 }}>{d}</span>
+        </span>
+      ))}
+      <Icon name="chevronRight" size={13} style={{ color: "var(--text-3)" }} />
+      <span className="mono" style={{ color: "var(--text-0)", fontWeight: 700 }}>{base}</span>
+    </div>
+  );
+}
+
 function shapeToString(v: unknown): string {
   if (typeof v === "string") return v;
   if (v && typeof v === "object" && "kind" in v) {
@@ -186,14 +207,14 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
   ];
   const isEditor = tab === "cognitive" || tab === "server";
 
+  const scriptBase = scriptRef.split("/").pop()!;
+
   return (
-    <div className="flex h-full flex-col">
-      <a href="#/scripts" className="mb-3 inline-flex items-center" style={{ gap: 6, fontSize: "var(--fs-sm)", color: "var(--text-2)", fontWeight: 600 }}>
-        <Icon name="arrowLeft" size={14} /> Scripts
-      </a>
+    <div>
+      <ScriptCrumb scriptRef={scriptRef} />
       <div className="mb-4 flex items-center" style={{ gap: 12 }}>
         <Icon name="filecode" size={20} style={{ color: "var(--text-1)" }} />
-        <h1 className="mono" style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700 }}>{scriptRef}</h1>
+        <h1 className="mono" style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700 }}>{scriptBase}</h1>
         {hasSrv && <Badge color="var(--trust-authority)">has srv</Badge>}
         <div className="flex-1" />
         <Badge color="var(--accent)">role: {role}</Badge>

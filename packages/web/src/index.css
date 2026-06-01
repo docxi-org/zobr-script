@@ -247,6 +247,13 @@ button {
   background: var(--bg-2);
 }
 
+.zs-tree-row {
+  transition: background 0.1s var(--ease);
+}
+.zs-tree-row:hover {
+  background: var(--bg-2);
+}
+
 .zs-divider:hover {
   background: var(--accent) !important;
 }

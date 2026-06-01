@@ -96,19 +96,13 @@ export function Help({ slug }: { slug?: string }) {
 
   return (
     <div ref={contentRef}>
-      <div className="flex flex-wrap items-start justify-between" style={{ gap: 16, marginBottom: "var(--gap)" }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, color: "var(--text-0)" }}>{t("help.title")}</h1>
-          <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("help.subtitle")}</p>
-        </div>
-        <Button variant="default" icon="search" onClick={() => window.dispatchEvent(new CustomEvent("zs-open-palette"))}>
-          {t("help.search")} <kbd style={kbdStyle}>⌘K</kbd>
-        </Button>
-      </div>
-
       <div className="zs-help flex items-start" style={{ gap: 28 }}>
         {/* tree */}
-        <nav className="zs-help-tree sticky top-0 shrink-0" style={{ width: 232 }}>
+        <nav className="zs-help-tree shrink-0" style={{ width: 232, position: "sticky", top: 0 }}>
+          <div style={{ marginBottom: 18 }}>
+            <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, color: "var(--text-0)" }}>{t("help.title")}</h1>
+            <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("help.subtitle")}</p>
+          </div>
           {data.tree.map((grp) => (
             <div key={grp.category} style={{ marginBottom: 18 }}>
               <div style={{ fontSize: "var(--fs-xs)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700, color: "var(--text-3)", padding: "0 10px 6px" }}>{grp.category}</div>
@@ -130,8 +124,13 @@ export function Help({ slug }: { slug?: string }) {
 
         {/* content */}
         <article className="min-w-0 flex-1" style={{ maxWidth: 760 }}>
-          <div className="flex" style={{ gap: 8 }}>
-            {current.tags.map((t) => <Badge key={t} color="var(--text-2)">{t}</Badge>)}
+          <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+            <div className="flex" style={{ gap: 8 }}>
+              {current.tags.map((t) => <Badge key={t} color="var(--text-2)">{t}</Badge>)}
+            </div>
+            <Button variant="default" icon="search" size="sm" onClick={() => window.dispatchEvent(new CustomEvent("zs-open-palette"))}>
+              {t("help.search")} <kbd style={kbdStyle}>⌘K</kbd>
+            </Button>
           </div>
           <h1 style={{ margin: "4px 0 0", fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>{current.title}</h1>
           {current.summary && <p style={{ margin: "10px 0 0", fontSize: 16, color: "var(--text-2)", lineHeight: 1.6 }}>{current.summary}</p>}

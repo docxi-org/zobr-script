@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { StatusBadge } from "../ui/badge";
 import { CoverageBar } from "../ui/coverage-bar";
 import { DataTable, type Column } from "../ui/data-table";
@@ -24,7 +25,7 @@ export function Dashboard() {
 
   const t = useT();
 
-  const invColumns: Column<Invocation>[] = [
+  const invColumns = useMemo((): Column<Invocation>[] => [
     { key: "id", label: t("col.invocation"), mono: true, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
     { key: "script", label: t("col.script"), sortable: true, sortVal: (r) => r.script_ref, render: (r) => <ScriptChip name={r.script_ref} /> },
     { key: "agent", label: t("col.agent"), sortable: true, sortVal: (r) => r.agent_name ?? "", render: (r) => r.agent_name ?? "—" },
@@ -32,16 +33,16 @@ export function Dashboard() {
     { key: "age", label: t("col.age"), mono: true, muted: true, sortable: true, sortVal: (r) => r.started_at, render: (r) => timeAgo(r.started_at, NOW) },
     { key: "activity", label: t("col.last_activity"), mono: true, muted: true, sortable: true, sortVal: (r) => r.last_activity_at, render: (r) => timeAgo(r.last_activity_at, NOW) + " " + t("common.ago") },
     { key: "status", label: t("col.status"), sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
-  ];
+  ], [t]);
 
-  const traceColumns: Column<TraceRow>[] = [
+  const traceColumns = useMemo((): Column<TraceRow>[] => [
     { key: "id", label: t("col.invocation"), mono: true, maxWidth: 220, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
     { key: "script", label: t("col.script"), sortable: true, sortVal: (r) => r.script_ref, render: (r) => <ScriptChip name={r.script_ref} /> },
     { key: "status", label: t("col.status"), sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
     { key: "coverage", label: t("col.coverage"), width: 170, sortable: true, sortVal: (r) => r.coverage?.verified ?? 0, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
     { key: "events", label: t("col.events"), align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.events_count, render: (r) => r.events_count },
     { key: "when", label: t("col.when"), mono: true, muted: true, align: "right", sortable: true, sortVal: (r) => r.created_at, render: (r) => fmtDate(r.created_at) },
-  ];
+  ], [t]);
 
   return (
     <div>

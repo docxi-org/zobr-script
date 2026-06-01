@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Icon } from "../ui/icon";
 import { Badge, StatusBadge } from "../ui/badge";
 import { CoverageBar } from "../ui/coverage-bar";
@@ -137,12 +137,7 @@ function ValidationBar({ v }: { v: { ok: boolean; errors: { code: string; messag
 }
 
 
-const runsColumns: Column<TraceRow>[] = [
-  { key: "id", label: "Invocation", mono: true, maxWidth: 240, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
-  { key: "status", label: "Status", sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
-  { key: "coverage", label: "Coverage", width: 170, sortable: true, sortVal: (r) => r.coverage?.verified ?? 0, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
-  { key: "when", label: "Started", align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.created_at, render: (r) => fmtDate(r.created_at) },
-];
+// runsColumns moved inside component for i18n
 
 export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string; role: string; theme: "dark" | "light" }) {
   const { data: script, loading } = useApi<ScriptSource>(`/scripts/${scriptRef}`, [scriptRef]);
@@ -200,6 +195,13 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
       setValidation({ ok: false, errors: [{ code: "SAVE_FAILED", message: (e as Error).message, line: 1 }], warnings: [] });
     }
   };
+
+  const runsColsMemo = useMemo((): Column<TraceRow>[] => [
+    { key: "id", label: t("col.invocation"), mono: true, maxWidth: 240, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
+    { key: "status", label: t("col.status"), sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
+    { key: "coverage", label: t("col.coverage"), width: 170, sortable: true, sortVal: (r) => r.coverage?.verified ?? 0, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
+    { key: "when", label: t("col.started"), align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.created_at, render: (r) => fmtDate(r.created_at) },
+  ], [t]);
 
   const tabs = [
     { id: "cognitive", label: t("new_script.cognitive"), dot: dirtyCog },
@@ -274,7 +276,7 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
         )}
         {tab === "runs" && (
           <DataTable rowKey={(r) => r.invocation_id} onRowClick={(r) => navigate("/traces/" + r.invocation_id)}
-            columns={runsColumns} rows={runsData?.traces ?? []} />
+            columns={runsColsMemo} rows={runsData?.traces ?? []} />
         )}
       </div>
 

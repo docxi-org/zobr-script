@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Icon } from "../ui/icon";
 import { Badge, StatusBadge } from "../ui/badge";
 import { Card } from "../ui/card";
@@ -26,7 +27,7 @@ export function AgentsList() {
   const agents = data?.agents ?? [];
   const t = useT();
 
-  const columns: Column<Agent>[] = [
+  const columns = useMemo((): Column<Agent>[] => [
     { key: "name", label: t("col.name"), sortable: true, sortVal: (r) => r.name, render: (r) => (
       <span className="inline-flex items-center" style={{ gap: 9, fontWeight: 600 }}>
         <span className="grid place-items-center rounded-full border border-[var(--border)]" style={{ width: 26, height: 26, background: "var(--bg-3)", fontSize: 11, fontWeight: 700 }}>{r.name[0]}</span>
@@ -37,7 +38,7 @@ export function AgentsList() {
     { key: "registered", label: t("col.registered"), mono: true, muted: true, sortable: true, sortVal: (r) => r.registered_at, render: (r) => timeAgo(r.registered_at, NOW) + " " + t("common.ago") },
     { key: "active", label: t("col.active"), align: "right", sortable: true, sortVal: (r) => r.active_invocations, render: (r) => r.active_invocations > 0 ? <Badge color="var(--st-running)">{r.active_invocations}</Badge> : <span className="mono" style={{ color: "var(--text-3)" }}>0</span> },
     { key: "total", label: t("col.total_runs"), align: "right", mono: true, sortable: true, sortVal: (r) => r.total_runs, render: (r) => r.total_runs },
-  ];
+  ], [t]);
 
   return (
     <div>

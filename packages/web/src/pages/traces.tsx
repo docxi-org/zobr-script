@@ -42,23 +42,23 @@ export function Traces() {
   const reset = <T,>(fn: (v: T) => void) => (v: T) => { fn(v); setOffset(0); };
   const t = useT();
 
-  const columns: Column<TraceRow>[] = [
+  const columns = useMemo((): Column<TraceRow>[] => [
     { key: "id", label: t("col.invocation"), mono: true, sortable: true, maxWidth: 240, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
     { key: "script", label: t("col.script"), sortable: true, render: (r) => <ScriptChip name={r.script_ref} /> },
     { key: "status", label: t("col.status"), sortable: true, render: (r) => <StatusBadge status={r.status} /> },
     { key: "coverage", label: t("col.coverage"), width: 170, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
     { key: "events", label: t("col.events"), align: "right", sortable: true, mono: true, muted: true, render: (r) => r.events_count },
     { key: "when", label: t("col.started"), align: "right", sortable: true, mono: true, muted: true, render: (r) => fmtDate(r.created_at) },
-  ];
+  ], [t]);
 
-  const statusOptions = [
+  const statusOptions = useMemo(() => [
     { value: "running", label: t("status.running") },
     { value: "done", label: t("status.done") },
     { value: "halted", label: t("status.halted") },
     { value: "aborted", label: t("status.aborted") },
     { value: "errored", label: t("status.errored") },
     { value: "expired", label: t("status.expired") },
-  ];
+  ], [t]);
 
   return (
     <div>

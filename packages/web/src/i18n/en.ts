@@ -184,6 +184,22 @@ export default {
   "status.expired": "expired",
   "status.suspended": "suspended",
 
+  // tweaks
+  "tweaks.title": "Tweaks",
+  "tweaks.appearance": "Appearance",
+  "tweaks.theme": "Theme",
+  "tweaks.density": "Density",
+  "tweaks.accent": "Accent",
+  "tweaks.accent_color": "Accent color",
+  "tweaks.typography": "Typography",
+  "tweaks.font": "Font",
+  "tweaks.language": "Language",
+  "tweaks.locale": "Locale",
+
+  // error boundary
+  "error.title": "Something went wrong",
+  "error.go_dashboard": "Go to Dashboard",
+
   // table headers
   "col.invocation": "Invocation",
   "col.script": "Script",

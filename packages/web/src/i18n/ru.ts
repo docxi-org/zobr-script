@@ -184,6 +184,22 @@ export default {
   "status.expired": "истёк",
   "status.suspended": "приостановлен",
 
+  // tweaks
+  "tweaks.title": "Настройки вида",
+  "tweaks.appearance": "Внешний вид",
+  "tweaks.theme": "Тема",
+  "tweaks.density": "Плотность",
+  "tweaks.accent": "Акцент",
+  "tweaks.accent_color": "Цвет акцента",
+  "tweaks.typography": "Типографика",
+  "tweaks.font": "Шрифт",
+  "tweaks.language": "Язык",
+  "tweaks.locale": "Локаль",
+
+  // error boundary
+  "error.title": "Что-то пошло не так",
+  "error.go_dashboard": "На главную",
+
   // table headers
   "col.invocation": "Вызов",
   "col.script": "Скрипт",

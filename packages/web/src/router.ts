@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
 export interface Route {
   path: string;
@@ -43,25 +43,4 @@ export function match(
     else if (pp[i] !== ap[i]) return null;
   }
   return params;
-}
-
-export function useTheme() {
-  const [theme, setThemeState] = useState<"dark" | "light">(() => {
-    return (
-      (document.documentElement.getAttribute("data-theme") as
-        | "dark"
-        | "light") ?? "dark"
-    );
-  });
-
-  const setTheme = useCallback((t: "dark" | "light") => {
-    document.documentElement.setAttribute("data-theme", t);
-    setThemeState(t);
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  }, [theme, setTheme]);
-
-  return { theme, setTheme, toggleTheme } as const;
 }

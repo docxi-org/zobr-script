@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useLocale, type Locale } from "../i18n/context";
+import { useLocale, useT, type Locale } from "../i18n/context";
 
 type Tweaks = Record<string, string>;
 
@@ -101,6 +101,7 @@ interface TweaksPanelProps {
 
 export function TweaksPanel({ tweaks, setTweak, open, onClose }: TweaksPanelProps) {
   const { locale, setLocale } = useLocale();
+  const t = useT();
 
   if (!open) return null;
 
@@ -110,19 +111,19 @@ export function TweaksPanel({ tweaks, setTweak, open, onClose }: TweaksPanelProp
       style={{ right: 16, top: 56, width: 260, maxHeight: "calc(100vh - 80px)", background: "var(--bg-1)", boxShadow: "var(--shadow)" }}
     >
       <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)]" style={{ padding: "10px 14px" }}>
-        <span style={{ fontWeight: 700, fontSize: "var(--fs-sm)" }}>Tweaks</span>
+        <span style={{ fontWeight: 700, fontSize: "var(--fs-sm)" }}>{t("tweaks.title")}</span>
         <button onClick={onClose} className="cursor-pointer border-none" style={{ background: "transparent", color: "var(--text-2)", fontSize: 13, width: 22, height: 22, borderRadius: 6 }}>✕</button>
       </div>
       <div className="flex flex-col overflow-y-auto" style={{ padding: "8px 14px 14px", gap: 10 }}>
-        <Section label="Appearance" />
-        <Radio label="Theme" value={tweaks["theme"]!} options={["dark", "light"]} onChange={(v) => setTweak("theme", v)} />
-        <Radio label="Density" value={tweaks["density"]!} options={["comfortable", "compact"]} onChange={(v) => setTweak("density", v)} />
-        <Section label="Accent" />
-        <ColorPicker label="Accent color" value={tweaks["accent"]!} options={ACCENTS} onChange={(v) => setTweak("accent", v)} />
-        <Section label="Typography" />
-        <Radio label="Font" value={tweaks["font"]!} options={["inter", "geist", "system"]} onChange={(v) => setTweak("font", v)} />
-        <Section label="Language" />
-        <Radio label="Locale" value={locale} options={[{ value: "en", label: "English" }, { value: "ru", label: "Русский" }]} onChange={(v) => setLocale(v as Locale)} />
+        <Section label={t("tweaks.appearance")} />
+        <Radio label={t("tweaks.theme")} value={tweaks["theme"]!} options={["dark", "light"]} onChange={(v) => setTweak("theme", v)} />
+        <Radio label={t("tweaks.density")} value={tweaks["density"]!} options={["comfortable", "compact"]} onChange={(v) => setTweak("density", v)} />
+        <Section label={t("tweaks.accent")} />
+        <ColorPicker label={t("tweaks.accent_color")} value={tweaks["accent"]!} options={ACCENTS} onChange={(v) => setTweak("accent", v)} />
+        <Section label={t("tweaks.typography")} />
+        <Radio label={t("tweaks.font")} value={tweaks["font"]!} options={["inter", "geist", "system"]} onChange={(v) => setTweak("font", v)} />
+        <Section label={t("tweaks.language")} />
+        <Radio label={t("tweaks.locale")} value={locale} options={[{ value: "en", label: "English" }, { value: "ru", label: "Русский" }]} onChange={(v) => setLocale(v as Locale)} />
       </div>
     </div>
   );

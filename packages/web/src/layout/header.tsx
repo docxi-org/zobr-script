@@ -23,9 +23,11 @@ function crumbFor(route: Route, t: (k: string) => string): string[] {
     return [t("nav.scripts"), route.path.slice("/scripts/".length)];
   if (route.path.startsWith("/agents/"))
     return [t("nav.agents"), route.path.split("/")[2]!];
-  if (route.path.startsWith("/help/"))
-    return [t("nav.help"), route.path.split("/")[2]!];
-  return ["Dashboard"];
+  if (route.path.startsWith("/help/")) {
+    const slug = route.path.split("/")[2]!;
+    return [t("nav.help"), slug.replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase())];
+  }
+  return [t("nav.dashboard")];
 }
 
 interface HeaderProps {

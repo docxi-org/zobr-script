@@ -66,7 +66,8 @@ export function Help({ slug }: { slug?: string }) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    contentRef.current?.scrollIntoView({ block: "start" });
+    const main = document.querySelector("main");
+    if (main) main.scrollTop = 0;
   }, [slug]);
   const t = useT();
 

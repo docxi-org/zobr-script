@@ -16,9 +16,9 @@ const tmp = mkdtempSync(join(tmpdir(), "zs-api-test-"));
 const dbPath = join(tmp, "test.sqlite");
 const libRoot = join(tmp, "lib");
 
-// Create a test script in the library
-mkdirSync(join(libRoot, "hello"), { recursive: true });
-writeFileSync(join(libRoot, "hello", "hello.cog.ts"), `/** Test script. */
+// Create a test script in the library (file-based model: ref = "hello" → hello.cog.ts)
+mkdirSync(libRoot, { recursive: true });
+writeFileSync(join(libRoot, "hello.cog.ts"), `/** Test script. */
 export type Result = { msg: string };
 export function greet(name: string): Result {
   return conclude<Result>();

@@ -409,29 +409,32 @@ export class ZsApp {
 
   async list(): Promise<ListRes> {
     if (this.#library === undefined) return { entries: [] };
-    const { readdir, readFile } = await import("node:fs/promises");
+    const { readdir, readFile, access } = await import("node:fs/promises");
     const { join, relative } = await import("node:path");
     const root = this.#library.libraryRoot;
     const entries: ListRes["entries"] = [];
 
     const walk = async (dir: string) => {
       const items = await readdir(dir, { withFileTypes: true });
-      const files = items.filter((i) => !i.isDirectory()).map((i) => i.name);
-      const cogFile = files.find((f) => f.endsWith(".cog.ts"));
-      if (cogFile) {
-        const scriptRef = relative(root, dir).replace(/\\/g, "/");
-        let description = "";
-        try {
-          const src = await readFile(join(dir, cogFile), "utf8");
-          const m = src.match(/^\/\*\*\s*([\s\S]*?)\s*\*\//);
-          if (m) description = m[1]!.replace(/\n\s*\*\s*/g, " ").trim();
-        } catch {}
-        entries.push({ name: scriptRef, hasSrv: files.some((f) => f.endsWith(".srv.ts")), ...(description ? { description } : {}) });
-      }
       for (const item of items) {
-        if (!item.isDirectory()) continue;
-        if (item.name.startsWith(".") || item.name === "node_modules") continue;
-        await walk(join(dir, item.name));
+        if (item.isDirectory()) {
+          if (item.name.startsWith(".") || item.name === "node_modules") continue;
+          await walk(join(dir, item.name));
+        } else if (item.name.endsWith(".cog.ts")) {
+          const filePath = join(dir, item.name);
+          const baseName = item.name.slice(0, -".cog.ts".length);
+          const scriptRef = relative(root, join(dir, baseName)).replace(/\\/g, "/");
+          const srvPath = join(dir, baseName + ".srv.ts");
+          let hasSrv = false;
+          try { await access(srvPath); hasSrv = true; } catch {}
+          let description = "";
+          try {
+            const src = await readFile(filePath, "utf8");
+            const m = src.match(/^\/\*\*\s*([\s\S]*?)\s*\*\//);
+            if (m) description = m[1]!.replace(/\n\s*\*\s*/g, " ").trim();
+          } catch {}
+          entries.push({ name: scriptRef, hasSrv, ...(description ? { description } : {}) });
+        }
       }
     };
 
@@ -465,12 +468,14 @@ export class ZsApp {
     if (!v.ok) return { ok: false, errors: v.errors.map((e) => `${e.code}: ${e.message}`) };
     if (this.#library === undefined) throw new Error("no library configured");
     const { mkdir, writeFile } = await import("node:fs/promises");
-    const { join } = await import("node:path");
-    const dir = join(this.#library.libraryRoot, req.script_ref);
-    await mkdir(dir, { recursive: true });
-    for (const f of [...req.cog, ...req.srv]) {
-      const name = f.name.startsWith("/zs/") ? f.name.slice(4) : f.name;
-      await writeFile(join(dir, name), f.content, "utf8");
+    const { join, dirname } = await import("node:path");
+    const cogPath = join(this.#library.libraryRoot, req.script_ref + ".cog.ts");
+    await mkdir(dirname(cogPath), { recursive: true });
+    const cogContent = req.cog[0]?.content ?? req.cog.map((f) => f.content).join("\n\n");
+    await writeFile(cogPath, cogContent, "utf8");
+    if (req.srv.length > 0) {
+      const srvContent = req.srv[0]?.content ?? req.srv.map((f) => f.content).join("\n\n");
+      await writeFile(join(this.#library.libraryRoot, req.script_ref + ".srv.ts"), srvContent, "utf8");
     }
     return { ok: true };
   }
@@ -479,7 +484,8 @@ export class ZsApp {
     if (this.#library === undefined) throw new Error("no library configured");
     const { rm } = await import("node:fs/promises");
     const { join } = await import("node:path");
-    await rm(join(this.#library.libraryRoot, script_ref), { recursive: true, force: true });
+    await rm(join(this.#library.libraryRoot, script_ref + ".cog.ts"), { force: true });
+    await rm(join(this.#library.libraryRoot, script_ref + ".srv.ts"), { force: true });
     return { ok: true };
   }
 

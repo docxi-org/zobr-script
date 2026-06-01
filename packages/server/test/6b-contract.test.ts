@@ -290,20 +290,17 @@ describe("6b library ScriptSourceReader (filesystem)", () => {
 
   beforeAll(async () => {
     libRoot = await mkdtemp(join(tmpdir(), "zs-test-"));
-    const scriptDir = join(libRoot, "demo");
-    await mkdir(scriptDir);
     await writeFile(
-      join(scriptDir, "demo.cog.ts"),
+      join(libRoot, "demo.cog.ts"),
       `export type R = { x: string };\nexport function run(t: string): R { return conclude<R>(); }\n`,
     );
-    // No srv module — cognitive-only demo for E2E simplicity
   });
 
   afterAll(async () => {
     await rm(libRoot, { recursive: true, force: true });
   });
 
-  it("reads a script folder (*.cog.ts/*.srv.ts) from the library into RawScript", async () => {
+  it("reads a script file (ref.cog.ts + optional ref.srv.ts) from the library", async () => {
     const reader = new FsScriptSourceReader(libRoot);
     const raw = await reader.read("demo");
     expect(raw.script_ref).toBe("demo");

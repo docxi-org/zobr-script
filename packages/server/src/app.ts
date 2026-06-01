@@ -12,8 +12,8 @@ import { createDb } from "./db";
 import type { Db } from "./db";
 import { checkShape, Instance, isTerminal } from "@zobr/core";
 import type { Shape, InstanceSnapshot } from "@zobr/core";
-import { cognitiveAmbient } from "@zobr/scaffold";
-import { validateScript, extractStoreSchema } from "@zobr/validator";
+import { cognitiveAmbient, serverAmbient } from "@zobr/scaffold";
+import { validateScript, extractStoreSchema, extractCogShapes, extractClassInfo } from "@zobr/validator";
 import type { OperationsRes, ListRes, ReadRes, ValidateReq, ValidateRes, CreateReq, CreateRes, DeleteRes, RegisterRes, StartReq, ConcludeReq, ResumeReq } from "@zobr/protocol";
 
 const STATE_CHANGING_TOOLS = new Set(["zs_sandbox", "zs_checkpoint", "zs_report", "zs_ask_record", "zs_act_record"]);
@@ -409,17 +409,33 @@ export class ZsApp {
 
   async list(): Promise<ListRes> {
     if (this.#library === undefined) return { entries: [] };
-    const { readdir } = await import("node:fs/promises");
-    const { join } = await import("node:path");
+    const { readdir, readFile } = await import("node:fs/promises");
+    const { join, relative } = await import("node:path");
     const root = this.#library.libraryRoot;
-    const dirs = await readdir(root, { withFileTypes: true });
     const entries: ListRes["entries"] = [];
-    for (const d of dirs) {
-      if (!d.isDirectory()) continue;
-      const files = await readdir(join(root, d.name));
-      if (!files.some((f) => f.endsWith(".cog.ts"))) continue;
-      entries.push({ name: d.name, hasSrv: files.some((f) => f.endsWith(".srv.ts")) });
-    }
+
+    const walk = async (dir: string) => {
+      const items = await readdir(dir, { withFileTypes: true });
+      const files = items.filter((i) => !i.isDirectory()).map((i) => i.name);
+      const cogFile = files.find((f) => f.endsWith(".cog.ts"));
+      if (cogFile) {
+        const scriptRef = relative(root, dir).replace(/\\/g, "/");
+        let description = "";
+        try {
+          const src = await readFile(join(dir, cogFile), "utf8");
+          const m = src.match(/^\/\*\*\s*([\s\S]*?)\s*\*\//);
+          if (m) description = m[1]!.replace(/\n\s*\*\s*/g, " ").trim();
+        } catch {}
+        entries.push({ name: scriptRef, hasSrv: files.some((f) => f.endsWith(".srv.ts")), ...(description ? { description } : {}) });
+      }
+      for (const item of items) {
+        if (!item.isDirectory()) continue;
+        if (item.name.startsWith(".") || item.name === "node_modules") continue;
+        await walk(join(dir, item.name));
+      }
+    };
+
+    await walk(root);
     return { entries };
   }
 
@@ -491,6 +507,37 @@ export class ZsApp {
   apiGetTrace(id: string) {
     if (!this.#db) return null;
     return this.#db.infra.getTrace(id);
+  }
+
+  apiScriptStats() {
+    if (!this.#db) return [];
+    return this.#db.infra.scriptStats();
+  }
+
+  async apiGetScriptDetail(ref: string) {
+    try {
+      const raw = await this.read(ref);
+      const cogFiles = [{ name: `/zs/${ref}.cog.ts`, content: raw.cog }];
+      const shapes = extractCogShapes(cogFiles, cognitiveAmbient);
+      const srvContent = raw.srv;
+      let serverFunctions: string[] = [];
+      if (srvContent) {
+        const srvFiles = [{ name: `/zs/${ref}.srv.ts`, content: srvContent }];
+        const classInfo = extractClassInfo(srvFiles, serverAmbient);
+        if (classInfo) {
+          serverFunctions = classInfo.methods.map((m) => m.name);
+        }
+      }
+      return {
+        script_ref: ref,
+        cog: raw.cog,
+        ...(srvContent ? { srv: srvContent } : {}),
+        serverFunctions,
+        ...shapes,
+      };
+    } catch {
+      return null;
+    }
   }
 
   apiStoreCollectionDocs(name: string, filter: Record<string, unknown> | undefined, limit: number, offset: number) {

@@ -20,8 +20,7 @@ import { TweaksPanel, useTweaks } from "./ui/tweaks-panel";
 import { preloadMonaco } from "./ui/monaco-editor";
 
 function isTallPage(p: string) {
-  return (p.startsWith("/traces/") && p !== "/traces") ||
-    (p.startsWith("/scripts/") && p !== "/scripts");
+  return p.startsWith("/traces/") && p !== "/traces";
 }
 
 function RoleGuard({ need }: { need: string }) {
@@ -55,9 +54,12 @@ function Routed({ path, role, theme }: { path: string; role: string; theme: "dar
   if (match("/traces", path)) return <Traces />;
   if ((m = match("/traces/:id", path))) return <TraceDetail id={m["id"]!} />;
   if (match("/scripts", path)) return <Scripts role={role} />;
-  if (match("/scripts/new", path))
+  if (path === "/scripts/new")
     return role === "architect" || role === "admin" ? <NewScript theme={theme} /> : <RoleGuard need="architect" />;
-  if ((m = match("/scripts/:ref", path))) return <ScriptDetailPage scriptRef={m["ref"]!} role={role} theme={theme} />;
+  if (path.startsWith("/scripts/") && path !== "/scripts/new") {
+    const ref = path.slice("/scripts/".length);
+    return <ScriptDetailPage scriptRef={ref} role={role} theme={theme} />;
+  }
   if (match("/store", path)) return <Store />;
   if (match("/agents", path)) return <AgentsList />;
   if ((m = match("/agents/:id", path))) return <AgentDetailPage id={m["id"]!} />;

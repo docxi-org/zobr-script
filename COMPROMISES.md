@@ -21,9 +21,9 @@
 
 - [x] /api/traces — SQL LIMIT/OFFSET + отдельный COUNT запрос.
 - [x] /api/agents/:id → total_runs добавлен из countAgentInvocations.
-- [x] JWT secret — warning в лог если ZS_JWT_SECRET не задан.
-- [x] Seed admin — warning если ZS_ADMIN_PASSWORD не задан, лог при создании.
+- [x] JWT secret — warning в лог если не задан. ZS_JWT_SECRET добавлен в .env.
+- [x] Seed admin — warning если не задан. ZS_ADMIN_PASSWORD добавлен в .env.
 - [x] Rate limiting на /api/auth/login — 10 req/min per IP.
 - [ ] Нет тестов для API endpoints и auth.
-- [ ] MiniStat определён локально в agents.tsx. Нет повторного использования.
-- [ ] Contract tab в Script Detail — заглушка (API не возвращает shapes отдельно).
+- [x] MiniStat определён локально в agents.tsx. Используется только там — выносить не нужно.
+- [x] Contract tab — shapes извлекаются через extractCogShapes/extractClassInfo на сервере.

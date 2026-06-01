@@ -154,7 +154,7 @@ export function Header({
               color: "var(--text-0)",
             }}
           >
-            {user.email[0]!.toUpperCase()}
+            {(user.email[0] ?? "?").toUpperCase()}
           </button>
           {userMenu && (
             <div

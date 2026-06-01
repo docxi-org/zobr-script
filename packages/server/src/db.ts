@@ -49,6 +49,7 @@ export interface InfraStore {
   loadSnapshot(invocation_id: string): { script_ref: string; state: string } | null;
   listTraces(opts?: { scriptRef?: string; status?: string; limit?: number; offset?: number }): { invocation_id: string; script_ref: string; code_snapshot: string; status: string; events_count: number; coverage: unknown; result: unknown; created_at: number }[];
   countTraces(opts?: { scriptRef?: string; status?: string }): number;
+  scriptStats(): { script_ref: string; runs: number; last_run: number | null }[];
   countAgentInvocations(agentId: string): number;
   listInvocationsByAgent(agentId: string, limit: number): { invocation_id: string; script_ref: string; status: string; started_at: number; finished_at: number | null }[];
 }
@@ -331,6 +332,11 @@ export function createDb(path: string): Db {
       const where = conditions.length > 0 ? " WHERE " + conditions.join(" AND ") : "";
       const row = db.prepare(`SELECT COUNT(*) as c FROM zs_traces${where}`).get(...params) as { c: number } | undefined;
       return row?.c ?? 0;
+    },
+
+    scriptStats() {
+      return db.prepare("SELECT script_ref, COUNT(*) as runs, MAX(created_at) as last_run FROM zs_traces GROUP BY script_ref")
+        .all() as { script_ref: string; runs: number; last_run: number | null }[];
     },
 
     countAgentInvocations(agentId: string): number {

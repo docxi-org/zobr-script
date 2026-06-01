@@ -59,6 +59,15 @@
 - [x] **9.5.9** Loading/error states: useApi hook с loading/error, страницы показывают loading.
 - [x] **9.5.10** Mock-файлы удалены (mock.ts, mock-traces.ts, mock-scripts.ts, mock-store.ts).
 
+### 9.6. Вложенная структура библиотеки (script_ref с `/`)
+
+- [x] **9.6.1** list() — рекурсивный readdir, script_ref = относительный путь от корня библиотеки.
+- [x] **9.6.2** Express routes — wildcard для `/api/scripts/*` (GET, PUT, DELETE, validate).
+- [x] **9.6.3** Frontend router — wildcard match для `/scripts/*`.
+- [x] **9.6.4** MCP tools — zod-схемы: `z.string()`, слэши допустимы. Без изменений.
+- [x] **9.6.5** Frontend Scripts page — плоский список с полным path (работает).
+- [ ] **9.6.6** 🎨 **Дизайнер**: UI для древовидной структуры скриптов. Задание: `spec/ui/03-scripts-tree.md`.
+
 ### 9.4. Deploy
 
 - [ ] **9.4.1** Vite build → dist/ → nginx static на zs.docxi.org.

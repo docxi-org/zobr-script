@@ -10,7 +10,38 @@ import { fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
 import { api } from "../api/client";
-import type { ScriptSource, TraceRow } from "../api/types";
+import type { ScriptSource, TraceRow, Shape } from "../api/types";
+
+function shapeToString(v: unknown): string {
+  if (typeof v === "string") return v;
+  if (v && typeof v === "object" && "kind" in v) {
+    const s = v as Shape;
+    if (s.kind === "object" && s.fields) {
+      return `{ ${Object.entries(s.fields).map(([k, fv]) => `${k}: ${shapeToString(fv)}`).join("; ")} }`;
+    }
+    return s.kind;
+  }
+  return String(v);
+}
+
+function ShapeView({ shape }: { shape: Shape }) {
+  return (
+    <div className="rounded-[var(--r-md)] border border-[var(--border)]" style={{ background: "var(--bg-inset)", padding: 14 }}>
+      <span className="mono" style={{ fontSize: "var(--fs-sm)", color: "var(--cc-k)" }}>{shape.kind}</span>
+      {shape.fields && (
+        <div className="mt-2 flex flex-col" style={{ gap: 4 }}>
+          {Object.entries(shape.fields).map(([k, v]) => (
+            <div key={k} className="mono flex" style={{ fontSize: "var(--fs-code)", gap: 6 }}>
+              <span style={{ color: "var(--cc-key)" }}>{k}</span>
+              <span style={{ color: "var(--text-3)" }}>:</span>
+              <span style={{ color: "var(--cc-t)" }}>{shapeToString(v)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 
 function DiffView({ oldText, newText, file }: { oldText: string; newText: string; file: string }) {
@@ -192,8 +223,30 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
           ? <DiffView oldText={script.srv ?? ""} newText={srv} file={`${scriptRef}.srv.ts`} />
           : <ZsMonacoEditor value={srv} readOnly={!canEdit} onChange={(v) => { setSrv(v); setValidation(null); setMarkers([]); }} file={`${scriptRef}.srv.ts`} theme={theme} markers={tab === "server" ? markers : []} />)}
         {tab === "contract" && (
-          <div className="rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-1)", padding: "var(--pad)" }}>
-            <div className="mono" style={{ fontSize: "var(--fs-sm)", color: "var(--text-2)" }}>Contract information available after validation via API.</div>
+          <div className="flex flex-col rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-1)", padding: "var(--pad)", gap: 20 }}>
+            <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Server functions</div>
+                <span className="mono" style={{ fontSize: "var(--fs-sm)", color: "var(--text-0)" }}>
+                  {script.serverFunctions?.length ? script.serverFunctions.join(", ") : "(none — lifecycle only)"}
+                </span>
+              </div>
+            </div>
+            {script.concludeShape && (
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>concludeShape</div>
+                <ShapeView shape={script.concludeShape} />
+              </div>
+            )}
+            {script.checkpointShapes && Object.entries(script.checkpointShapes).map(([name, shape]) => (
+              <div key={name}>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>checkpointShape · <span className="mono">{name}</span></div>
+                <ShapeView shape={shape} />
+              </div>
+            ))}
+            {!script.concludeShape && !script.checkpointShapes && (
+              <div className="mono" style={{ fontSize: "var(--fs-sm)", color: "var(--text-3)" }}>No shapes extracted. Run Validate to analyze.</div>
+            )}
           </div>
         )}
         {tab === "runs" && (

@@ -116,24 +116,23 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
   router.get("/scripts", async (_req, res) => {
     try {
       const entries = await zsApp.list();
-      res.json({ scripts: entries.entries });
+      const stats = zsApp.apiScriptStats();
+      const scripts = entries.entries.map((e) => {
+        const s = stats.find((x) => x.script_ref === e.name);
+        return { ...e, runs: s?.runs ?? 0, last_run: s?.last_run ?? null };
+      });
+      res.json({ scripts });
     } catch (e) {
       logger.error({ err: e }, "GET /api/scripts error");
       res.status(500).json({ error: { code: "INTERNAL", message: "Failed to list scripts" } });
     }
   });
 
-  router.get("/scripts/:ref", async (req, res) => {
-    try {
-      const raw = await zsApp.read(req.params["ref"] as string);
-      res.json(raw);
-    } catch {
-      res.status(404).json({ error: { code: "NOT_FOUND", message: `Script not found: ${req.params["ref"]}` } });
-    }
-  });
+  // Script detail/write/validate — ref can contain slashes (nested folders)
+  // Use sub-router mounted at /scripts to capture the rest of the path
+  const scriptsDetail = Router();
 
-  // Script write (architect/admin)
-  router.post("/scripts", auth.middleware(["architect", "admin"]), async (req, res) => {
+  scriptsDetail.post("/", auth.middleware(["architect", "admin"]), async (req, res) => {
     try {
       const result = await zsApp.createScript(req.body);
       res.json(result);
@@ -143,9 +142,26 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     }
   });
 
-  router.put("/scripts/:ref", auth.middleware(["architect", "admin"]), async (req, res) => {
+  scriptsDetail.use("/:ref+/validate", (req, res) => {
+    const ref = (req.params as Record<string, string>)["ref"] as string;
+    const result = zsApp.validate({ cog: req.body.cog, srv: req.body.srv });
+    res.json(result);
+  });
+
+  scriptsDetail.get("/:ref+", async (req, res) => {
+    const ref = (req.params as Record<string, string>)["ref"] as string;
+    const detail = await zsApp.apiGetScriptDetail(ref);
+    if (!detail) {
+      res.status(404).json({ error: { code: "NOT_FOUND", message: `Script not found: ${ref}` } });
+      return;
+    }
+    res.json(detail);
+  });
+
+  scriptsDetail.put("/:ref+", auth.middleware(["architect", "admin"]), async (req, res) => {
+    const ref = (req.params as Record<string, string>)["ref"] as string;
     try {
-      const result = await zsApp.createScript({ ...req.body, script_ref: req.params["ref"] });
+      const result = await zsApp.createScript({ ...req.body, script_ref: ref });
       res.json(result);
     } catch (e) {
       logger.error({ err: e }, "PUT /api/scripts error");
@@ -153,9 +169,10 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     }
   });
 
-  router.delete("/scripts/:ref", auth.middleware(["architect", "admin"]), async (req, res) => {
+  scriptsDetail.delete("/:ref+", auth.middleware(["architect", "admin"]), async (req, res) => {
+    const ref = (req.params as Record<string, string>)["ref"] as string;
     try {
-      const result = await zsApp.deleteScript(req.params["ref"] as string);
+      const result = await zsApp.deleteScript(ref);
       res.json(result);
     } catch (e) {
       logger.error({ err: e }, "DELETE /api/scripts error");
@@ -163,10 +180,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     }
   });
 
-  router.post("/scripts/:ref/validate", (req, res) => {
-    const result = zsApp.validate({ cog: req.body.cog, srv: req.body.srv });
-    res.json(result);
-  });
+  router.use("/scripts", scriptsDetail);
 
   router.get("/store/collections", (_req, res) => {
     try {
@@ -211,6 +225,15 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
       return;
     }
     res.json(agent);
+  });
+
+  router.get("/ambients", async (_req, res) => {
+    try {
+      const { cognitiveAmbient, serverAmbient } = await import("@zobr/scaffold");
+      res.json({ cognitive: cognitiveAmbient, server: serverAmbient });
+    } catch {
+      res.json({ cognitive: "", server: "" });
+    }
   });
 
   router.get("/invocations", (_req, res) => {

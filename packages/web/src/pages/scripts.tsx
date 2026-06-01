@@ -6,9 +6,12 @@ import { DataTable, type Column } from "../ui/data-table";
 import { Segmented } from "../ui/segmented";
 import { Button } from "../ui/button";
 import { ScriptChip } from "../ui/script-chip";
+import { timeAgo } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
 import type { ScriptEntry } from "../api/types";
+
+const NOW = Date.now();
 
 export function Scripts({ role }: { role: string }) {
   const [view, setView] = useState("cards");
@@ -19,6 +22,8 @@ export function Scripts({ role }: { role: string }) {
   const columns: Column<ScriptEntry>[] = [
     { key: "name", label: "Name", mono: true, render: (r) => <ScriptChip name={r.name} /> },
     { key: "srv", label: "Server", render: (r) => r.hasSrv ? <Badge color="var(--trust-authority)">srv</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
+    { key: "runs", label: "Runs", align: "right", mono: true, render: (r) => r.runs },
+    { key: "last", label: "Last run", align: "right", mono: true, muted: true, render: (r) => r.last_run ? timeAgo(r.last_run, NOW) + " ago" : "—" },
   ];
 
   return (
@@ -42,9 +47,22 @@ export function Scripts({ role }: { role: string }) {
                 <div className="grid place-items-center rounded-[9px] border border-[var(--border)]" style={{ width: 34, height: 34, background: "var(--bg-2)", color: "var(--text-1)" }}>
                   <Icon name="filecode" size={17} />
                 </div>
-                <div className="mono min-w-0" style={{ fontWeight: 700, fontSize: 15 }}>{s.name}</div>
+                <div className="min-w-0">
+                  <div className="mono" style={{ fontWeight: 700, fontSize: 15 }}>{s.name}</div>
+                  {s.description && <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.description}</div>}
+                </div>
                 <div className="flex-1" />
                 {s.hasSrv && <Badge color="var(--trust-authority)">srv</Badge>}
+              </div>
+              <div className="flex" style={{ gap: 18, marginTop: 16, fontSize: "var(--fs-sm)" }}>
+                <div>
+                  <div className="mono" style={{ fontWeight: 700, fontSize: 16 }}>{s.runs}</div>
+                  <div style={{ color: "var(--text-2)", fontSize: "var(--fs-xs)" }}>runs</div>
+                </div>
+                <div>
+                  <div className="mono" style={{ fontWeight: 700, fontSize: 16 }}>{s.last_run ? timeAgo(s.last_run, NOW) : "—"}</div>
+                  <div style={{ color: "var(--text-2)", fontSize: "var(--fs-xs)" }}>last run</div>
+                </div>
               </div>
             </Card>
           ))}

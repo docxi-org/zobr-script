@@ -73,12 +73,24 @@ export interface AgentDetail {
 export interface ScriptEntry {
   name: string;
   hasSrv: boolean;
+  description?: string;
+  runs: number;
+  last_run: number | null;
+}
+
+export interface Shape {
+  kind: string;
+  fields: Record<string, string>;
 }
 
 export interface ScriptSource {
   script_ref: string;
   cog: string;
   srv?: string;
+  serverFunctions?: string[];
+  concludeShape?: Shape;
+  checkpointShapes?: Record<string, Shape>;
+  reportShapes?: Record<string, Shape>;
 }
 
 export interface StatusResponse {

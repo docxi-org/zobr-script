@@ -7,6 +7,6 @@ bash.exe.stackdump
 data/
 docs/
 spec/
-ui/
+/ui/
 zs-lib/
 ~move/

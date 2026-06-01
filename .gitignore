@@ -8,5 +8,6 @@ bash.exe.stackdump
 /docs/
 /spec/
 /ui/
-/zs-lib/
+/zs-lib/*.d.ts
+/zs-lib/tsconfig*.json
 ~move/

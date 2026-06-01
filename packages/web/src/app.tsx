@@ -18,6 +18,7 @@ import { Settings, Users } from "./pages/settings";
 import { Help, CommandPalette } from "./pages/help";
 import { Icon } from "./ui/icon";
 import { TweaksPanel, useTweaks } from "./ui/tweaks-panel";
+import { useT } from "./i18n/context";
 import { preloadMonaco } from "./ui/monaco-editor";
 
 function isTallPage(p: string) {
@@ -25,6 +26,7 @@ function isTallPage(p: string) {
 }
 
 function RoleGuard({ need }: { need: string }) {
+  const t = useT();
   return (
     <div style={{ maxWidth: 520, margin: "40px auto" }}>
       <div
@@ -38,11 +40,10 @@ function RoleGuard({ need }: { need: string }) {
           <Icon name="alert" size={22} />
         </div>
         <h2 style={{ margin: "0 0 6px", fontSize: 17, fontWeight: 700 }}>
-          Insufficient permissions
+          {t("common.insufficient_permissions")}
         </h2>
         <p style={{ margin: "0 0 18px", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>
-          This page requires the{" "}
-          <b className="mono" style={{ color: "var(--text-0)" }}>{need}</b> role.
+          {t("common.requires_role", { role: need })}
         </p>
       </div>
     </div>
@@ -50,6 +51,7 @@ function RoleGuard({ need }: { need: string }) {
 }
 
 function Routed({ path, role, theme }: { path: string; role: string; theme: "dark" | "light" }) {
+  const t = useT();
   let m;
   if (match("/", path)) return <Dashboard />;
   if (match("/traces", path)) return <Traces />;
@@ -73,7 +75,7 @@ function Routed({ path, role, theme }: { path: string; role: string; theme: "dar
   return (
     <div className="flex flex-col items-center justify-center gap-2.5" style={{ padding: "56px 24px", color: "var(--text-2)" }}>
       <Icon name="alert" size={28} style={{ color: "var(--text-3)" }} />
-      <div style={{ fontWeight: 600, color: "var(--text-1)", fontSize: "var(--fs-base)" }}>Page not found</div>
+      <div style={{ fontWeight: 600, color: "var(--text-1)", fontSize: "var(--fs-base)" }}>{t("common.not_found")}</div>
       <div className="mono" style={{ fontSize: "var(--fs-sm)" }}>{path}</div>
     </div>
   );

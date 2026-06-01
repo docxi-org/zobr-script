@@ -10,6 +10,7 @@ import { Input } from "../ui/input";
 import { fmtDuration, fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
+import { useT } from "../i18n/context";
 import type { TraceRow, ScriptEntry } from "../api/types";
 
 const columns: Column<TraceRow>[] = [
@@ -46,21 +47,22 @@ export function Traces() {
 
   const active = scriptF || statusF || q;
   const reset = <T,>(fn: (v: T) => void) => (v: T) => { fn(v); setOffset(0); };
+  const t = useT();
 
   return (
     <div>
       <div style={{ marginBottom: "var(--gap)" }}>
-        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>Traces</h1>
-        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{filtered.length} matching invocations</p>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("traces.title")}</h1>
+        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("traces.matching", { count: filtered.length })}</p>
       </div>
 
       <div className="flex flex-wrap items-center" style={{ gap: 8, marginBottom: "var(--gap)" }}>
-        <Input value={q} onChange={reset(setQ)} placeholder="Search invocation id…" icon="search" style={{ width: 260 }} mono />
-        <Select value={scriptF} onChange={reset(setScriptF)} placeholder="All scripts" options={scriptNames} width={150} />
-        <Select value={statusF} onChange={reset(setStatusF)} placeholder="All statuses" options={["running", "done", "halted", "aborted", "errored", "expired"]} width={150} />
-        {active && <Button variant="ghost" size="sm" icon="x" onClick={() => { setScriptF(""); setStatusF(""); setQ(""); setOffset(0); }}>Clear</Button>}
+        <Input value={q} onChange={reset(setQ)} placeholder={t("traces.search")} icon="search" style={{ width: 260 }} mono />
+        <Select value={scriptF} onChange={reset(setScriptF)} placeholder={t("traces.all_scripts")} options={scriptNames} width={150} />
+        <Select value={statusF} onChange={reset(setStatusF)} placeholder={t("traces.all_statuses")} options={["running", "done", "halted", "aborted", "errored", "expired"]} width={150} />
+        {active && <Button variant="ghost" size="sm" icon="x" onClick={() => { setScriptF(""); setStatusF(""); setQ(""); setOffset(0); }}>{t("traces.clear")}</Button>}
         <div className="flex-1" />
-        <Button variant="default" size="md" icon="refresh" onClick={refetch}>Refresh</Button>
+        <Button variant="default" size="md" icon="refresh" onClick={refetch}>{t("traces.refresh")}</Button>
       </div>
 
       <DataTable rowKey={(r) => r.invocation_id} onRowClick={(r) => navigate("/traces/" + r.invocation_id)} columns={columns} rows={page} />

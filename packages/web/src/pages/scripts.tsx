@@ -10,6 +10,7 @@ import { Input } from "../ui/input";
 import { timeAgo } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
+import { useT } from "../i18n/context";
 import type { ScriptEntry } from "../api/types";
 
 const NOW = Date.now();
@@ -114,7 +115,7 @@ function TreeNodes({ node, depth, open, toggle }: { node: TreeNode; depth: numbe
 
 const treeBtnStyle = { background: "transparent", border: "none", color: "var(--text-2)", fontSize: "var(--fs-xs)", fontWeight: 600, cursor: "pointer", padding: "2px 4px" } as const;
 
-function TreeView({ scripts }: { scripts: ScriptEntry[] }) {
+function TreeView({ scripts, t }: { scripts: ScriptEntry[]; t: (k: string) => string }) {
   const root = useMemo(() => buildTree(scripts), [scripts]);
   const folders = useMemo(() => allFolders(scripts), [scripts]);
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
@@ -143,8 +144,8 @@ function TreeView({ scripts }: { scripts: ScriptEntry[] }) {
         <Icon name="database" size={13} style={{ color: "var(--text-2)" }} />
         <span className="mono" style={{ fontSize: "var(--fs-xs)", color: "var(--text-1)" }}>library</span>
         <div className="flex-1" />
-        <button onClick={() => expandAll(true)} style={treeBtnStyle}>Expand all</button>
-        <button onClick={() => expandAll(false)} style={treeBtnStyle}>Collapse all</button>
+        <button onClick={() => expandAll(true)} style={treeBtnStyle}>{t("scripts.expand_all")}</button>
+        <button onClick={() => expandAll(false)} style={treeBtnStyle}>{t("scripts.collapse_all")}</button>
       </div>
       <div style={{ padding: "6px 0" }}>
         <TreeNodes node={root} depth={0} open={open} toggle={toggle} />
@@ -166,6 +167,7 @@ export function Scripts({ role }: { role: string }) {
   const page = filtered.slice(offset, offset + limit);
   const canCreate = role === "architect" || role === "admin";
   const folders = useMemo(() => allFolders(scripts), [scripts]);
+  const t = useT();
 
   const columns: Column<ScriptEntry>[] = [
     { key: "name", label: "Path", mono: true, sortable: true, sortVal: (r) => r.name, render: (r) => <PathLabel name={r.name} size="var(--fs-sm)" /> },
@@ -179,22 +181,22 @@ export function Scripts({ role }: { role: string }) {
     <div>
       <div className="flex flex-wrap items-start justify-between" style={{ gap: 16, marginBottom: "var(--gap)" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>Scripts</h1>
-          <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{scripts.length} scripts · {folders.length} folders</p>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("scripts.title")}</h1>
+          <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("scripts.subtitle", { count: scripts.length, folders: folders.length })}</p>
         </div>
         <div className="flex items-center" style={{ gap: 8 }}>
-          <Segmented value={view} onChange={(v) => { setView(v); setOffset(0); }} options={[{ value: "tree", label: "Tree" }, { value: "cards", label: "Cards" }, { value: "table", label: "Table" }]} />
-          {canCreate && <Button variant="primary" icon="plus" onClick={() => navigate("/scripts/new")}>New script</Button>}
+          <Segmented value={view} onChange={(v) => { setView(v); setOffset(0); }} options={[{ value: "tree", label: t("scripts.tree") }, { value: "cards", label: t("scripts.cards") }, { value: "table", label: t("scripts.table") }]} />
+          {canCreate && <Button variant="primary" icon="plus" onClick={() => navigate("/scripts/new")}>{t("scripts.new")}</Button>}
         </div>
       </div>
 
       {(view === "cards" || view === "table") && (
         <div style={{ marginBottom: "var(--gap)", maxWidth: 320 }}>
-          <Input value={q} onChange={(v) => { setQ(v); setOffset(0); }} placeholder="Filter by path…" icon="search" mono />
+          <Input value={q} onChange={(v) => { setQ(v); setOffset(0); }} placeholder={t("scripts.filter")} icon="search" mono />
         </div>
       )}
 
-      {view === "tree" ? <TreeView scripts={scripts} />
+      {view === "tree" ? <TreeView scripts={scripts} t={t as (k: string) => string} />
         : view === "cards" ? (
           <>
             <div className="grid gap-[var(--gap)]" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>

@@ -7,6 +7,7 @@ import { ScriptChip } from "../ui/script-chip";
 import { timeAgo, fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
+import { useT } from "../i18n/context";
 import type { Agent, AgentDetail } from "../api/types";
 
 const NOW = Date.now();
@@ -23,6 +24,7 @@ function MiniStat({ label, value, c }: { label: string; value: string | number; 
 export function AgentsList() {
   const { data } = useApi<{ agents: Agent[] }>("/agents");
   const agents = data?.agents ?? [];
+  const t = useT();
 
   const columns: Column<Agent>[] = [
     { key: "name", label: "Name", sortable: true, sortVal: (r) => r.name, render: (r) => (
@@ -40,8 +42,8 @@ export function AgentsList() {
   return (
     <div>
       <div style={{ marginBottom: "var(--gap)" }}>
-        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>Agents</h1>
-        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{agents.length} registered agents</p>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("agents.title")}</h1>
+        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("agents.subtitle", { count: agents.length })}</p>
       </div>
       <DataTable rowKey={(r) => r.agent_id} onRowClick={(r) => navigate("/agents/" + r.agent_id)} columns={columns} rows={agents} />
     </div>
@@ -51,11 +53,12 @@ export function AgentsList() {
 export function AgentDetailPage({ id }: { id: string }) {
   const { data: agent, loading } = useApi<AgentDetail>(`/agents/${id}`, [id]);
 
-  if (loading) return <div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>Loading agent…</div>;
+  const t = useT();
+  if (loading) return <div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>{t("agents.loading")}</div>;
   if (!agent) return (
     <div className="flex flex-col items-center justify-center" style={{ padding: "56px 24px", color: "var(--text-2)" }}>
       <Icon name="alert" size={28} style={{ color: "var(--text-3)" }} />
-      <div style={{ fontWeight: 600, color: "var(--text-1)", marginTop: 10 }}>Agent not found</div>
+      <div style={{ fontWeight: 600, color: "var(--text-1)", marginTop: 10 }}>{t("agents.not_found")}</div>
       <div className="mono" style={{ fontSize: "var(--fs-sm)", marginTop: 4 }}>{id}</div>
     </div>
   );
@@ -67,7 +70,7 @@ export function AgentDetailPage({ id }: { id: string }) {
   return (
     <div>
       <a href="#/agents" className="mb-3 inline-flex items-center" style={{ gap: 6, fontSize: "var(--fs-sm)", color: "var(--text-2)", fontWeight: 600 }}>
-        <Icon name="arrowLeft" size={14} /> Agents
+        <Icon name="arrowLeft" size={14} /> {t("agents.back")}
       </a>
       <div className="mb-5 flex items-center" style={{ gap: 14 }}>
         <span className="grid place-items-center rounded-full border border-[var(--border)]" style={{ width: 44, height: 44, background: "var(--bg-3)", fontSize: 18, fontWeight: 700 }}>{agent.name[0]}</span>
@@ -84,7 +87,7 @@ export function AgentDetailPage({ id }: { id: string }) {
         <MiniStat label="Failed" value={failed} c="var(--st-halted)" />
       </div>
 
-      <SectionTitle title="Invocation history" hint={`${history.length} runs`} />
+      <SectionTitle title={t("agents.invocation_history")} hint={`${history.length} ${t("scripts.runs")}`} />
       <DataTable
         rowKey={(r) => r.invocation_id}
         onRowClick={(r) => navigate("/traces/" + r.invocation_id)}

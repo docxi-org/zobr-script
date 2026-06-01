@@ -8,6 +8,7 @@ import { Select } from "../ui/select";
 import { DataTable, type Column } from "../ui/data-table";
 import { JsonView } from "../ui/code-block";
 import { useApi } from "../api/hooks";
+import { useT } from "../i18n/context";
 import type { StoreCollection, StoreNote } from "../api/types";
 
 function Collections() {
@@ -98,13 +99,14 @@ function Notes() {
 
 export function Store() {
   const [tab, setTab] = useState("collections");
+  const t = useT();
   return (
     <div>
       <div style={{ marginBottom: "var(--gap)" }}>
-        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>Store</h1>
-        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>Read-only view of typed collections and notes · writes go through MCP tools</p>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("store.title")}</h1>
+        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("store.subtitle")}</p>
       </div>
-      <Tabs tabs={[{ id: "collections", label: "Collections" }, { id: "notes", label: "Notes" }]} active={tab} onChange={setTab} />
+      <Tabs tabs={[{ id: "collections", label: t("store.collections") }, { id: "notes", label: t("store.notes") }]} active={tab} onChange={setTab} />
       <div className="mt-4">{tab === "collections" ? <Collections /> : <Notes />}</div>
     </div>
   );

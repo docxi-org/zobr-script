@@ -27,16 +27,16 @@ export function AgentsList() {
   const t = useT();
 
   const columns: Column<Agent>[] = [
-    { key: "name", label: "Name", sortable: true, sortVal: (r) => r.name, render: (r) => (
+    { key: "name", label: t("col.name"), sortable: true, sortVal: (r) => r.name, render: (r) => (
       <span className="inline-flex items-center" style={{ gap: 9, fontWeight: 600 }}>
         <span className="grid place-items-center rounded-full border border-[var(--border)]" style={{ width: 26, height: 26, background: "var(--bg-3)", fontSize: 11, fontWeight: 700 }}>{r.name[0]}</span>
         {r.name}
       </span>
     ) },
-    { key: "agent_id", label: "Agent ID", mono: true, muted: true },
-    { key: "registered", label: "Registered", mono: true, muted: true, sortable: true, sortVal: (r) => r.registered_at, render: (r) => timeAgo(r.registered_at, NOW) + " ago" },
-    { key: "active", label: "Active", align: "right", sortable: true, sortVal: (r) => r.active_invocations, render: (r) => r.active_invocations > 0 ? <Badge color="var(--st-running)">{r.active_invocations}</Badge> : <span className="mono" style={{ color: "var(--text-3)" }}>0</span> },
-    { key: "total", label: "Total runs", align: "right", mono: true, sortable: true, sortVal: (r) => r.total_runs, render: (r) => r.total_runs },
+    { key: "agent_id", label: t("col.agent_id"), mono: true, muted: true },
+    { key: "registered", label: t("col.registered"), mono: true, muted: true, sortable: true, sortVal: (r) => r.registered_at, render: (r) => timeAgo(r.registered_at, NOW) + " " + t("common.ago") },
+    { key: "active", label: t("col.active"), align: "right", sortable: true, sortVal: (r) => r.active_invocations, render: (r) => r.active_invocations > 0 ? <Badge color="var(--st-running)">{r.active_invocations}</Badge> : <span className="mono" style={{ color: "var(--text-3)" }}>0</span> },
+    { key: "total", label: t("col.total_runs"), align: "right", mono: true, sortable: true, sortVal: (r) => r.total_runs, render: (r) => r.total_runs },
   ];
 
   return (
@@ -81,10 +81,10 @@ export function AgentDetailPage({ id }: { id: string }) {
       </div>
 
       <div className="zs-stats mb-6 grid gap-[var(--gap)]" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-        <MiniStat label="Registered" value={timeAgo(agent.registered_at, NOW) + " ago"} />
-        <MiniStat label="Total runs" value={history.length} />
-        <MiniStat label="Done" value={done} c="var(--st-done)" />
-        <MiniStat label="Failed" value={failed} c="var(--st-halted)" />
+        <MiniStat label={t("agents.registered")} value={timeAgo(agent.registered_at, NOW) + " " + t("common.ago")} />
+        <MiniStat label={t("agents.total_runs")} value={history.length} />
+        <MiniStat label={t("agents.done")} value={done} c="var(--st-done)" />
+        <MiniStat label={t("agents.failed")} value={failed} c="var(--st-halted)" />
       </div>
 
       <SectionTitle title={t("agents.invocation_history")} hint={`${history.length} ${t("scripts.runs")}`} />
@@ -92,10 +92,10 @@ export function AgentDetailPage({ id }: { id: string }) {
         rowKey={(r) => r.invocation_id}
         onRowClick={(r) => navigate("/traces/" + r.invocation_id)}
         columns={[
-          { key: "id", label: "Invocation", mono: true, maxWidth: 240, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
-          { key: "script", label: "Script", sortable: true, sortVal: (r) => r.script_ref, render: (r) => <ScriptChip name={r.script_ref} /> },
-          { key: "status", label: "Status", sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
-          { key: "started", label: "Started", align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.started_at, render: (r) => fmtDate(r.started_at) },
+          { key: "id", label: t("col.invocation"), mono: true, maxWidth: 240, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
+          { key: "script", label: t("col.script"), sortable: true, sortVal: (r) => r.script_ref, render: (r) => <ScriptChip name={r.script_ref} /> },
+          { key: "status", label: t("col.status"), sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
+          { key: "started", label: t("col.started"), align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.started_at, render: (r) => fmtDate(r.started_at) },
         ]}
         rows={history}
       />

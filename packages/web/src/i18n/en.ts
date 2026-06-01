@@ -126,6 +126,9 @@ export default {
   "settings.admin_only": "admin only",
   "settings.requires_admin": "requires admin",
   "settings.open": "Open",
+  "settings.manage_users": "Manage console users, roles and access.",
+  "settings.language": "Language",
+  "settings.language_hint": "Console interface language",
 
   // users
   "users.title": "User management",

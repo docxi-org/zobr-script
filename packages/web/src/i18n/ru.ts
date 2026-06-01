@@ -126,6 +126,9 @@ export default {
   "settings.admin_only": "только admin",
   "settings.requires_admin": "требуется admin",
   "settings.open": "Открыть",
+  "settings.manage_users": "Управление пользователями, ролями и доступом.",
+  "settings.language": "Язык",
+  "settings.language_hint": "Язык интерфейса консоли",
 
   // users
   "users.title": "Управление пользователями",

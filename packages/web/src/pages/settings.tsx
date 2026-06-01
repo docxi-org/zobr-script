@@ -62,18 +62,18 @@ export function Settings({ role }: { role: string }) {
         <SectionTitle title={t("settings.user_management")} hint={t("settings.admin_only")} />
         <Card className="flex items-center" style={{ gap: 12, color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>
           <Icon name="users" size={16} />
-          <span className="flex-1">Manage console users, roles and access.</span>
+          <span className="flex-1">{t("settings.manage_users")}</span>
           {role === "admin"
-            ? <Button variant="primary" size="sm" icon="external" onClick={() => navigate("/settings/users")}>Open</Button>
-            : <Badge color="var(--text-2)">requires admin</Badge>}
+            ? <Button variant="primary" size="sm" icon="external" onClick={() => navigate("/settings/users")}>{t("settings.open")}</Button>
+            : <Badge color="var(--text-2)">{t("settings.requires_admin")}</Badge>}
         </Card>
       </div>
 
       <div className="mt-5">
-        <SectionTitle title="Language" />
+        <SectionTitle title={t("settings.language")} />
         <Card className="flex items-center" style={{ gap: 16, fontSize: "var(--fs-sm)" }}>
           <Icon name="doc" size={16} style={{ color: "var(--text-2)" }} />
-          <span style={{ color: "var(--text-2)", flex: 1 }}>Console interface language</span>
+          <span style={{ color: "var(--text-2)", flex: 1 }}>{t("settings.language_hint")}</span>
           <Segmented
             value={locale}
             onChange={(v) => setLocale(v as Locale)}

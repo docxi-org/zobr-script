@@ -98,11 +98,11 @@ export function Help({ slug }: { slug?: string }) {
     <div ref={contentRef}>
       <div className="flex flex-wrap items-start justify-between" style={{ gap: 16, marginBottom: "var(--gap)" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, color: "var(--text-0)" }}>Help</h1>
-          <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>Concepts & reference for Zobr Script</p>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, color: "var(--text-0)" }}>{t("help.title")}</h1>
+          <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("help.subtitle")}</p>
         </div>
         <Button variant="default" icon="search" onClick={() => window.dispatchEvent(new CustomEvent("zs-open-palette"))}>
-          Search <kbd style={kbdStyle}>⌘K</kbd>
+          {t("help.search")} <kbd style={kbdStyle}>⌘K</kbd>
         </Button>
       </div>
 
@@ -170,6 +170,7 @@ export function CommandPalette() {
   const [q, setQ] = useState("");
   const [sel, setSel] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const t = useT();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -226,13 +227,13 @@ export function CommandPalette() {
         <div className="flex items-center border-b border-[var(--border)]" style={{ gap: 10, padding: "13px 16px" }}>
           <Icon name="search" size={17} style={{ color: "var(--text-2)" }} />
           <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKeyDown}
-            placeholder="Search the docs…"
+            placeholder={t("help.search_docs")}
             style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "var(--text-0)", fontSize: 15, fontFamily: "inherit" }} />
           <kbd style={kbdStyle}>esc</kbd>
         </div>
         <div style={{ maxHeight: 380, overflowY: "auto", padding: 8 }}>
           {results.length === 0 ? (
-            <div className="text-center" style={{ padding: "28px 16px", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>No matches for &quot;{q}&quot;</div>
+            <div className="text-center" style={{ padding: "28px 16px", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("help.no_matches")} &quot;{q}&quot;</div>
           ) : results.map((r, k) => (
             <button key={r.d.slug} onClick={() => go(r)} onMouseEnter={() => setSel(k)}
               className="flex w-full cursor-pointer items-start rounded-[var(--r-md)] border-none text-left"
@@ -250,10 +251,10 @@ export function CommandPalette() {
           ))}
         </div>
         <div className="flex border-t border-[var(--border)]" style={{ gap: 14, padding: "8px 14px", fontSize: "var(--fs-xs)", color: "var(--text-3)" }}>
-          <span><kbd style={kbdStyle}>↑</kbd><kbd style={kbdStyle}>↓</kbd> navigate</span>
-          <span><kbd style={kbdStyle}>↵</kbd> open</span>
+          <span><kbd style={kbdStyle}>↑</kbd><kbd style={kbdStyle}>↓</kbd> {t("help.navigate")}</span>
+          <span><kbd style={kbdStyle}>↵</kbd> {t("help.open")}</span>
           <div className="flex-1" />
-          <span>{results.length} {results.length === 1 ? "result" : "results"}</span>
+          <span>{results.length} {results.length === 1 ? t("help.result") : t("help.results")}</span>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useState, useMemo, type ReactNode } from "react";
 import { Icon } from "./icon";
+import { useT } from "../i18n/context";
 
 export interface Column<T> {
   key: string;
@@ -42,6 +43,7 @@ export function DataTable<T>({
   onSort: externalOnSort,
   empty,
 }: DataTableProps<T>) {
+  const t = useT();
   const [internalSort, setInternalSort] = useState<SortState | null>(null);
   const managed = !externalSort && !externalOnSort;
   const sort = managed ? internalSort : externalSort;
@@ -125,7 +127,7 @@ export function DataTable<T>({
                 <td colSpan={columns.length}>
                   {empty ?? (
                     <div className="flex flex-col items-center justify-center" style={{ padding: "56px 24px", color: "var(--text-2)" }}>
-                      Nothing here
+                      {t("common.nothing_here")}
                     </div>
                   )}
                 </td>

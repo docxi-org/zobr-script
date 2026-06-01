@@ -12,6 +12,7 @@ import { useT } from "../i18n/context";
 import type { StoreCollection, StoreNote } from "../api/types";
 
 function Collections() {
+  const t = useT();
   const [sel, setSel] = useState<string | null>(null);
   const [openDoc, setOpenDoc] = useState<Record<string, unknown> | null>(null);
   const { data } = useApi<{ collections: StoreCollection[] }>("/store/collections");
@@ -64,9 +65,9 @@ function Collections() {
     <DataTable
       rowKey={(r) => r.name}
       columns={[
-        { key: "name", label: "Name", mono: true, render: (r: StoreCollection) => <span className="inline-flex items-center" style={{ gap: 7, fontWeight: 600 }}><Icon name="database" size={13} style={{ color: "var(--text-3)" }} />{r.name}</span> },
-        { key: "count", label: "Documents", align: "right", mono: true, render: (r: StoreCollection) => r.count },
-        { key: "actions", label: "", align: "right", render: (r: StoreCollection) => <Button size="sm" variant="outline" onClick={() => setSel(r.name)}>Browse</Button> },
+        { key: "name", label: t("col.name"), mono: true, render: (r: StoreCollection) => <span className="inline-flex items-center" style={{ gap: 7, fontWeight: 600 }}><Icon name="database" size={13} style={{ color: "var(--text-3)" }} />{r.name}</span> },
+        { key: "count", label: t("col.documents"), align: "right", mono: true, render: (r: StoreCollection) => r.count },
+        { key: "actions", label: "", align: "right", render: (r: StoreCollection) => <Button size="sm" variant="outline" onClick={() => setSel(r.name)}>{t("store.browse")}</Button> },
       ] satisfies Column<StoreCollection>[]}
       rows={collections}
     />
@@ -74,6 +75,7 @@ function Collections() {
 }
 
 function Notes() {
+  const t = useT();
   const [typeF, setTypeF] = useState("");
   const { data } = useApi<{ notes: StoreNote[] }>(`/store/notes${typeF ? `?type=${typeF}` : ""}`, [typeF]);
   const notesList = data?.notes ?? [];
@@ -87,9 +89,9 @@ function Notes() {
       <DataTable
         rowKey={(r) => r.key}
         columns={[
-          { key: "key", label: "Key", mono: true, render: (r: StoreNote) => r.key },
-          { key: "type", label: "Type", render: (r: StoreNote) => r.type ? <Badge color="var(--accent)">{r.type}</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
-          { key: "data", label: "Data", mono: true, muted: true, maxWidth: 420, render: (r: StoreNote) => JSON.stringify(r.data) },
+          { key: "key", label: t("col.key"), mono: true, render: (r: StoreNote) => r.key },
+          { key: "type", label: t("col.type"), render: (r: StoreNote) => r.type ? <Badge color="var(--accent)">{r.type}</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
+          { key: "data", label: t("col.data"), mono: true, muted: true, maxWidth: 420, render: (r: StoreNote) => JSON.stringify(r.data) },
         ] satisfies Column<StoreNote>[]}
         rows={notesList}
       />

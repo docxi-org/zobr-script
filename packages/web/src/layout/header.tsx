@@ -2,29 +2,29 @@ import { useEffect, useState } from "react";
 import { Icon } from "../ui/icon";
 import type { Route } from "../router";
 import type { User } from "../auth";
+import { useT } from "../i18n/context";
 
-const CRUMB: Record<string, string> = {
-  "/": "Dashboard",
-  "/traces": "Traces",
-  "/scripts": "Scripts",
-  "/scripts/new": "New Script",
-  "/store": "Store",
-  "/agents": "Agents",
-  "/help": "Help",
-  "/settings": "Settings",
-  "/settings/users": "Users",
-};
-
-function crumbFor(route: Route): string[] {
+function crumbFor(route: Route, t: (k: string) => string): string[] {
+  const CRUMB: Record<string, string> = {
+    "/": t("nav.dashboard"),
+    "/traces": t("nav.traces"),
+    "/scripts": t("nav.scripts"),
+    "/scripts/new": t("new_script.title"),
+    "/store": t("nav.store"),
+    "/agents": t("nav.agents"),
+    "/help": t("nav.help"),
+    "/settings": t("nav.settings"),
+    "/settings/users": t("users.title"),
+  };
   if (CRUMB[route.path]) return [CRUMB[route.path]!];
   if (route.path.startsWith("/traces/"))
-    return ["Traces", route.path.split("/")[2]!];
+    return [t("nav.traces"), route.path.split("/")[2]!];
   if (route.path.startsWith("/scripts/"))
-    return ["Scripts", route.path.split("/")[2]!];
+    return [t("nav.scripts"), route.path.slice("/scripts/".length)];
   if (route.path.startsWith("/agents/"))
-    return ["Agents", route.path.split("/")[2]!];
+    return [t("nav.agents"), route.path.split("/")[2]!];
   if (route.path.startsWith("/help/"))
-    return ["Help", route.path.split("/")[2]!];
+    return [t("nav.help"), route.path.split("/")[2]!];
   return ["Dashboard"];
 }
 
@@ -47,7 +47,8 @@ export function Header({
   role,
   onLogout,
 }: HeaderProps) {
-  const crumbs = crumbFor(route);
+  const t = useT();
+  const crumbs = crumbFor(route, t as (k: string) => string);
   const [userMenu, setUserMenu] = useState(false);
 
   useEffect(() => {

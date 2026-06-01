@@ -1,12 +1,87 @@
 ---
-title: How scripts work
-category: What is ZS
+title: Как устроены скрипты
+category: Что такое ZS
 order: 2
-summary: A script has a cognitive part (what to think) and an optional server part (what to verify). Together they define a reasoning protocol.
-tags: [scripts, cognitive, server, operations]
+summary: Скрипт состоит из когнитивной части (что думать) и необязательной серверной части (что проверять). Вместе они задают протокол рассуждения.
+tags: [скрипты, когнитивная, серверная, операции]
 related: [what-is-zs, how-execution-works, server-module, checkpoints]
 ---
 
-# How scripts work
+# Как устроены скрипты
 
-*Перевод готовится.*
+ZS-скрипт живёт как один или два файла в [библиотеке](library):
+
+- **`name.cog.ts`** — когнитивная часть (обязательна). Написана на подмножестве TypeScript, определяет последовательность операций рассуждения.
+- **`name.srv.ts`** — серверный модуль (необязателен). Класс, обеспечивающий верифицированные вычисления, персистентность и контроль.
+
+## Когнитивная часть
+
+Когнитивная часть читается как протокол рассуждения:
+
+```ts
+export type Result = {
+  insight: string;
+  confidence: "low" | "medium" | "high";
+  tradeoffs: string[];
+};
+
+export function reflect(context: string): Result {
+  const mechanisms = survey(context, { count: 10 });
+  const friction = doubt(mechanisms, { lens: "second-order effects" });
+
+  commit({
+    criteria: ["reversibility", "blast-radius"],
+    weights: [0.5, 0.5],
+  });
+
+  const pattern = synthesize(mechanisms, friction);
+  checkpoint("analysis_done", { pattern, friction });
+
+  return conclude<Result>();
+}
+```
+
+Скрипт не выполняет операции сам — это делает **агент**. Каждая операция — директива: `survey` означает «исследуй это пространство», `doubt` — «подвергни сомнению», `commit` — «объяви критерии оценки».
+
+## Операции
+
+| Операция | Назначение | Доверие |
+|---|---|---|
+| `survey` | Исследовать пространство, собрать кандидатов | asserted |
+| `doubt` | Оспорить, найти слабые места, стресс-тест | asserted |
+| `commit` | Объявить критерии и основание для решения | verified |
+| `synthesize` | Объединить находки в паттерн | asserted |
+| `contrast` | Сравнить альтернативы | asserted |
+| `checkpoint` | Серверный шлюз → [директива](checkpoints) | verified |
+| `conclude` | Финальный результат, валидируется по типу `T` | verified |
+| `report` | Записать промежуточное наблюдение в [трассировку](trace) | verified |
+
+> **Заметка:** эти операции — не вызовы функций, возвращающих вычисленные значения. Это промпты, которые агент наполняет своим рассуждением, а результаты записываются в трассировку с соответствующим [классом доверия](trust-classes).
+
+## Серверный модуль
+
+Когда скрипту нужны верифицированные вычисления, персистентное состояние или принятие решений, не зависящее от модели, добавляется [серверный модуль](server-module):
+
+```ts
+export default class extends ZsScript {
+  onCheckpoint(label: string, data: unknown): Directive {
+    this.db.collection("analyses").insertOne(data);
+    return "proceed";
+  }
+}
+```
+
+Серверный модуль выполняется на сервере (не в модели), поэтому его результаты имеют доверие [authority](trust-classes) или [verified](trust-classes).
+
+## Типы и формы
+
+Вызов `conclude<Result>()` в конце объявляет ожидаемый тип вывода. Сервер валидирует фактический результат — при несоответствии запуск завершается ошибкой, а не молчаливо неверным ответом.
+
+[Контрольные точки](checkpoints) тоже могут объявлять формы для своих данных, давая серверу контракт для валидации на каждом шлюзе.
+
+## См. также
+
+- [Как работает запуск](how-execution-works) — что происходит при исполнении
+- [Серверный модуль](server-module) — srv-часть подробно
+- [Контрольные точки](checkpoints) — механизм шлюзов
+- [Библиотека](library) — где скрипты хранятся на диске

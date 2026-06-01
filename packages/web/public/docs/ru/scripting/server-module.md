@@ -1,12 +1,63 @@
 ---
-title: Server module
-category: Scripting
+title: Серверный модуль
+category: Скрипты
 order: 1
-summary: The server module (srv) adds verified computation, persistence, and gating to a script. It runs on the server, not in the model.
-tags: [server, srv, ZsScript, hooks, functions]
+summary: Серверный модуль (srv) добавляет скрипту верифицированные вычисления, персистентность и контроль. Выполняется на сервере, не в модели.
+tags: [сервер, srv, ZsScript, хуки, функции]
 related: [how-scripts-work, checkpoints, store]
 ---
 
-# Server module
+# Серверный модуль
 
-*Перевод готовится.*
+Серверный модуль скрипта (`name.srv.ts`) выполняется **на сервере**, не в модели. Он даёт три вещи, недоступные модели: детерминированные вычисления, персистентное состояние и авторитетный контроль.
+
+## Структура
+
+```ts
+export default class InsightScript extends ZsScript {
+  onCheckpoint(label: string, data: unknown): Directive {
+    this.db.collection("analyses").insertOne(data);
+    return "proceed";
+  }
+
+  async fetchFeed(topic: string) {
+    return await this.http.get(`/feeds/${topic}`);
+  }
+}
+```
+
+Класс наследует `ZsScript` и имеет доступ к:
+
+| Свойство | Что даёт |
+|---|---|
+| `this.db` | SQLite [хранилище](store) — коллекции и заметки |
+| `this.invocation` | Контекст текущего вызова — id, scriptRef, depth |
+| `this.config` | Конфигурация скрипта из config.json |
+
+## Хуки жизненного цикла
+
+| Хук | Когда срабатывает | Возвращает |
+|---|---|---|
+| `onStart(ctx)` | Вызов начинается | void |
+| `onCheckpoint(label, data)` | Агент достиг [контрольной точки](checkpoints) | `Directive` — proceed, halt или ask |
+| `onReport(label, data)` | Агент отправляет отчёт | void |
+| `onConclude(result)` | Агент финализирует прогон | void |
+
+Хуки необязательны. Без серверного модуля контрольные точки по умолчанию возвращают `proceed`.
+
+## Серверные функции
+
+Публичные методы класса (не хуки жизненного цикла) становятся **серверными функциями** — вызываемыми из когнитивного кода. Их результаты несут доверие [authority](trust-classes), поскольку выполняются за пределами модели.
+
+## Когда использовать
+
+- **Персистентность** — сохранение промежуточных результатов через [хранилище](store)
+- **Контроль** — остановка прогона при несоблюдении критериев качества
+- **Верифицированные вычисления** — вызовы внешних API, детерминированная логика
+- **Аудит** — запись данных в notes на каждой контрольной точке
+
+## См. также
+
+- [Как устроены скрипты](how-scripts-work) — разделение cog + srv
+- [Контрольные точки](checkpoints) — механизм шлюзов
+- [Хранилище](store) — слой персистентности

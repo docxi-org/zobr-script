@@ -1,12 +1,72 @@
 ---
-title: Checkpoints & directives
-category: Key concepts
+title: Контрольные точки и директивы
+category: Ключевые понятия
 order: 4
-summary: A checkpoint is a server-adjudicated decision point. The server inspects the payload and returns a directive — proceed, halt, or ask.
-tags: [checkpoint, directive, control-flow, shapes]
+summary: Контрольная точка — серверный шлюз принятия решений. Сервер проверяет данные и возвращает директиву — proceed, halt или ask.
+tags: [контрольная точка, директива, управление потоком]
 related: [how-scripts-work, trace, trust-classes, server-module]
 ---
 
-# Checkpoints & directives
+# Контрольные точки и директивы
 
-*Перевод готовится.*
+**Контрольная точка** — место в скрипте, где агент приостанавливается и передаёт данные серверу. Сервер проверяет их и возвращает **директиву**, определяющую дальнейшие действия. Поскольку решение принимает сервер, каждое событие контрольной точки является [verified](trust-classes).
+
+```ts
+const gate = checkpoint("analysis_done", {
+  pattern,
+  residual_risk: friction.unresolved,
+});
+
+if (gate.directive === "halt") {
+  return conclude<Result>({ /* частичный результат */ });
+}
+```
+
+## Три директивы
+
+| Директива | Эффект |
+|---|---|
+| `proceed` | Продолжить исполнение за контрольной точкой. |
+| `halt` | Остановиться. Прогон завершается со статусом `halted`. |
+| `ask` | Приостановить и запросить ввод. Прогон паркуется как `suspended`. |
+
+## Как сервер принимает решение
+
+Директива приходит из хука `onCheckpoint` [серверного модуля](server-module):
+
+```ts
+export default class extends ZsScript {
+  onCheckpoint(label: string, data: unknown): Directive {
+    if (label === "analysis_done") {
+      this.db.collection("analyses").insertOne(data);
+      return this.shouldContinue(data) ? "proceed" : "halt";
+    }
+    return "proceed";
+  }
+}
+```
+
+Если серверного модуля нет, все контрольные точки возвращают `proceed` по умолчанию.
+
+## Валидация формы
+
+Каждая именованная контрольная точка может объявить **форму** — ожидаемую структуру данных. Сервер валидирует данные по форме перед вызовом `onCheckpoint`. Некорректные данные отклоняются сразу.
+
+Формы извлекаются из типов TypeScript когнитивного кода при загрузке. Их можно увидеть на вкладке **Contract** в деталях скрипта.
+
+## Директива `ask`
+
+`ask` — способ скрипта запросить ввод от человека или агента в процессе прогона. Вызов паркуется под TTL ожидания (по умолчанию: 24 часа). Если ответ не приходит вовремя, статус переходит в `expired`.
+
+## В трассировке
+
+События контрольных точек показываются в [хронологии](trace) с директивой в виде цветного бейджа:
+- `proceed` — зелёный
+- `halt` — оранжевый
+- `ask` — синий
+
+## См. также
+
+- [Серверный модуль](server-module) — где реализуется `onCheckpoint`
+- [Классы доверия](trust-classes) — почему контрольные точки verified
+- [Как работает запуск](how-execution-works) — жизненный цикл с halt и suspend

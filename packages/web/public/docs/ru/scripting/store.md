@@ -1,12 +1,56 @@
 ---
-title: Store
-category: Scripting
+title: Хранилище
+category: Скрипты
 order: 2
-summary: The store provides persistent collections and notes in SQLite, accessible from server modules and MCP tools.
-tags: [store, collections, notes, persistence, SQLite]
+summary: Хранилище обеспечивает персистентные коллекции и заметки в SQLite, доступные из серверных модулей и MCP-инструментов.
+tags: [хранилище, коллекции, заметки, SQLite]
 related: [server-module, how-scripts-work]
 ---
 
-# Store
+# Хранилище
 
-*Перевод готовится.*
+Хранилище — персистентный слой данных на SQLite. Переживает перезапуски вызовов и сервера. Два вида хранения:
+
+## Коллекции
+
+Типизированные коллекции документов, аналогичные MongoDB. Каждый документ получает уникальный `_id` при вставке.
+
+```ts
+// В серверном модуле
+const analyses = this.db.collection<Analysis>("analyses");
+analyses.insertOne({ topic: "climate", confidence: "high", summary: "..." });
+const results = analyses.find({ topic: "climate" });
+```
+
+Операции: `insertOne`, `insertMany`, `find`, `findOne`, `updateOne`, `updateMany`, `deleteOne`, `deleteMany`, `count`.
+
+## Заметки
+
+Более простое key-value хранилище для конфигурации, курсоров и малого состояния:
+
+```ts
+this.db.notes.put("cursor:feed", { last: "2026-06-01" }, "cursor");
+const cursor = this.db.notes.get("cursor:feed");
+this.db.notes.list("cursor"); // все заметки типа "cursor"
+```
+
+## Где вы видите хранилище
+
+Страница **Хранилище** в консоли показывает:
+- **Коллекции** — список с количеством документов, просмотр, JSON-детали
+- **Заметки** — ключ/тип/данные, фильтр по типу
+
+Оба режима — только чтение в UI. Запись через [серверные модули](server-module) или MCP-инструменты.
+
+## Валидация схемы (опционально)
+
+Если в корне библиотеки есть `store.d.ts` с экспортированными интерфейсами, сервер валидирует документы при вставке. Без этого файла коллекции принимают любую структуру.
+
+## Блокировка записи
+
+Во время активного вызова агент не может писать в хранилище через отдельные MCP-инструменты — записи должны идти через [контрольные точки](checkpoints) и серверный модуль.
+
+## См. также
+
+- [Серверный модуль](server-module) — доступ через `this.db`
+- [Как устроены скрипты](how-scripts-work) — разделение cog + srv

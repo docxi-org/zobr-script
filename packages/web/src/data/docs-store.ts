@@ -105,7 +105,10 @@ export async function loadDocs(locale: Locale = "en"): Promise<DocsData> {
         if (t && !t.backlinks.includes(d.slug)) t.backlinks.push(d.slug);
       });
     });
-    const CATEGORY_ORDER: Record<string, number> = { "What is ZS": 0, "Key concepts": 1, "Scripting": 2, "Platform": 3 };
+    const CATEGORY_ORDER: Record<string, number> = {
+      "What is ZS": 0, "Key concepts": 1, "Scripting": 2, "Platform": 3,
+      "Что такое ZS": 0, "Ключевые понятия": 1, "Скрипты": 2, "Платформа": 3,
+    };
     const catOrd = (c: string) => CATEGORY_ORDER[c] ?? 99;
     docs.sort((a, b) => catOrd(a.category) - catOrd(b.category) || a.order - b.order);
     const tree: { category: string; items: DocEntry[] }[] = [];

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRoute, match, navigate } from "./router";
 import { useAuth } from "./auth";
+import { ErrorBoundary } from "./ui/error-boundary";
 import { Sidebar } from "./layout/sidebar";
 import { Header } from "./layout/header";
 import { Footer } from "./layout/footer";
@@ -144,7 +145,9 @@ export function App() {
             flexDirection: "column",
           }}>
             <div style={{ flex: isTallPage(route.path) ? 1 : "none", minHeight: 0, display: isTallPage(route.path) ? "flex" : "block", flexDirection: "column" }}>
-              <Routed path={route.path} role={role} theme={theme} />
+              <ErrorBoundary key={route.path}>
+                <Routed path={route.path} role={role} theme={theme} />
+              </ErrorBoundary>
             </div>
           </div>
         </main>

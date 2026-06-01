@@ -66,7 +66,9 @@ export function Help({ slug }: { slug?: string }) {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    contentRef.current?.closest("main")?.scrollTo(0, 0);
+    const main = contentRef.current?.closest("main");
+    if (main) main.scrollTop = 0;
+    window.scrollTo(0, 0);
   }, [slug]);
   const t = useT();
 

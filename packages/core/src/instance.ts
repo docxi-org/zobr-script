@@ -59,11 +59,12 @@ export class Instance {
     if (p.parent_invocation_id !== undefined) this.parent_invocation_id = p.parent_invocation_id;
     this.depth = p.depth ?? 0;
     this.trace.append({
-      op: "status_transition",
+      op: "start",
       realizer: "server",
       trust: "verified",
       inputs: [],
-      meta: { from: "created", to: "running", reason: "start" },
+      preview: "invocation started",
+      meta: { script_ref: p.script_ref, ...(p.parent_invocation_id !== undefined ? { parent: p.parent_invocation_id } : {}) },
     });
   }
 

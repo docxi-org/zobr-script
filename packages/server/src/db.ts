@@ -263,10 +263,10 @@ export function createDb(path: string): Db {
         .run(trace.invocation_id, trace.script_ref, trace.code_snapshot, trace.status, JSON.stringify(trace.events), trace.coverage !== undefined ? JSON.stringify(trace.coverage) : null, trace.result !== undefined ? JSON.stringify(trace.result) : null, Date.now());
     },
 
-    getTrace(invocation_id: string): { invocation_id: string; script_ref: string; status: string; events: unknown[]; coverage?: unknown; result?: unknown } | null {
-      const row = db.prepare("SELECT * FROM zs_traces WHERE invocation_id = ?").get(invocation_id) as { invocation_id: string; script_ref: string; status: string; events: string; coverage: string | null; result: string | null } | undefined;
+    getTrace(invocation_id: string): { invocation_id: string; script_ref: string; code_snapshot: string; status: string; events: unknown[]; coverage?: unknown; result?: unknown; created_at?: number } | null {
+      const row = db.prepare("SELECT * FROM zs_traces WHERE invocation_id = ?").get(invocation_id) as { invocation_id: string; script_ref: string; code_snapshot: string; status: string; events: string; coverage: string | null; result: string | null; created_at: number } | undefined;
       if (row === undefined) return null;
-      return { invocation_id: row.invocation_id, script_ref: row.script_ref, status: row.status, events: JSON.parse(row.events), ...(row.coverage !== null ? { coverage: JSON.parse(row.coverage) } : {}), ...(row.result !== null ? { result: JSON.parse(row.result) } : {}) };
+      return { invocation_id: row.invocation_id, script_ref: row.script_ref, code_snapshot: row.code_snapshot, status: row.status, events: JSON.parse(row.events), created_at: row.created_at, ...(row.coverage !== null ? { coverage: JSON.parse(row.coverage) } : {}), ...(row.result !== null ? { result: JSON.parse(row.result) } : {}) };
     },
 
     recordInvocation(inv: { invocation_id: string; script_ref: string; status: string; agent_id?: string }): void {

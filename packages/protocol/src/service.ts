@@ -137,6 +137,14 @@ export class ZsService {
         return { ok: false, status: inst.status, error: { kind: "schema_mismatch", message: `result: ${e?.expected} expected at ${e?.path}, got ${e?.got}` } };
       }
     }
+    inst.trace.append({
+      op: "conclude",
+      realizer: "server",
+      trust: "verified",
+      inputs: [],
+      preview: shape ? "result validated against concludeShape" : "result accepted",
+      meta: { has_shape: shape !== undefined },
+    });
     inst.transition("done", "conclude");
     return { ok: true, status: inst.status, coverage: inst.trace.coverage(), trace_ref: inst.invocation_id };
   }

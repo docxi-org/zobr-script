@@ -12,8 +12,8 @@ describe("Instance", () => {
     expect(typeof i.invocation_id).toBe("string");
     expect(i.store.size).toBe(0);
     expect(i.trace.length).toBe(1);
-    expect(i.trace.events[0]?.op).toBe("status_transition");
-    expect(i.trace.events[0]?.meta).toEqual({ from: "created", to: "running", reason: "start" });
+    expect(i.trace.events[0]?.op).toBe("start");
+    expect(i.trace.events[0]?.preview).toBe("invocation started");
   });
 
   it("records child linkage and depth", () => {

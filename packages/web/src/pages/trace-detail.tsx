@@ -8,9 +8,10 @@ import { useApi } from "../api/hooks";
 import type { TraceDetail as TraceDetailType, TraceEvent } from "../api/types";
 
 const OP_ICON: Record<string, string> = {
-  status_transition: "refresh", survey: "search", doubt: "alert", commit: "check",
-  synthesize: "zap", checkpoint: "play", conclude: "check", report: "doc",
-  invoke: "external", error: "x",
+  start: "play", conclude: "check", status_transition: "refresh",
+  survey: "search", doubt: "alert", commit: "check",
+  synthesize: "zap", checkpoint: "play", report: "doc",
+  invoke: "external", error: "x", ask_user: "users", act: "external",
 };
 
 const TRUST_COLORS: Record<string, string> = {

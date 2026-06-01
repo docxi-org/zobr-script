@@ -157,6 +157,13 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
   }
 
   const t = useT();
+  const runsColsMemo = useMemo((): Column<TraceRow>[] => [
+    { key: "id", label: t("col.invocation"), mono: true, maxWidth: 240, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
+    { key: "status", label: t("col.status"), sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
+    { key: "coverage", label: t("col.coverage"), width: 170, sortable: true, sortVal: (r) => r.coverage?.verified ?? 0, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
+    { key: "when", label: t("col.started"), align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.created_at, render: (r) => fmtDate(r.created_at) },
+  ], [t]);
+
   if (loading) return <div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>{t("scripts.loading")}</div>;
   if (!script) return (
     <div className="flex flex-col items-center justify-center" style={{ padding: "56px 24px", color: "var(--text-2)" }}>
@@ -195,13 +202,6 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
       setValidation({ ok: false, errors: [{ code: "SAVE_FAILED", message: (e as Error).message, line: 1 }], warnings: [] });
     }
   };
-
-  const runsColsMemo = useMemo((): Column<TraceRow>[] => [
-    { key: "id", label: t("col.invocation"), mono: true, maxWidth: 240, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
-    { key: "status", label: t("col.status"), sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
-    { key: "coverage", label: t("col.coverage"), width: 170, sortable: true, sortVal: (r) => r.coverage?.verified ?? 0, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
-    { key: "when", label: t("col.started"), align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.created_at, render: (r) => fmtDate(r.created_at) },
-  ], [t]);
 
   const tabs = [
     { id: "cognitive", label: t("new_script.cognitive"), dot: dirtyCog },

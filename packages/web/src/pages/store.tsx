@@ -65,8 +65,8 @@ function Collections() {
     <DataTable
       rowKey={(r) => r.name}
       columns={[
-        { key: "name", label: t("col.name"), mono: true, render: (r: StoreCollection) => <span className="inline-flex items-center" style={{ gap: 7, fontWeight: 600 }}><Icon name="database" size={13} style={{ color: "var(--text-3)" }} />{r.name}</span> },
-        { key: "count", label: t("col.documents"), align: "right", mono: true, render: (r: StoreCollection) => r.count },
+        { key: "name", label: t("col.name"), mono: true, sortable: true, sortVal: (r: StoreCollection) => r.name, render: (r: StoreCollection) => <span className="inline-flex items-center" style={{ gap: 7, fontWeight: 600 }}><Icon name="database" size={13} style={{ color: "var(--text-3)" }} />{r.name}</span> },
+        { key: "count", label: t("col.documents"), align: "right", mono: true, sortable: true, sortVal: (r: StoreCollection) => r.count, render: (r: StoreCollection) => r.count },
         { key: "actions", label: "", align: "right", render: (r: StoreCollection) => <Button size="sm" variant="outline" onClick={() => setSel(r.name)}>{t("store.browse")}</Button> },
       ] satisfies Column<StoreCollection>[]}
       rows={collections}
@@ -89,8 +89,8 @@ function Notes() {
       <DataTable
         rowKey={(r) => r.key}
         columns={[
-          { key: "key", label: t("col.key"), mono: true, render: (r: StoreNote) => r.key },
-          { key: "type", label: t("col.type"), render: (r: StoreNote) => r.type ? <Badge color="var(--accent)">{r.type}</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
+          { key: "key", label: t("col.key"), mono: true, sortable: true, sortVal: (r: StoreNote) => r.key, render: (r: StoreNote) => r.key },
+          { key: "type", label: t("col.type"), sortable: true, sortVal: (r: StoreNote) => r.type ?? "", render: (r: StoreNote) => r.type ? <Badge color="var(--accent)">{r.type}</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
           { key: "data", label: t("col.data"), mono: true, muted: true, maxWidth: 420, render: (r: StoreNote) => JSON.stringify(r.data) },
         ] satisfies Column<StoreNote>[]}
         rows={notesList}

@@ -5,15 +5,6 @@
 
 ---
 
-## Worker SandboxHost
-
-- [x] ~~**Worker-скрипт как строковая константа (eval:true).**~~
-  Решено: worker вынесен в `sandbox-worker.ts` — нормальный TypeScript с типами
-  и IDE support. Транспилируется в CJS при загрузке модуля через
-  `ts.transpileModule`. Всё ещё `eval: true`, но source — полноценный .ts файл.
-
----
-
 ## ZsApp / callTool
 
 - [ ] **callTool — god-method со switch на ~24 case.**

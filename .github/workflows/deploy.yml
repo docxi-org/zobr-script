@@ -4,6 +4,11 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      reset_db:
+        description: 'Reset SQLite database (destructive!)'
+        type: boolean
+        default: false
 
 jobs:
   deploy:
@@ -12,6 +17,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm --filter @zobr/web build
 
       - name: Deploy via rsync
         uses: burnett01/rsync-deployments@7.0.1
@@ -48,6 +68,8 @@ jobs:
             ZS_INVOCATION_TTL=3600
             ZS_AWAITING_TTL=86400
             ZS_MAX_ACTIVE_INVOCATIONS=100
+            ZS_JWT_SECRET=$(openssl rand -base64 32)
+            ZS_ADMIN_PASSWORD=admin
             LOG_LEVEL=info
             ENV
               chmod 600 .env
@@ -55,6 +77,24 @@ jobs:
 
             pnpm install --frozen-lockfile
             pm2 startOrReload ecosystem.config.cjs --update-env
+            pm2 save
+
+      - name: Reset database
+        if: inputs.reset_db == true
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: 80.74.31.205
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            export NVM_DIR="/root/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            cd /opt/zobr-script
+            pm2 stop zobr-script || true
+            rm -f ./data/store.sqlite ./data/store.sqlite-wal ./data/store.sqlite-shm
+            echo "Database reset — tables will be recreated on start"
+            pm2 start zobr-script
             pm2 save
 
       - name: Health check

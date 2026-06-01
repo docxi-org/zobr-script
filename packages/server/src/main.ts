@@ -1,6 +1,9 @@
 // Entry point: boots the ZS MCP server.
 // Run: pnpm start | pnpm dev | tsx packages/server/src/main.ts
 import "dotenv/config";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import express from "express";
 import { createZsHttpApp } from "./http";
 import { FsScriptSourceReader } from "./reader";
 import { materializeScaffold } from "./scaffold";
@@ -29,6 +32,12 @@ const { app } = createZsHttpApp({
   architectMode: ARCHITECT_MODE,
   logger: log,
 });
+
+const SPA_DIR = join(import.meta.dirname, "../../web/dist");
+if (existsSync(SPA_DIR)) {
+  app.use(express.static(SPA_DIR));
+  log.info({ dir: SPA_DIR }, "serving SPA static files");
+}
 
 app.get("/health", (_req, res) => { res.json({ ok: true }); });
 

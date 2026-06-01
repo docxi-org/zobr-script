@@ -103,7 +103,7 @@ export function Users() {
   const roleColor = (r: string) => r === "architect" ? "var(--accent)" : r === "admin" ? "var(--trust-authority)" : "var(--text-2)";
 
   const columns: Column<UserRecord>[] = [
-    { key: "email", label: "Email", render: (r) => <span className="inline-flex items-center" style={{ gap: 9, fontWeight: 600, opacity: r.active ? 1 : 0.5 }}><span className="grid place-items-center rounded-full border border-[var(--border)]" style={{ width: 26, height: 26, background: "var(--bg-3)", fontSize: 11, fontWeight: 700 }}>{r.email[0]!.toUpperCase()}</span>{r.email}</span> },
+    { key: "email", label: "Email", sortable: true, sortVal: (r) => r.email, render: (r) => <span className="inline-flex items-center" style={{ gap: 9, fontWeight: 600, opacity: r.active ? 1 : 0.5 }}><span className="grid place-items-center rounded-full border border-[var(--border)]" style={{ width: 26, height: 26, background: "var(--bg-3)", fontSize: 11, fontWeight: 700 }}>{(r.email[0] ?? "?").toUpperCase()}</span>{r.email}</span> },
     { key: "role", label: "Role", width: 150, render: (r) => (
       <div className="relative inline-block">
         <select value={r.role} onChange={(e) => updateRole(r.id, e.target.value)}
@@ -112,9 +112,9 @@ export function Users() {
         </select>
       </div>
     ) },
-    { key: "created", label: "Created", mono: true, muted: true, render: (r) => timeAgo(r.created_at, NOW) + " ago" },
-    { key: "last", label: "Last login", mono: true, muted: true, render: (r) => r.last_login ? timeAgo(r.last_login, NOW) + " ago" : "never" },
-    { key: "status", label: "Status", render: (r) => r.active ? <Badge color="var(--st-done)">active</Badge> : <Badge color="var(--text-2)">deactivated</Badge> },
+    { key: "created", label: "Created", mono: true, muted: true, sortable: true, sortVal: (r) => r.created_at, render: (r) => timeAgo(r.created_at, NOW) + " ago" },
+    { key: "last", label: "Last login", mono: true, muted: true, sortable: true, sortVal: (r) => r.last_login ?? 0, render: (r) => r.last_login ? timeAgo(r.last_login, NOW) + " ago" : "never" },
+    { key: "status", label: "Status", sortable: true, sortVal: (r) => r.active ? 1 : 0, render: (r) => r.active ? <Badge color="var(--st-done)">active</Badge> : <Badge color="var(--text-2)">deactivated</Badge> },
     { key: "actions", label: "", align: "right", render: (r) => <Button size="sm" variant={r.active ? "danger" : "outline"} onClick={() => toggleActive(r.id, r.active)}>{r.active ? "Deactivate" : "Reactivate"}</Button> },
   ];
 

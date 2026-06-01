@@ -137,10 +137,10 @@ function ValidationBar({ v }: { v: { ok: boolean; errors: { code: string; messag
 
 
 const runsColumns: Column<TraceRow>[] = [
-  { key: "id", label: "Invocation", mono: true, maxWidth: 240, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
-  { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-  { key: "coverage", label: "Coverage", width: 170, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
-  { key: "when", label: "Started", align: "right", mono: true, muted: true, render: (r) => fmtDate(r.created_at) },
+  { key: "id", label: "Invocation", mono: true, maxWidth: 240, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
+  { key: "status", label: "Status", sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
+  { key: "coverage", label: "Coverage", width: 170, sortable: true, sortVal: (r) => r.coverage?.verified ?? 0, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
+  { key: "when", label: "Started", align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.created_at, render: (r) => fmtDate(r.created_at) },
 ];
 
 export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string; role: string; theme: "dark" | "light" }) {

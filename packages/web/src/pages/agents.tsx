@@ -25,16 +25,16 @@ export function AgentsList() {
   const agents = data?.agents ?? [];
 
   const columns: Column<Agent>[] = [
-    { key: "name", label: "Name", render: (r) => (
+    { key: "name", label: "Name", sortable: true, sortVal: (r) => r.name, render: (r) => (
       <span className="inline-flex items-center" style={{ gap: 9, fontWeight: 600 }}>
         <span className="grid place-items-center rounded-full border border-[var(--border)]" style={{ width: 26, height: 26, background: "var(--bg-3)", fontSize: 11, fontWeight: 700 }}>{r.name[0]}</span>
         {r.name}
       </span>
     ) },
     { key: "agent_id", label: "Agent ID", mono: true, muted: true },
-    { key: "registered", label: "Registered", mono: true, muted: true, render: (r) => timeAgo(r.registered_at, NOW) + " ago" },
-    { key: "active", label: "Active", align: "right", render: (r) => r.active_invocations > 0 ? <Badge color="var(--st-running)">{r.active_invocations}</Badge> : <span className="mono" style={{ color: "var(--text-3)" }}>0</span> },
-    { key: "total", label: "Total runs", align: "right", mono: true, render: (r) => r.total_runs },
+    { key: "registered", label: "Registered", mono: true, muted: true, sortable: true, sortVal: (r) => r.registered_at, render: (r) => timeAgo(r.registered_at, NOW) + " ago" },
+    { key: "active", label: "Active", align: "right", sortable: true, sortVal: (r) => r.active_invocations, render: (r) => r.active_invocations > 0 ? <Badge color="var(--st-running)">{r.active_invocations}</Badge> : <span className="mono" style={{ color: "var(--text-3)" }}>0</span> },
+    { key: "total", label: "Total runs", align: "right", mono: true, sortable: true, sortVal: (r) => r.total_runs, render: (r) => r.total_runs },
   ];
 
   return (
@@ -89,10 +89,10 @@ export function AgentDetailPage({ id }: { id: string }) {
         rowKey={(r) => r.invocation_id}
         onRowClick={(r) => navigate("/traces/" + r.invocation_id)}
         columns={[
-          { key: "id", label: "Invocation", mono: true, maxWidth: 240, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
-          { key: "script", label: "Script", render: (r) => <ScriptChip name={r.script_ref} /> },
-          { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-          { key: "started", label: "Started", align: "right", mono: true, muted: true, render: (r) => fmtDate(r.started_at) },
+          { key: "id", label: "Invocation", mono: true, maxWidth: 240, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
+          { key: "script", label: "Script", sortable: true, sortVal: (r) => r.script_ref, render: (r) => <ScriptChip name={r.script_ref} /> },
+          { key: "status", label: "Status", sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
+          { key: "started", label: "Started", align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.started_at, render: (r) => fmtDate(r.started_at) },
         ]}
         rows={history}
       />

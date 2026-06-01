@@ -12,22 +12,22 @@ import type { StatusResponse, Invocation, TraceRow } from "../api/types";
 const NOW = Date.now();
 
 const invColumns: Column<Invocation>[] = [
-  { key: "id", label: "Invocation", mono: true, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
-  { key: "script", label: "Script", render: (r) => <ScriptChip name={r.script_ref} /> },
-  { key: "agent", label: "Agent", render: (r) => r.agent_name ?? "—" },
-  { key: "events", label: "Events", align: "right", mono: true, muted: true, render: (r) => r.events_count },
-  { key: "age", label: "Age", mono: true, muted: true, render: (r) => timeAgo(r.started_at, NOW) },
-  { key: "activity", label: "Last activity", mono: true, muted: true, render: (r) => timeAgo(r.last_activity_at, NOW) + " ago" },
-  { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
+  { key: "id", label: "Invocation", mono: true, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
+  { key: "script", label: "Script", sortable: true, sortVal: (r) => r.script_ref, render: (r) => <ScriptChip name={r.script_ref} /> },
+  { key: "agent", label: "Agent", sortable: true, sortVal: (r) => r.agent_name ?? "", render: (r) => r.agent_name ?? "—" },
+  { key: "events", label: "Events", align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.events_count, render: (r) => r.events_count },
+  { key: "age", label: "Age", mono: true, muted: true, sortable: true, sortVal: (r) => r.started_at, render: (r) => timeAgo(r.started_at, NOW) },
+  { key: "activity", label: "Last activity", mono: true, muted: true, sortable: true, sortVal: (r) => r.last_activity_at, render: (r) => timeAgo(r.last_activity_at, NOW) + " ago" },
+  { key: "status", label: "Status", sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
 ];
 
 const traceColumns: Column<TraceRow>[] = [
-  { key: "id", label: "Invocation", mono: true, maxWidth: 220, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
-  { key: "script", label: "Script", render: (r) => <ScriptChip name={r.script_ref} /> },
-  { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} /> },
-  { key: "coverage", label: "Coverage", width: 170, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
-  { key: "events", label: "Events", align: "right", mono: true, muted: true, render: (r) => r.events_count },
-  { key: "when", label: "When", mono: true, muted: true, align: "right", render: (r) => fmtDate(r.created_at) },
+  { key: "id", label: "Invocation", mono: true, maxWidth: 220, sortable: true, sortVal: (r) => r.invocation_id, render: (r) => <span style={{ color: "var(--accent)" }}>{r.invocation_id}</span> },
+  { key: "script", label: "Script", sortable: true, sortVal: (r) => r.script_ref, render: (r) => <ScriptChip name={r.script_ref} /> },
+  { key: "status", label: "Status", sortable: true, sortVal: (r) => r.status, render: (r) => <StatusBadge status={r.status} /> },
+  { key: "coverage", label: "Coverage", width: 170, sortable: true, sortVal: (r) => r.coverage?.verified ?? 0, render: (r) => r.coverage ? <CoverageBar coverage={r.coverage} /> : <span style={{ color: "var(--text-3)" }}>—</span> },
+  { key: "events", label: "Events", align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.events_count, render: (r) => r.events_count },
+  { key: "when", label: "When", mono: true, muted: true, align: "right", sortable: true, sortVal: (r) => r.created_at, render: (r) => fmtDate(r.created_at) },
 ];
 
 export function Dashboard() {

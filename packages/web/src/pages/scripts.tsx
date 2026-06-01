@@ -168,11 +168,11 @@ export function Scripts({ role }: { role: string }) {
   const folders = useMemo(() => allFolders(scripts), [scripts]);
 
   const columns: Column<ScriptEntry>[] = [
-    { key: "name", label: "Path", mono: true, render: (r) => <PathLabel name={r.name} size="var(--fs-sm)" /> },
-    { key: "srv", label: "Server", render: (r) => r.hasSrv ? <Badge color="var(--trust-authority)">srv</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
+    { key: "name", label: "Path", mono: true, sortable: true, sortVal: (r) => r.name, render: (r) => <PathLabel name={r.name} size="var(--fs-sm)" /> },
+    { key: "srv", label: "Server", sortable: true, sortVal: (r) => r.hasSrv ? 1 : 0, render: (r) => r.hasSrv ? <Badge color="var(--trust-authority)">srv</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
     { key: "description", label: "Description", muted: true, maxWidth: 300, render: (r) => r.description ?? "" },
-    { key: "runs", label: "Runs", align: "right", mono: true, render: (r) => r.runs },
-    { key: "last", label: "Last run", align: "right", mono: true, muted: true, render: (r) => r.last_run ? timeAgo(r.last_run, NOW) + " ago" : "—" },
+    { key: "runs", label: "Runs", align: "right", mono: true, sortable: true, sortVal: (r) => r.runs, render: (r) => r.runs },
+    { key: "last", label: "Last run", align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.last_run ?? 0, render: (r) => r.last_run ? timeAgo(r.last_run, NOW) + " ago" : "—" },
   ];
 
   return (

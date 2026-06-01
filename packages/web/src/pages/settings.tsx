@@ -11,6 +11,8 @@ import { fmtDuration, timeAgo } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
 import { api } from "../api/client";
+import { useLocale, type Locale } from "../i18n/context";
+import { Segmented } from "../ui/segmented";
 import type { StatusResponse } from "../api/types";
 
 const NOW = Date.now();
@@ -26,6 +28,7 @@ interface UserRecord {
 
 export function Settings({ role }: { role: string }) {
   const { data: status } = useApi<StatusResponse>("/status");
+  const { locale, setLocale } = useLocale();
   const cfg = status?.config;
 
   const items = cfg ? [
@@ -62,6 +65,19 @@ export function Settings({ role }: { role: string }) {
           {role === "admin"
             ? <Button variant="primary" size="sm" icon="external" onClick={() => navigate("/settings/users")}>Open</Button>
             : <Badge color="var(--text-2)">requires admin</Badge>}
+        </Card>
+      </div>
+
+      <div className="mt-5">
+        <SectionTitle title="Language" />
+        <Card className="flex items-center" style={{ gap: 16, fontSize: "var(--fs-sm)" }}>
+          <Icon name="doc" size={16} style={{ color: "var(--text-2)" }} />
+          <span style={{ color: "var(--text-2)", flex: 1 }}>Console interface language</span>
+          <Segmented
+            value={locale}
+            onChange={(v) => setLocale(v as Locale)}
+            options={[{ value: "en", label: "English" }, { value: "ru", label: "Русский" }]}
+          />
         </Card>
       </div>
     </div>

@@ -14,7 +14,7 @@ An **agent** is any MCP client that runs ZS scripts — typically an LLM in a ch
 ## Registration
 
 ```
-zs_register({ name: "Побиск" }) → { agent_id: "ag_68de4eb2-813", active_invocations: [] }
+zs_register({ name: "Smith" }) → { agent_id: "ag_68de4eb2-813", active_invocations: [] }
 ```
 
 Registration is **idempotent by name**: the same name always returns the same `agent_id`. This means an agent can reconnect across sessions without losing its identity.

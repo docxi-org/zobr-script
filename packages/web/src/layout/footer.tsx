@@ -1,8 +1,10 @@
 import { useApi } from "../api/hooks";
+import { useT } from "../i18n/context";
 import type { StatusResponse } from "../api/types";
 
 export function Footer() {
   const { data } = useApi<StatusResponse>("/status");
+  const t = useT();
 
   return (
     <footer
@@ -23,7 +25,7 @@ export function Footer() {
           <span style={{ color: "var(--border-2)" }}>·</span>
           <span className="inline-flex items-center" style={{ gap: 5 }}>
             <span style={{ width: 6, height: 6, borderRadius: 99, background: "var(--st-done)" }} />
-            uptime {Math.floor(data.uptime / 3600)}h {Math.floor((data.uptime % 3600) / 60)}m
+            {t("footer.uptime")} {Math.floor(data.uptime / 3600)}h {Math.floor((data.uptime % 3600) / 60)}m
           </span>
         </>
       )}

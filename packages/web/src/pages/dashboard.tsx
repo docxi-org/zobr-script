@@ -7,6 +7,7 @@ import { ScriptChip } from "../ui/script-chip";
 import { timeAgo, fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
+import { useT } from "../i18n/context";
 import type { StatusResponse, Invocation, TraceRow } from "../api/types";
 
 const NOW = Date.now();
@@ -38,29 +39,31 @@ export function Dashboard() {
   const invocations = invData?.invocations ?? [];
   const recent = traceData?.traces ?? [];
 
+  const t = useT();
+
   return (
     <div>
       <div style={{ marginBottom: "var(--gap)" }}>
         <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>
-          Dashboard
+          {t("dashboard.title")}
         </h1>
         <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>
-          Server overview · live invocations · recent activity
+          {t("dashboard.subtitle")}
         </p>
       </div>
 
       <div className="zs-stats grid gap-[var(--gap)]" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-        <StatCard label="Traces" value={traceData?.total ?? 0} icon="activity" sub="total" onClick={() => navigate("/traces")} />
-        <StatCard label="Agents" value={status?.agents ?? 0} icon="users" sub="registered" onClick={() => navigate("/agents")} />
-        <StatCard label="Active" value={status?.invocations.active ?? 0} icon="zap" accent="var(--st-running)" sub="running" />
-        <StatCard label="Uptime" value={status ? Math.floor(status.uptime / 3600) : 0} icon="clock" sub="hours" />
+        <StatCard label={t("dashboard.traces")} value={traceData?.total ?? 0} icon="activity" sub={t("dashboard.total")} onClick={() => navigate("/traces")} />
+        <StatCard label={t("dashboard.agents")} value={status?.agents ?? 0} icon="users" sub={t("dashboard.registered")} onClick={() => navigate("/agents")} />
+        <StatCard label={t("dashboard.active")} value={status?.invocations.active ?? 0} icon="zap" accent="var(--st-running)" sub={t("dashboard.running")} />
+        <StatCard label={t("dashboard.uptime")} value={status ? Math.floor(status.uptime / 3600) : 0} icon="clock" sub={t("dashboard.hours")} />
       </div>
 
       <div style={{ marginTop: 28 }}>
         <SectionTitle
-          title="Active invocations"
-          hint={`${invocations.length} running`}
-          action={<a href="#/traces" style={{ fontSize: "var(--fs-sm)", color: "var(--accent)", fontWeight: 600 }}>All traces →</a>}
+          title={t("dashboard.active_invocations")}
+          hint={`${invocations.length} ${t("dashboard.running")}`}
+          action={<a href="#/traces" style={{ fontSize: "var(--fs-sm)", color: "var(--accent)", fontWeight: 600 }}>{t("dashboard.all_traces")}</a>}
         />
         <DataTable
           rowKey={(r) => r.invocation_id}
@@ -72,8 +75,8 @@ export function Dashboard() {
 
       <div style={{ marginTop: 28 }}>
         <SectionTitle
-          title="Recent traces"
-          action={<a href="#/traces" style={{ fontSize: "var(--fs-sm)", color: "var(--accent)", fontWeight: 600 }}>View all →</a>}
+          title={t("dashboard.recent_traces")}
+          action={<a href="#/traces" style={{ fontSize: "var(--fs-sm)", color: "var(--accent)", fontWeight: 600 }}>{t("dashboard.view_all")}</a>}
         />
         <DataTable
           rowKey={(r) => r.invocation_id}

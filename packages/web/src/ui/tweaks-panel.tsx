@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useLocale, type Locale } from "../i18n/context";
 
 type Tweaks = Record<string, string>;
 
@@ -36,23 +37,24 @@ function Section({ label }: { label: string }) {
 }
 
 function Radio({ label, value, options, onChange }: {
-  label: string; value: string; options: string[]; onChange: (v: string) => void;
+  label: string; value: string; options: (string | { value: string; label: string })[]; onChange: (v: string) => void;
 }) {
+  const opts = options.map((o) => typeof o === "string" ? { value: o, label: o } : o);
   return (
     <div className="flex flex-col" style={{ gap: 4 }}>
       <span style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 500 }}>{label}</span>
       <div className="inline-flex rounded-[var(--r-md)] border border-[var(--border)]" style={{ padding: 2, gap: 2, background: "var(--bg-2)" }}>
-        {options.map((o) => {
-          const on = value === o;
+        {opts.map((o) => {
+          const on = value === o.value;
           return (
-            <button key={o} onClick={() => onChange(o)} className="cursor-pointer rounded-[6px]"
+            <button key={o.value} onClick={() => onChange(o.value)} className="cursor-pointer rounded-[6px]"
               style={{
                 padding: "3px 10px", fontSize: "var(--fs-xs)", fontWeight: 600, flex: 1,
                 background: on ? "var(--bg-0)" : "transparent", color: on ? "var(--text-0)" : "var(--text-2)",
                 border: on ? "1px solid var(--border)" : "1px solid transparent",
                 boxShadow: on ? "var(--shadow)" : "none", transition: "all .14s var(--ease)",
               }}>
-              {o}
+              {o.label}
             </button>
           );
         })}
@@ -100,6 +102,7 @@ interface TweaksPanelProps {
 
 export function TweaksPanel({ tweaks, setTweak }: TweaksPanelProps) {
   const [open, setOpen] = useState(false);
+  const { locale, setLocale } = useLocale();
 
   return (
     <>
@@ -130,6 +133,8 @@ export function TweaksPanel({ tweaks, setTweak }: TweaksPanelProps) {
             <ColorPicker label="Accent color" value={tweaks["accent"]!} options={ACCENTS} onChange={(v) => setTweak("accent", v)} />
             <Section label="Typography" />
             <Radio label="Font" value={tweaks["font"]!} options={["inter", "geist", "system"]} onChange={(v) => setTweak("font", v)} />
+            <Section label="Language" />
+            <Radio label="Locale" value={locale} options={[{ value: "en", label: "English" }, { value: "ru", label: "Русский" }]} onChange={(v) => setLocale(v as Locale)} />
           </div>
         </div>
       )}

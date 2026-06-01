@@ -1,3 +1,5 @@
+import type { Locale } from "../i18n/context";
+
 const FILES = [
   // What is ZS
   "concepts/what-is-zs",
@@ -57,17 +59,20 @@ function parseFrontmatter(text: string): { data: Record<string, unknown>; body: 
 
 const slugOf = (path: string) => path.split("/").pop()!;
 
-let cache: DocsData | null = null;
-let inflight: Promise<DocsData> | null = null;
+const cache = new Map<Locale, DocsData>();
+const inflight = new Map<Locale, Promise<DocsData>>();
 
-export async function loadDocs(): Promise<DocsData> {
-  if (cache) return cache;
-  if (inflight) return inflight;
-  inflight = (async () => {
+export async function loadDocs(locale: Locale = "en"): Promise<DocsData> {
+  const cached = cache.get(locale);
+  if (cached) return cached;
+  const existing = inflight.get(locale);
+  if (existing) return existing;
+
+  const promise = (async () => {
     const docs: DocEntry[] = [];
     for (const path of FILES) {
       try {
-        const res = await fetch("docs/" + path + ".md");
+        const res = await fetch(`docs/${locale}/${path}.md`);
         if (!res.ok) throw new Error(String(res.status));
         const text = await res.text();
         const { data, body } = parseFrontmatter(text);
@@ -109,8 +114,11 @@ export async function loadDocs(): Promise<DocsData> {
       if (!grp) { grp = { category: d.category, items: [] }; tree.push(grp); }
       grp.items.push(d);
     });
-    cache = { docs, bySlug, tree };
-    return cache;
+    const result: DocsData = { docs, bySlug, tree };
+    cache.set(locale, result);
+    return result;
   })();
-  return inflight;
+
+  inflight.set(locale, promise);
+  return promise;
 }

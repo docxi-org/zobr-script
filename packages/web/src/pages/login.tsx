@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon } from "../ui/icon";
+import { useT } from "../i18n/context";
 
 interface LoginProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
@@ -11,6 +12,7 @@ export function Login({ onLogin, loading, error }: LoginProps) {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const t = useT();
 
   const submit = async () => {
     if (!email) return;
@@ -36,9 +38,9 @@ export function Login({ onLogin, loading, error }: LoginProps) {
             ZS
           </div>
           <div className="text-center">
-            <div style={{ fontWeight: 700, fontSize: 17 }}>Zobr Script</div>
+            <div style={{ fontWeight: 700, fontSize: 17 }}>{t("auth.title")}</div>
             <div style={{ fontSize: "var(--fs-sm)", color: "var(--text-2)" }}>
-              Sign in to the console
+              {t("auth.subtitle")}
             </div>
           </div>
         </div>
@@ -50,7 +52,7 @@ export function Login({ onLogin, loading, error }: LoginProps) {
           <div className="flex flex-col gap-3.5">
             <div>
               <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>
-                Email
+                {t("auth.email")}
               </label>
               <input
                 value={email}
@@ -66,7 +68,7 @@ export function Login({ onLogin, loading, error }: LoginProps) {
 
             <div>
               <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>
-                Password
+                {t("auth.password")}
               </label>
               <div className="relative">
                 <input
@@ -109,13 +111,13 @@ export function Login({ onLogin, loading, error }: LoginProps) {
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              {loading ? "Signing in…" : "Sign in"}
+              {loading ? t("auth.signing_in") : t("auth.signin")}
             </button>
           </div>
         </div>
 
         <p className="mt-4 text-center" style={{ fontSize: "var(--fs-xs)", color: "var(--text-3)" }}>
-          Accounts are created by an administrator. No self-registration.
+          {t("auth.no_registration")}
         </p>
       </div>
     </div>

@@ -4,17 +4,20 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Markdown } from "../ui/markdown";
 import { loadDocs, type DocsData, type DocEntry } from "../data/docs-store";
+import { useLocale } from "../i18n/context";
 import { navigate } from "../router";
 
 function useDocs() {
+  const { locale } = useLocale();
   const [state, setState] = useState<{ loading: boolean; data: DocsData | null; error: string | null }>({ loading: true, data: null, error: null });
   useEffect(() => {
     let alive = true;
-    loadDocs()
+    setState({ loading: true, data: null, error: null });
+    loadDocs(locale)
       .then((d) => alive && setState({ loading: false, data: d, error: null }))
       .catch((e: unknown) => alive && setState({ loading: false, data: null, error: String(e) }));
     return () => { alive = false; };
-  }, []);
+  }, [locale]);
   return state;
 }
 

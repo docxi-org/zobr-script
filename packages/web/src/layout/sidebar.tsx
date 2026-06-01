@@ -1,15 +1,18 @@
 import { Icon } from "../ui/icon";
+import { useT } from "../i18n/context";
 import type { Route } from "../router";
 
-const NAV = [
-  { to: "/", label: "Dashboard", icon: "dashboard" },
-  { to: "/traces", label: "Traces", icon: "activity" },
-  { to: "/scripts", label: "Scripts", icon: "filecode" },
-  { to: "/store", label: "Store", icon: "database" },
-  { to: "/agents", label: "Agents", icon: "users" },
-  { to: "/help", label: "Help", icon: "doc" },
-  { to: "/settings", label: "Settings", icon: "settings" },
-] as const;
+type NavKey = "nav.dashboard" | "nav.traces" | "nav.scripts" | "nav.store" | "nav.agents" | "nav.help" | "nav.settings";
+
+const NAV: readonly { to: string; labelKey: NavKey; icon: string }[] = [
+  { to: "/", labelKey: "nav.dashboard", icon: "dashboard" },
+  { to: "/traces", labelKey: "nav.traces", icon: "activity" },
+  { to: "/scripts", labelKey: "nav.scripts", icon: "filecode" },
+  { to: "/store", labelKey: "nav.store", icon: "database" },
+  { to: "/agents", labelKey: "nav.agents", icon: "users" },
+  { to: "/help", labelKey: "nav.help", icon: "doc" },
+  { to: "/settings", labelKey: "nav.settings", icon: "settings" },
+];
 
 interface SidebarProps {
   route: Route;
@@ -19,6 +22,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ route, collapsed, setCollapsed, onNavigate }: SidebarProps) {
+  const t = useT();
   const isActive = (to: string) => {
     if (to === "/") return route.path === "/";
     return route.path === to || route.path.startsWith(to + "/");
@@ -72,7 +76,7 @@ export function Sidebar({ route, collapsed, setCollapsed, onNavigate }: SidebarP
             <a
               key={n.to}
               href={"#" + n.to}
-              title={collapsed ? n.label : undefined}
+              title={collapsed ? t(n.labelKey) : undefined}
               onClick={onNavigate}
               className="relative flex items-center rounded-[var(--r-md)] transition-colors"
               style={{
@@ -109,7 +113,7 @@ export function Sidebar({ route, collapsed, setCollapsed, onNavigate }: SidebarP
                 size={17}
                 style={{ color: on ? "var(--accent)" : "var(--text-2)" }}
               />
-              {!collapsed && n.label}
+              {!collapsed && t(n.labelKey)}
             </a>
           );
         })}
@@ -135,7 +139,7 @@ export function Sidebar({ route, collapsed, setCollapsed, onNavigate }: SidebarP
           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
           <Icon name={collapsed ? "chevronsRight" : "chevronsLeft"} size={16} />
-          {!collapsed && "Collapse"}
+          {!collapsed && t("nav.collapse")}
         </button>
       </div>
     </aside>

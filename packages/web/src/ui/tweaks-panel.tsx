@@ -27,10 +27,7 @@ export function useTweaks(defaults: Tweaks): [Tweaks, (key: string, val: string)
 
 function Section({ label }: { label: string }) {
   return (
-    <div style={{
-      fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase",
-      color: "var(--text-3)", padding: "8px 0 4px",
-    }}>
+    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-3)", padding: "8px 0 4px" }}>
       {label}
     </div>
   );
@@ -98,46 +95,35 @@ const ACCENTS = [
 interface TweaksPanelProps {
   tweaks: Tweaks;
   setTweak: (key: string, val: string) => void;
+  open: boolean;
+  onClose: () => void;
 }
 
-export function TweaksPanel({ tweaks, setTweak }: TweaksPanelProps) {
-  const [open, setOpen] = useState(false);
+export function TweaksPanel({ tweaks, setTweak, open, onClose }: TweaksPanelProps) {
   const { locale, setLocale } = useLocale();
 
+  if (!open) return null;
+
   return (
-    <>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        title="Tweaks"
-        className="fixed z-50 grid cursor-pointer place-items-center rounded-full border border-[var(--border)]"
-        style={{ right: 16, bottom: 16, width: 36, height: 36, background: "var(--bg-1)", color: "var(--text-2)", boxShadow: "var(--shadow)" }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 20v-6M12 10V4M4 14h16M20 10H4" />
-        </svg>
-      </button>
-      {open && (
-        <div
-          className="fixed z-50 flex flex-col overflow-hidden rounded-[var(--r-lg)] border border-[var(--border-2)]"
-          style={{ right: 16, bottom: 60, width: 260, maxHeight: "calc(100vh - 80px)", background: "var(--bg-1)", boxShadow: "var(--shadow)" }}
-        >
-          <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)]" style={{ padding: "10px 14px" }}>
-            <span style={{ fontWeight: 700, fontSize: "var(--fs-sm)" }}>Tweaks</span>
-            <button onClick={() => setOpen(false)} className="cursor-pointer border-none" style={{ background: "transparent", color: "var(--text-2)", fontSize: 13, width: 22, height: 22, borderRadius: 6 }}>✕</button>
-          </div>
-          <div className="flex flex-col overflow-y-auto" style={{ padding: "8px 14px 14px", gap: 10 }}>
-            <Section label="Appearance" />
-            <Radio label="Theme" value={tweaks["theme"]!} options={["dark", "light"]} onChange={(v) => setTweak("theme", v)} />
-            <Radio label="Density" value={tweaks["density"]!} options={["comfortable", "compact"]} onChange={(v) => setTweak("density", v)} />
-            <Section label="Accent" />
-            <ColorPicker label="Accent color" value={tweaks["accent"]!} options={ACCENTS} onChange={(v) => setTweak("accent", v)} />
-            <Section label="Typography" />
-            <Radio label="Font" value={tweaks["font"]!} options={["inter", "geist", "system"]} onChange={(v) => setTweak("font", v)} />
-            <Section label="Language" />
-            <Radio label="Locale" value={locale} options={[{ value: "en", label: "English" }, { value: "ru", label: "Русский" }]} onChange={(v) => setLocale(v as Locale)} />
-          </div>
-        </div>
-      )}
-    </>
+    <div
+      className="fixed z-50 flex flex-col overflow-hidden rounded-[var(--r-lg)] border border-[var(--border-2)]"
+      style={{ right: 16, top: 56, width: 260, maxHeight: "calc(100vh - 80px)", background: "var(--bg-1)", boxShadow: "var(--shadow)" }}
+    >
+      <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)]" style={{ padding: "10px 14px" }}>
+        <span style={{ fontWeight: 700, fontSize: "var(--fs-sm)" }}>Tweaks</span>
+        <button onClick={onClose} className="cursor-pointer border-none" style={{ background: "transparent", color: "var(--text-2)", fontSize: 13, width: 22, height: 22, borderRadius: 6 }}>✕</button>
+      </div>
+      <div className="flex flex-col overflow-y-auto" style={{ padding: "8px 14px 14px", gap: 10 }}>
+        <Section label="Appearance" />
+        <Radio label="Theme" value={tweaks["theme"]!} options={["dark", "light"]} onChange={(v) => setTweak("theme", v)} />
+        <Radio label="Density" value={tweaks["density"]!} options={["comfortable", "compact"]} onChange={(v) => setTweak("density", v)} />
+        <Section label="Accent" />
+        <ColorPicker label="Accent color" value={tweaks["accent"]!} options={ACCENTS} onChange={(v) => setTweak("accent", v)} />
+        <Section label="Typography" />
+        <Radio label="Font" value={tweaks["font"]!} options={["inter", "geist", "system"]} onChange={(v) => setTweak("font", v)} />
+        <Section label="Language" />
+        <Radio label="Locale" value={locale} options={[{ value: "en", label: "English" }, { value: "ru", label: "Русский" }]} onChange={(v) => setLocale(v as Locale)} />
+      </div>
+    </div>
   );
 }

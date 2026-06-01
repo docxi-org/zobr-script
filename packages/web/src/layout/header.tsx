@@ -36,6 +36,7 @@ interface HeaderProps {
   user: User;
   role: string;
   onLogout: () => void;
+  onOpenTweaks?: (() => void) | undefined;
 }
 
 export function Header({
@@ -46,6 +47,7 @@ export function Header({
   user,
   role,
   onLogout,
+  onOpenTweaks,
 }: HeaderProps) {
   const t = useT();
   const crumbs = crumbFor(route, t as (k: string) => string);
@@ -106,7 +108,7 @@ export function Header({
 
       <div className="flex-1" />
 
-      {/* theme toggle */}
+      {/* theme toggle + tweaks */}
       <button
         onClick={onToggleTheme}
         title="Toggle theme"
@@ -115,6 +117,18 @@ export function Header({
       >
         <Icon name={theme === "dark" ? "sun" : "moon"} size={16} />
       </button>
+      {onOpenTweaks && (
+        <button
+          onClick={onOpenTweaks}
+          title="Tweaks"
+          className="grid cursor-pointer place-items-center rounded-[var(--r-md)] border border-[var(--border)]"
+          style={{ width: 32, height: 32, background: "var(--bg-1)", color: "var(--text-1)" }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 20v-6M12 10V4M4 14h16M20 10H4" />
+          </svg>
+        </button>
+      )}
 
       {/* user section */}
       <div className="flex items-center gap-2" style={{ paddingLeft: 4 }}>

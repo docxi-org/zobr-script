@@ -86,6 +86,7 @@ export function App() {
   const [tweaks, setTweak] = useTweaks({ theme: "dark", accent: "indigo", density: "comfortable", font: "inter" });
   const { authed, user, loading, error, login, logout, fetchMe } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [tweaksOpen, setTweaksOpen] = useState(false);
   const [drawer, setDrawer] = useState(false);
 
   useEffect(() => { setDrawer(false); }, [route.path]);
@@ -135,6 +136,7 @@ export function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           onHamburger={() => setDrawer(true)}
+          onOpenTweaks={() => setTweaksOpen((o) => !o)}
           user={user}
           role={role}
           onLogout={handleLogout}
@@ -155,7 +157,7 @@ export function App() {
         </main>
         <Footer />
       </div>
-      <TweaksPanel tweaks={tweaks} setTweak={setTweak} />
+      <TweaksPanel tweaks={tweaks} setTweak={setTweak} open={tweaksOpen} onClose={() => setTweaksOpen(false)} />
       <CommandPalette />
     </div>
   );

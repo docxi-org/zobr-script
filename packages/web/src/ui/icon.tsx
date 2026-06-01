@@ -39,6 +39,7 @@ const PATHS: Record<string, string> = {
   pulse: "M22 12h-4l-3 9L9 3l-3 9H2",
   hamburger: "M3 12h18M3 6h18M3 18h18",
   dot: "M12 12m-4 0a4 4 0 1 0 8 0 4 4 0 1 0-8 0",
+  lock: "M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zM7 11V7a5 5 0 0 1 10 0v4",
   refresh:
     "M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15",
 };

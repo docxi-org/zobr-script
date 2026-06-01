@@ -26,6 +26,64 @@ interface UserRecord {
   last_login: number | null;
 }
 
+function ChangePassword() {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ current: "", next: "", confirm: "" });
+  const [err, setErr] = useState("");
+  const [ok, setOk] = useState(false);
+
+  const submit = async () => {
+    setErr("");
+    if (form.next.length < 6) { setErr(t("settings.password_too_short")); return; }
+    if (form.next !== form.confirm) { setErr(t("settings.password_mismatch")); return; }
+    try {
+      await api.put("/auth/password", { currentPassword: form.current, newPassword: form.next });
+      setForm({ current: "", next: "", confirm: "" });
+      setOk(true);
+      setTimeout(() => { setOk(false); setOpen(false); }, 2000);
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  };
+
+  return (
+    <div className="mt-5">
+      <SectionTitle title={t("settings.password")} />
+      {!open ? (
+        <Card className="flex items-center" style={{ gap: 12, color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>
+          <Icon name="lock" size={16} />
+          <span className="flex-1">••••••••</span>
+          <Button variant="outline" size="sm" onClick={() => { setOpen(true); setErr(""); setOk(false); }}>{t("settings.change_password")}</Button>
+        </Card>
+      ) : (
+        <Card>
+          <div style={{ display: "grid", gap: 12, maxWidth: 360 }}>
+            <div>
+              <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>{t("settings.current_password")}</label>
+              <Input type="password" value={form.current} onChange={(v) => setForm((f) => ({ ...f, current: v }))} />
+            </div>
+            <div>
+              <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>{t("settings.new_password")}</label>
+              <Input type="password" value={form.next} onChange={(v) => setForm((f) => ({ ...f, next: v }))} />
+            </div>
+            <div>
+              <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>{t("settings.confirm_password")}</label>
+              <Input type="password" value={form.confirm} onChange={(v) => setForm((f) => ({ ...f, confirm: v }))} onKeyDown={(e) => { if (e.key === "Enter") submit(); }} />
+            </div>
+            <div className="flex items-center" style={{ gap: 8 }}>
+              <Button variant="primary" size="sm" onClick={submit}>{t("settings.change_password")}</Button>
+              <Button variant="outline" size="sm" onClick={() => { setOpen(false); setErr(""); }}>{t("traces.clear")}</Button>
+              {ok && <span style={{ fontSize: "var(--fs-xs)", color: "var(--st-done)", fontWeight: 600 }}>{t("settings.password_changed")}</span>}
+            </div>
+            {err && <div className="flex items-center" style={{ gap: 6, fontSize: "var(--fs-sm)", color: "var(--trust-error)" }}><Icon name="x" size={14} />{err}</div>}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 export function Settings({ role }: { role: string }) {
   const { data: status } = useApi<StatusResponse>("/status");
   const { locale, setLocale } = useLocale();
@@ -68,6 +126,8 @@ export function Settings({ role }: { role: string }) {
             : <Badge color="var(--text-2)">{t("settings.requires_admin")}</Badge>}
         </Card>
       </div>
+
+      <ChangePassword />
 
       <div className="mt-5">
         <SectionTitle title={t("settings.language")} />

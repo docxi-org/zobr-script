@@ -129,6 +129,14 @@ export default {
   "settings.manage_users": "Manage console users, roles and access.",
   "settings.language": "Language",
   "settings.language_hint": "Console interface language",
+  "settings.password": "Password",
+  "settings.change_password": "Change password",
+  "settings.current_password": "Current password",
+  "settings.new_password": "New password",
+  "settings.confirm_password": "Confirm new password",
+  "settings.password_changed": "Password changed",
+  "settings.password_mismatch": "Passwords do not match",
+  "settings.password_too_short": "Password must be at least 6 characters",
 
   // users
   "users.title": "User management",

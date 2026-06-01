@@ -68,6 +68,25 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     res.json({ id: user.id, email: user.email, role: user.role });
   });
 
+  router.put("/auth/password", auth.middleware(), (req, res) => {
+    const user = (req as AuthedRequest).user;
+    const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: { code: "BAD_REQUEST", message: "currentPassword and newPassword required" } });
+      return;
+    }
+    if (newPassword.length < 6) {
+      res.status(400).json({ error: { code: "BAD_REQUEST", message: "Password must be at least 6 characters" } });
+      return;
+    }
+    const result = auth.changePassword(user.id, currentPassword, newPassword);
+    if (!result.ok) {
+      res.status(400).json({ error: { code: "BAD_REQUEST", message: result.error } });
+      return;
+    }
+    res.json({ ok: true });
+  });
+
   // ── Protected endpoints ──
 
   router.use(auth.middleware());

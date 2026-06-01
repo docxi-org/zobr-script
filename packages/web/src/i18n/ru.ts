@@ -129,6 +129,14 @@ export default {
   "settings.manage_users": "Управление пользователями, ролями и доступом.",
   "settings.language": "Язык",
   "settings.language_hint": "Язык интерфейса консоли",
+  "settings.password": "Пароль",
+  "settings.change_password": "Сменить пароль",
+  "settings.current_password": "Текущий пароль",
+  "settings.new_password": "Новый пароль",
+  "settings.confirm_password": "Подтвердите новый пароль",
+  "settings.password_changed": "Пароль изменён",
+  "settings.password_mismatch": "Пароли не совпадают",
+  "settings.password_too_short": "Пароль должен быть не менее 6 символов",
 
   // users
   "users.title": "Управление пользователями",

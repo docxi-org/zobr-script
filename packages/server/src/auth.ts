@@ -122,6 +122,16 @@ export class AuthService {
     return this.#db.prepare(`UPDATE zs_users SET ${sets.join(", ")} WHERE id = ?`).run(...params).changes > 0;
   }
 
+  changePassword(userId: string, currentPassword: string, newPassword: string): { ok: boolean; error?: string } {
+    const row = this.#db.prepare("SELECT * FROM zs_users WHERE id = ?").get(userId) as UserRow | undefined;
+    if (!row) return { ok: false, error: "User not found" };
+    if (!verifyPassword(currentPassword, row.salt, row.password_hash)) return { ok: false, error: "Current password is incorrect" };
+    const salt = randomBytes(16).toString("hex");
+    const password_hash = hashPassword(newPassword, salt);
+    this.#db.prepare("UPDATE zs_users SET password_hash = ?, salt = ? WHERE id = ?").run(password_hash, salt, userId);
+    return { ok: true };
+  }
+
   deleteUser(id: string): boolean {
     return this.#db.prepare("DELETE FROM zs_users WHERE id = ?").run(id).changes > 0;
   }

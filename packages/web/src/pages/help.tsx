@@ -4,7 +4,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Markdown } from "../ui/markdown";
 import { loadDocs, type DocsData, type DocEntry } from "../data/docs-store";
-import { useLocale } from "../i18n/context";
+import { useLocale, useT } from "../i18n/context";
 import { navigate } from "../router";
 
 function useDocs() {
@@ -46,7 +46,7 @@ function RelGroup({ title, slugs, data, icon }: { title: string; slugs: string[]
   );
 }
 
-function PrevNext({ dir, doc }: { dir: "prev" | "next"; doc: DocEntry }) {
+function PrevNext({ dir, doc, prevLabel, nextLabel }: { dir: "prev" | "next"; doc: DocEntry; prevLabel: string; nextLabel: string }) {
   const isNext = dir === "next";
   return (
     <a href={"#/help/" + doc.slug} className="flex flex-1 flex-col rounded-[var(--r-md)] border border-[var(--border)]"
@@ -54,7 +54,7 @@ function PrevNext({ dir, doc }: { dir: "prev" | "next"; doc: DocEntry }) {
       onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--border-2)")}
       onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border)")}>
       <span className="flex items-center" style={{ gap: 5, fontSize: "var(--fs-xs)", color: "var(--text-3)", justifyContent: isNext ? "flex-end" : "flex-start" }}>
-        {!isNext && <Icon name="chevronLeft" size={12} />}{isNext ? "Next" : "Previous"}{isNext && <Icon name="chevronRight" size={12} />}
+        {!isNext && <Icon name="chevronLeft" size={12} />}{isNext ? nextLabel : prevLabel}{isNext && <Icon name="chevronRight" size={12} />}
       </span>
       <span style={{ fontSize: "var(--fs-sm)", fontWeight: 600, color: "var(--text-0)" }}>{doc.title}</span>
     </a>
@@ -63,6 +63,12 @@ function PrevNext({ dir, doc }: { dir: "prev" | "next"; doc: DocEntry }) {
 
 export function Help({ slug }: { slug?: string }) {
   const { loading, data, error } = useDocs();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    contentRef.current?.closest("main")?.scrollTo(0, 0);
+  }, [slug]);
+  const t = useT();
 
   if (loading) return (
     <div>
@@ -88,7 +94,7 @@ export function Help({ slug }: { slug?: string }) {
   const bodyNoTitle = current.body.replace(/^\s*#\s+.*\n/, "");
 
   return (
-    <div>
+    <div ref={contentRef}>
       <div className="flex flex-wrap items-start justify-between" style={{ gap: 16, marginBottom: "var(--gap)" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, color: "var(--text-0)" }}>Help</h1>
@@ -133,14 +139,14 @@ export function Help({ slug }: { slug?: string }) {
 
           {(current.related.length > 0 || current.backlinks.length > 0) && (
             <div className="zs-help-rel mt-8 grid" style={{ gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <RelGroup title="Related" slugs={current.related} data={data} icon="external" />
-              <RelGroup title="Referenced by" slugs={current.backlinks} data={data} icon="activity" />
+              <RelGroup title={t("help.related")} slugs={current.related} data={data} icon="external" />
+              <RelGroup title={t("help.referenced_by")} slugs={current.backlinks} data={data} icon="activity" />
             </div>
           )}
 
           <div className="mt-7 flex" style={{ gap: 12 }}>
-            {prev ? <PrevNext dir="prev" doc={prev} /> : <div className="flex-1" />}
-            {next ? <PrevNext dir="next" doc={next} /> : <div className="flex-1" />}
+            {prev ? <PrevNext dir="prev" doc={prev} prevLabel={t("help.previous")} nextLabel={t("help.next")} /> : <div className="flex-1" />}
+            {next ? <PrevNext dir="next" doc={next} prevLabel={t("help.previous")} nextLabel={t("help.next")} /> : <div className="flex-1" />}
           </div>
         </article>
       </div>

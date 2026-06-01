@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { useT } from "../i18n/context";
 
 interface BadgeProps {
   children: ReactNode;
@@ -40,14 +41,24 @@ export function Badge({ children, color, tone = "soft", style }: BadgeProps) {
   );
 }
 
-const STATUS_META: Record<string, { c: string; label: string }> = {
-  running: { c: "var(--st-running)", label: "running" },
-  done: { c: "var(--st-done)", label: "done" },
-  halted: { c: "var(--st-halted)", label: "halted" },
-  aborted: { c: "var(--st-aborted)", label: "aborted" },
-  errored: { c: "var(--st-errored)", label: "errored" },
-  expired: { c: "var(--st-expired)", label: "expired" },
-  suspended: { c: "var(--st-suspended)", label: "suspended" },
+const STATUS_COLORS: Record<string, string> = {
+  running: "var(--st-running)",
+  done: "var(--st-done)",
+  halted: "var(--st-halted)",
+  aborted: "var(--st-aborted)",
+  errored: "var(--st-errored)",
+  expired: "var(--st-expired)",
+  suspended: "var(--st-suspended)",
+};
+
+const STATUS_KEYS: Record<string, string> = {
+  running: "status.running",
+  done: "status.done",
+  halted: "status.halted",
+  aborted: "status.aborted",
+  errored: "status.errored",
+  expired: "status.expired",
+  suspended: "status.suspended",
 };
 
 const TRUST_META: Record<string, { c: string }> = {
@@ -63,18 +74,20 @@ export function TrustBadge({ trust }: { trust: string }) {
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const m = STATUS_META[status] ?? STATUS_META["suspended"]!;
+  const t = useT();
+  const c = STATUS_COLORS[status] ?? STATUS_COLORS["suspended"]!;
+  const label = t((STATUS_KEYS[status] ?? "status.suspended") as Parameters<typeof t>[0]);
   return (
-    <Badge color={m.c}>
+    <Badge color={c}>
       <span
         style={{
           width: 6,
           height: 6,
           borderRadius: 99,
-          background: m.c,
+          background: c,
           boxShadow:
             status === "running"
-              ? `0 0 0 3px color-mix(in oklch, ${m.c} 30%, transparent)`
+              ? `0 0 0 3px color-mix(in oklch, ${c} 30%, transparent)`
               : "none",
           animation:
             status === "running"
@@ -82,7 +95,7 @@ export function StatusBadge({ status }: { status: string }) {
               : "none",
         }}
       />
-      {m.label}
+      {label}
     </Badge>
   );
 }

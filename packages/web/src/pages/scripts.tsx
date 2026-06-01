@@ -170,11 +170,11 @@ export function Scripts({ role }: { role: string }) {
   const t = useT();
 
   const columns: Column<ScriptEntry>[] = [
-    { key: "name", label: "Path", mono: true, sortable: true, sortVal: (r) => r.name, render: (r) => <PathLabel name={r.name} size="var(--fs-sm)" /> },
-    { key: "srv", label: "Server", sortable: true, sortVal: (r) => r.hasSrv ? 1 : 0, render: (r) => r.hasSrv ? <Badge color="var(--trust-authority)">srv</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
-    { key: "description", label: "Description", muted: true, maxWidth: 300, render: (r) => r.description ?? "" },
-    { key: "runs", label: "Runs", align: "right", mono: true, sortable: true, sortVal: (r) => r.runs, render: (r) => r.runs },
-    { key: "last", label: "Last run", align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.last_run ?? 0, render: (r) => r.last_run ? timeAgo(r.last_run, NOW) + " ago" : "—" },
+    { key: "name", label: t("col.path"), mono: true, sortable: true, sortVal: (r) => r.name, render: (r) => <PathLabel name={r.name} size="var(--fs-sm)" /> },
+    { key: "srv", label: t("col.server"), sortable: true, sortVal: (r) => r.hasSrv ? 1 : 0, render: (r) => r.hasSrv ? <Badge color="var(--trust-authority)">srv</Badge> : <span style={{ color: "var(--text-3)" }}>—</span> },
+    { key: "description", label: t("col.description"), muted: true, maxWidth: 300, render: (r) => r.description ?? "" },
+    { key: "runs", label: t("col.runs"), align: "right", mono: true, sortable: true, sortVal: (r) => r.runs, render: (r) => r.runs },
+    { key: "last", label: t("col.last_run"), align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.last_run ?? 0, render: (r) => r.last_run ? timeAgo(r.last_run, NOW) + " " + t("common.ago") : "—" },
   ];
 
   return (
@@ -216,8 +216,8 @@ export function Scripts({ role }: { role: string }) {
                     {s.hasSrv && <Badge color="var(--trust-authority)">srv</Badge>}
                   </div>
                   <div className="flex" style={{ gap: 18, marginTop: 16, fontSize: "var(--fs-sm)" }}>
-                    <div><div className="mono" style={{ fontWeight: 700, fontSize: 16 }}>{s.runs}</div><div style={{ color: "var(--text-2)", fontSize: "var(--fs-xs)" }}>runs</div></div>
-                    <div><div className="mono" style={{ fontWeight: 700, fontSize: 16 }}>{s.last_run ? timeAgo(s.last_run, NOW) : "—"}</div><div style={{ color: "var(--text-2)", fontSize: "var(--fs-xs)" }}>last run</div></div>
+                    <div><div className="mono" style={{ fontWeight: 700, fontSize: 16 }}>{s.runs}</div><div style={{ color: "var(--text-2)", fontSize: "var(--fs-xs)" }}>{t("scripts.runs")}</div></div>
+                    <div><div className="mono" style={{ fontWeight: 700, fontSize: 16 }}>{s.last_run ? timeAgo(s.last_run, NOW) : "—"}</div><div style={{ color: "var(--text-2)", fontSize: "var(--fs-xs)" }}>{t("scripts.last_run")}</div></div>
                   </div>
                 </Card>
               ))}

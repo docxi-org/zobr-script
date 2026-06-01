@@ -23,6 +23,15 @@ Agent (LLM)                          ZS MCP Server
    │                                    │
    Agent-driven: agent reads code       Server: stateful service,
    and dispatches MCP calls             responds with verified results
+
+Browser                              REST API (/api/*)
+   │                                    │
+   │  POST /api/auth/login → JWT       │  Auth + role-based middleware
+   │  GET /api/traces → list           │  SQL pagination, filtering
+   │  GET /api/scripts → tree          │  Shape extraction, validation
+   │  GET /api/ambients → .d.ts        │  Monaco Editor support
+   │                                    │
+   React 19 SPA (Vite 8)              Express endpoints on same server
 ```
 
 ## Packages (monorepo, pnpm workspaces)
@@ -33,19 +42,39 @@ Agent (LLM)                          ZS MCP Server
 | `packages/scaffold` | Canonical ambient declarations (`zs.*.d.ts`) + tsconfig templates |
 | `packages/validator` | TypeScript compiler as a library + structural fence + shape extraction |
 | `packages/protocol` | ZsService, InvocationRegistry, zod contracts, transport-agnostic |
-| `packages/server` | Express + MCP SDK, SrvRuntime, SQLite storage, agent registry, MCP tools |
+| `packages/server` | Express + MCP SDK, SrvRuntime, SQLite storage, agent registry, REST API, JWT auth |
+| `packages/web` | React 19 SPA: Vite 8, Tailwind CSS 4, Monaco Editor, i18n (en/ru) |
 
 ## Features
 
-- **28 MCP tools** — full lifecycle (start/sandbox/checkpoint/report/conclude/resume/abort), agent registration, standalone store operations, discovery/CRUD
-- **Class-based srv modules** — `export default class extends ZsScript` with `this.db`, `this.config`, lifecycle overrides
-- **SQLite persistent storage** — typed collections, notes, traces, agent registration, instance snapshots
-- **Shape validation** — conclude, checkpoint, and report data validated against types extracted from `.cog.ts`
-- **Hot/cold invocation lifecycle** — TTL-based eviction, LRU under pressure, full restore from snapshot (including worker class instance state)
-- **Agent registration** — persistent (SQLite), idempotent by name, active invocation tracking, store write lockout during script execution
-- **Ambient auto-generation** — srv class public methods → `declare function` for cognitive environment
-- **Structural fence** — allowlist AST validation: no eval, no unbounded loops, no unauthorized imports, duplicate label detection, srv export form enforcement
-- **Trace as product** — every step tagged with realizer + trust class, coverage metrics (verified/asserted ratio)
+### MCP Server (28 tools)
+- Full lifecycle: start / sandbox / checkpoint / report / conclude / resume / abort
+- Agent registration (persistent, idempotent by name)
+- Standalone store operations (collections + notes)
+- Script discovery / CRUD (architect mode)
+
+### Script Runtime
+- **File-based model** — script = `ref.cog.ts` + optional `ref.srv.ts`, not a folder
+- **Class-based srv modules** — `export default class extends ZsScript` with `this.db`, lifecycle overrides
+- **Shape validation** — conclude, checkpoint, report data validated against types from `.cog.ts`
+- **Hot/cold lifecycle** — TTL eviction, LRU under pressure, full restore from snapshot
+- **Trace events** — explicit `start` and `conclude` ops, every step tagged with trust class
+
+### REST API
+- JWT auth (jose) with access + refresh tokens
+- Role-based middleware (admin / architect / executor)
+- Rate limiting on login (10 req/min per IP)
+- SQL LIMIT/OFFSET pagination for traces
+- Shape extraction via `extractCogShapes` for Script Detail contract tab
+- 28 API tests (supertest)
+
+### Frontend SPA
+- **13 pages** — Login, Dashboard, Traces, Trace Detail, Scripts (Tree/Cards/Table), Script Detail (Monaco Editor), New Script, Store, Agents, Settings, Users, Help
+- **Monaco Editor** — ZS autocomplete, ambient `.d.ts` from server, inline validation markers
+- **i18n** — English + Russian, ~180 UI strings, 12 Help articles per locale
+- **Tree view** — collapsible script library with folder counts, breadcrumb navigation
+- **Error boundary** — page errors show fallback, navigation still works
+- **Sortable DataTables** — click column headers to sort
 
 ## Quick Start
 
@@ -53,18 +82,20 @@ Agent (LLM)                          ZS MCP Server
 # Install
 pnpm install
 
-# Run tests (193 tests)
+# Run tests (221 tests)
 pnpm test
 
 # Type check all packages
 pnpm run typecheck
 
-# Start dev server (auto-restart)
+# Start MCP server (auto-restart)
 pnpm dev
 
-# Start server
-pnpm start
+# Start frontend dev server (port 1980)
+pnpm --filter @zobr/web dev
 ```
+
+Open `http://localhost:1980` — login with `admin@docxi.org` / password from `ZS_ADMIN_PASSWORD` (default: `admin`).
 
 ## Configuration (.env)
 
@@ -75,9 +106,12 @@ ZS_LIBRARY=./zs-lib
 ZS_STORE_PATH=./data/store.sqlite
 ZS_BUDGET_STEPS=1000
 ZS_BUDGET_ITERATIONS=100
-ZS_INVOCATION_TTL=3600        # seconds
-ZS_AWAITING_TTL=86400         # seconds
+ZS_INVOCATION_TTL=3600          # seconds
+ZS_AWAITING_TTL=86400           # seconds
 ZS_MAX_ACTIVE_INVOCATIONS=100
+ZS_ARCHITECT_MODE=true          # enables create/update/delete tools
+ZS_JWT_SECRET=...               # random if not set (tokens lost on restart)
+ZS_ADMIN_PASSWORD=admin         # seed admin password
 LOG_LEVEL=info
 ```
 
@@ -96,10 +130,23 @@ The server exposes MCP Streamable HTTP at `/mcp`:
 }
 ```
 
+Production: `https://zs.docxi.org/mcp`
+
 ## Script Example
 
-**Cognitive part** (`hello/hello.cog.ts`):
+Scripts use the **file-based model** — each script is a `.cog.ts` file, optionally paired with a `.srv.ts`:
+
+```
+zs-lib/
+  examples/
+    hello.cog.ts           → script_ref = "examples/hello"
+    insight.cog.ts         → script_ref = "examples/insight"
+    insight.srv.ts         → paired server module
+```
+
+**Cognitive part** (`examples/hello.cog.ts`):
 ```typescript
+/** A minimal demo script. */
 export type Result = { summary: string; confidence: "low" | "medium" | "high" };
 
 export function analyze(topic: string): Result {
@@ -109,14 +156,12 @@ export function analyze(topic: string): Result {
 }
 ```
 
-**Server module** (`insight/insight.srv.ts`):
+**Server module** (`examples/insight.srv.ts`):
 ```typescript
 export default class InsightScript extends ZsScript {
-  private rounds = 0;
-
   onCheckpoint(label: string, data: unknown): Directive {
-    this.rounds++;
-    return this.rounds >= 3 ? "halt" : "proceed";
+    this.db.notes.put(`insight:${this.invocation.id}`, data, "architectural-insight");
+    return "proceed";
   }
 }
 ```
@@ -132,13 +177,17 @@ export default class InsightScript extends ZsScript {
 
 ## Stack
 
+**Backend:**
 - Node.js 22 LTS, pnpm, ESM
-- TypeScript 6, Vitest
+- TypeScript 6, Vitest, supertest
 - Zod 4 (MCP SDK requirement)
 - `@modelcontextprotocol/server` 2.0.0-alpha.2 (Streamable HTTP)
-- `better-sqlite3` (WAL mode)
-- `pino` + `pino-pretty` (structured logging)
-- `tsx` (dev runner, no build step)
+- `better-sqlite3` (WAL mode), `jose` (JWT), `pino` (logging)
+
+**Frontend:**
+- React 19, Vite 8, Tailwind CSS 4
+- `@monaco-editor/react` + `monaco-editor`
+- Custom i18n (0 deps), custom UI components
 
 ## License
 

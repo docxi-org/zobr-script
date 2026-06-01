@@ -11,7 +11,7 @@ import { fmtDuration, timeAgo } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
 import { api } from "../api/client";
-import { useLocale, type Locale } from "../i18n/context";
+import { useLocale, useT, type Locale } from "../i18n/context";
 import { Segmented } from "../ui/segmented";
 import type { StatusResponse } from "../api/types";
 
@@ -29,6 +29,7 @@ interface UserRecord {
 export function Settings({ role }: { role: string }) {
   const { data: status } = useApi<StatusResponse>("/status");
   const { locale, setLocale } = useLocale();
+  const t = useT();
   const cfg = status?.config;
 
   const items = cfg ? [
@@ -43,8 +44,8 @@ export function Settings({ role }: { role: string }) {
   return (
     <div style={{ maxWidth: 760 }}>
       <div style={{ marginBottom: "var(--gap)" }}>
-        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>Settings</h1>
-        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>Server configuration · read-only</p>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("settings.title")}</h1>
+        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("settings.subtitle")}</p>
       </div>
 
       <Card pad={false}>
@@ -58,7 +59,7 @@ export function Settings({ role }: { role: string }) {
       </Card>
 
       <div className="mt-5">
-        <SectionTitle title="User management" hint="admin only" />
+        <SectionTitle title={t("settings.user_management")} hint={t("settings.admin_only")} />
         <Card className="flex items-center" style={{ gap: 12, color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>
           <Icon name="users" size={16} />
           <span className="flex-1">Manage console users, roles and access.</span>
@@ -85,6 +86,7 @@ export function Settings({ role }: { role: string }) {
 }
 
 export function Users() {
+  const t = useT();
   const { data, refetch } = useApi<{ users: UserRecord[] }>("/users");
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ email: "", pw: "", role: "executor" });
@@ -131,7 +133,7 @@ export function Users() {
     { key: "created", label: "Created", mono: true, muted: true, sortable: true, sortVal: (r) => r.created_at, render: (r) => timeAgo(r.created_at, NOW) + " ago" },
     { key: "last", label: "Last login", mono: true, muted: true, sortable: true, sortVal: (r) => r.last_login ?? 0, render: (r) => r.last_login ? timeAgo(r.last_login, NOW) + " ago" : "never" },
     { key: "status", label: "Status", sortable: true, sortVal: (r) => r.active ? 1 : 0, render: (r) => r.active ? <Badge color="var(--st-done)">active</Badge> : <Badge color="var(--text-2)">deactivated</Badge> },
-    { key: "actions", label: "", align: "right", render: (r) => <Button size="sm" variant={r.active ? "danger" : "outline"} onClick={() => toggleActive(r.id, r.active)}>{r.active ? "Deactivate" : "Reactivate"}</Button> },
+    { key: "actions", label: "", align: "right", render: (r) => <Button size="sm" variant={r.active ? "danger" : "outline"} onClick={() => toggleActive(r.id, r.active)}>{r.active ? t("users.deactivate") : t("users.reactivate")}</Button> },
   ];
 
   return (
@@ -139,15 +141,15 @@ export function Users() {
       <a href="#/settings" className="mb-3 inline-flex items-center" style={{ gap: 6, fontSize: "var(--fs-sm)", color: "var(--text-2)", fontWeight: 600 }}><Icon name="arrowLeft" size={14} /> Settings</a>
       <div className="flex flex-wrap items-start justify-between" style={{ gap: 16, marginBottom: "var(--gap)" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>User management</h1>
+          <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("users.title")}</h1>
           <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{users.filter((u) => u.active).length} active · {users.length} total</p>
         </div>
-        <Button variant="primary" icon="plus" onClick={() => { setCreating((c) => !c); setErr(""); }}>New user</Button>
+        <Button variant="primary" icon="plus" onClick={() => { setCreating((c) => !c); setErr(""); }}>{t("users.new_user")}</Button>
       </div>
 
       {creating && (
         <Card style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: "var(--fs-sm)", fontWeight: 700, marginBottom: 14 }}>Create user</div>
+          <div style={{ fontSize: "var(--fs-sm)", fontWeight: 700, marginBottom: 14 }}>{t("users.create_user")}</div>
           <div className="zs-newuser grid items-end" style={{ gridTemplateColumns: "2fr 2fr 1.2fr auto", gap: 12 }}>
             <div>
               <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>Email</label>

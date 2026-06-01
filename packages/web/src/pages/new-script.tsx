@@ -10,6 +10,7 @@ import { navigate } from "../router";
 import { api } from "../api/client";
 import { useApi } from "../api/hooks";
 import { allFolders } from "./scripts";
+import { useT } from "../i18n/context";
 import type { ScriptEntry } from "../api/types";
 
 const TEMPLATE_COG = `/** New cognitive script. */
@@ -38,6 +39,7 @@ export function NewScript({ theme }: { theme: "dark" | "light" }) {
   const scripts = data?.scripts ?? [];
   const folders = useMemo(() => allFolders(scripts), [scripts]);
 
+  const t = useT();
   const [folder, setFolder] = useState("");
   const [name, setName] = useState("");
   const [addSrv, setAddSrv] = useState(false);
@@ -91,11 +93,11 @@ export function NewScript({ theme }: { theme: "dark" | "light" }) {
   return (
     <div style={{ maxWidth: 980 }}>
       <a href="#/scripts" className="mb-3 inline-flex items-center" style={{ gap: 6, fontSize: "var(--fs-sm)", color: "var(--text-2)", fontWeight: 600 }}>
-        <Icon name="arrowLeft" size={14} /> Scripts
+        <Icon name="arrowLeft" size={14} /> {t("scripts.back")}
       </a>
       <div style={{ marginBottom: "var(--gap)" }}>
-        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>New script</h1>
-        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>Create a cognitive script, optionally with a server module.</p>
+        <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("new_script.title")}</h1>
+        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("new_script.subtitle")}</p>
       </div>
 
       <Card style={{ marginBottom: 16 }}>
@@ -103,7 +105,7 @@ export function NewScript({ theme }: { theme: "dark" | "light" }) {
           {/* folder picker */}
           <div className="relative">
             <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              Folder <span style={{ color: "var(--text-3)", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>(optional)</span>
+              {t("new_script.folder")} <span style={{ color: "var(--text-3)", fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>{t("new_script.folder_hint")}</span>
             </label>
             <Input value={folder} onChange={(v) => { setFolder(v); setShowSug(true); }} placeholder="analysis/deep" icon="database" mono
               onKeyDown={() => setShowSug(true)} />
@@ -124,7 +126,7 @@ export function NewScript({ theme }: { theme: "dark" | "light" }) {
           </div>
           {/* name */}
           <div>
-            <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Script name</label>
+            <label className="mb-1.5 block" style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("new_script.name")}</label>
             <Input value={name} onChange={setName} placeholder="my-script" mono autoFocus onKeyDown={() => setShowSug(false)} />
           </div>
         </div>
@@ -132,7 +134,7 @@ export function NewScript({ theme }: { theme: "dark" | "light" }) {
         {/* path preview + add srv */}
         <div className="mt-4 flex flex-wrap items-center" style={{ gap: 16 }}>
           <div className="flex flex-1 items-center" style={{ gap: 8, minWidth: 220 }}>
-            <span style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>Path</span>
+            <span style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>{t("new_script.path")}</span>
             <code className="mono rounded-[var(--r-sm)] border border-[var(--border)]" style={{ fontSize: "var(--fs-sm)", padding: "5px 10px", background: "var(--bg-inset)", color: liveErr ? "var(--text-2)" : "var(--text-0)" }}>
               {cleanFolder && <span style={{ color: "var(--text-3)" }}>{cleanFolder}/</span>}
               <span style={{ fontWeight: 700 }}>{name.trim() || "…"}</span>
@@ -141,7 +143,7 @@ export function NewScript({ theme }: { theme: "dark" | "light" }) {
           </div>
           <label className="flex cursor-pointer items-center" style={{ gap: 9 }}>
             <Toggle on={addSrv} onClick={() => setAddSrv((s) => !s)} />
-            <span style={{ fontSize: "var(--fs-sm)", fontWeight: 600 }}>Add server module</span>
+            <span style={{ fontSize: "var(--fs-sm)", fontWeight: 600 }}>{t("new_script.add_srv")}</span>
           </label>
         </div>
         {liveErr && name.trim() && (
@@ -152,9 +154,9 @@ export function NewScript({ theme }: { theme: "dark" | "light" }) {
       </Card>
 
       <div className="flex items-end justify-between" style={{ gap: 12 }}>
-        <Tabs tabs={addSrv ? [{ id: "cognitive", label: "Cognitive" }, { id: "server", label: "Server" }] : [{ id: "cognitive", label: "Cognitive" }]} active={tab} onChange={setTab} />
+        <Tabs tabs={addSrv ? [{ id: "cognitive", label: t("new_script.cognitive") }, { id: "server", label: t("new_script.server") }] : [{ id: "cognitive", label: t("new_script.cognitive") }]} active={tab} onChange={setTab} />
         <div style={{ paddingBottom: 6 }}>
-          <Button variant="primary" icon="plus" disabled={!!liveErr || !name.trim()} onClick={create}>Create</Button>
+          <Button variant="primary" icon="plus" disabled={!!liveErr || !name.trim()} onClick={create}>{t("new_script.create")}</Button>
         </div>
       </div>
 
@@ -170,7 +172,7 @@ export function NewScript({ theme }: { theme: "dark" | "light" }) {
             </div>
           ) : (
             <div className="flex items-center rounded-[var(--r-md)]" style={{ gap: 9, padding: "11px 14px", border: "1px solid color-mix(in oklch, var(--st-done) 45%, transparent)", color: "var(--st-done)", background: "color-mix(in oklch, var(--st-done) 10%, transparent)", fontSize: "var(--fs-sm)", fontWeight: 600 }}>
-              <Icon name="check" size={15} /> Validated · created <span className="mono">{result.path}</span>. Redirecting…
+              <Icon name="check" size={15} /> {t("new_script.validated")} <span className="mono">{result.path}</span>. {t("new_script.redirecting")}
             </div>
           )}
         </div>

@@ -10,6 +10,7 @@ import { fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
 import { api } from "../api/client";
+import { useT } from "../i18n/context";
 import type { ScriptSource, TraceRow, Shape } from "../api/types";
 
 function ScriptCrumb({ scriptRef }: { scriptRef: string }) {
@@ -160,11 +161,12 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
     setInited(true);
   }
 
-  if (loading) return <div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>Loading script…</div>;
+  const t = useT();
+  if (loading) return <div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>{t("scripts.loading")}</div>;
   if (!script) return (
     <div className="flex flex-col items-center justify-center" style={{ padding: "56px 24px", color: "var(--text-2)" }}>
       <Icon name="alert" size={28} style={{ color: "var(--text-3)" }} />
-      <div style={{ fontWeight: 600, color: "var(--text-1)", marginTop: 10 }}>Script not found</div>
+      <div style={{ fontWeight: 600, color: "var(--text-1)", marginTop: 10 }}>{t("scripts.not_found")}</div>
       <div className="mono" style={{ fontSize: "var(--fs-sm)", marginTop: 4 }}>{scriptRef}</div>
     </div>
   );
@@ -200,10 +202,10 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
   };
 
   const tabs = [
-    { id: "cognitive", label: "Cognitive", dot: dirtyCog },
-    ...(hasSrv ? [{ id: "server", label: "Server", dot: dirtySrv }] : []),
+    { id: "cognitive", label: t("new_script.cognitive"), dot: dirtyCog },
+    ...(hasSrv ? [{ id: "server", label: t("new_script.server"), dot: dirtySrv }] : []),
     { id: "contract", label: "Contract" },
-    { id: "runs", label: "Runs" },
+    { id: "runs", label: t("scripts.runs") },
   ];
   const isEditor = tab === "cognitive" || tab === "server";
 
@@ -224,14 +226,14 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
         <Tabs tabs={tabs} active={tab} onChange={setTab} />
         {isEditor && (canEdit ? (
           <div className="flex items-center" style={{ gap: 8, paddingBottom: 6 }}>
-            {(dirtyCog || dirtySrv) && <span style={{ fontSize: "var(--fs-xs)", color: "var(--st-halted)", fontWeight: 600 }}>● unsaved</span>}
+            {(dirtyCog || dirtySrv) && <span style={{ fontSize: "var(--fs-xs)", color: "var(--st-halted)", fontWeight: 600 }}>● {t("common.unsaved")}</span>}
             {(dirtyCog || dirtySrv) && <Button variant="ghost" size="sm" icon="copy" active={diff} onClick={() => setDiff((d) => !d)}>Diff</Button>}
-            <Button variant="outline" size="sm" icon="check" onClick={doValidate}>Validate</Button>
-            <Button variant="primary" size="sm" icon="save" disabled={!(dirtyCog || dirtySrv)} onClick={doSave}>Save</Button>
+            <Button variant="outline" size="sm" icon="check" onClick={doValidate}>{t("common.validate")}</Button>
+            <Button variant="primary" size="sm" icon="save" disabled={!(dirtyCog || dirtySrv)} onClick={doSave}>{t("common.save")}</Button>
           </div>
         ) : (
           <div className="inline-flex items-center" style={{ gap: 6, paddingBottom: 8, fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600 }}>
-            <Icon name="alert" size={13} /> read-only · {role} role
+            <Icon name="alert" size={13} /> {t("common.read_only")} · {role}
           </div>
         ))}
       </div>

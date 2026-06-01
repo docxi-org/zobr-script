@@ -5,6 +5,7 @@ import { CoverageBar } from "../ui/coverage-bar";
 import { CodeBlock, JsonView } from "../ui/code-block";
 import { fmtDate, fmtDuration } from "../ui/helpers";
 import { useApi } from "../api/hooks";
+import { useT } from "../i18n/context";
 import type { TraceDetail as TraceDetailType, TraceEvent } from "../api/types";
 
 const OP_ICON: Record<string, string> = {
@@ -134,11 +135,12 @@ export function TraceDetail({ id }: { id: string }) {
     return () => { window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
   }, []);
 
-  if (loading) return <div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>Loading trace…</div>;
+  const t = useT();
+  if (loading) return <div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>{t("trace.loading")}</div>;
   if (!trace) return (
     <div className="flex flex-col items-center justify-center" style={{ padding: "56px 24px", color: "var(--text-2)" }}>
       <Icon name="alert" size={28} style={{ color: "var(--text-3)" }} />
-      <div style={{ fontWeight: 600, color: "var(--text-1)", marginTop: 10 }}>Trace not found</div>
+      <div style={{ fontWeight: 600, color: "var(--text-1)", marginTop: 10 }}>{t("trace.not_found")}</div>
       <div className="mono" style={{ fontSize: "var(--fs-sm)", marginTop: 4 }}>{id}</div>
     </div>
   );
@@ -152,7 +154,7 @@ export function TraceDetail({ id }: { id: string }) {
     <div className="flex h-full flex-col">
       <div className="shrink-0">
         <a href="#/traces" className="mb-3 inline-flex items-center" style={{ gap: 6, fontSize: "var(--fs-sm)", color: "var(--text-2)", fontWeight: 600 }}>
-          <Icon name="arrowLeft" size={14} /> Traces
+          <Icon name="arrowLeft" size={14} /> {t("trace.back")}
         </a>
         <div className="flex flex-wrap items-start justify-between" style={{ gap: 16 }}>
           <div>
@@ -176,7 +178,7 @@ export function TraceDetail({ id }: { id: string }) {
       <div ref={wrapRef} className="mt-4 flex flex-1 overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]"
         style={{ minHeight: 380, background: "var(--bg-1)" }}>
         <div className="flex min-w-0 flex-col" style={{ width: split + "%" }}>
-          <PanelHead icon="filecode" title="code_snapshot" sub={`${trace.script_ref}.cog.ts`} />
+          <PanelHead icon="filecode" title={t("trace.code_snapshot")} sub={`${trace.script_ref}.cog.ts`} />
           <div className="flex-1 overflow-hidden">
             <CodeBlock code={trace.code_snapshot ?? ""} highlightLine={activeLine} />
           </div>
@@ -187,10 +189,10 @@ export function TraceDetail({ id }: { id: string }) {
           <div style={{ position: "absolute", inset: "0 -3px" }} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
-          <PanelHead icon="activity" title="events" sub={`${evs.length} steps`}
+          <PanelHead icon="activity" title={t("trace.events")} sub={t("trace.steps", { count: evs.length })}
             action={<button onClick={() => setExpanded(Object.fromEntries(evs.map((e) => [e.seq, !Object.values(expanded).some(Boolean)])))}
               style={{ background: "transparent", border: "none", color: "var(--text-2)", fontSize: "var(--fs-xs)", cursor: "pointer", fontWeight: 600 }}>
-              {Object.values(expanded).some(Boolean) ? "Collapse all" : "Expand all"}</button>} />
+              {Object.values(expanded).some(Boolean) ? t("trace.collapse_all") : t("trace.expand_all")}</button>} />
           <div className="flex-1 overflow-auto" style={{ padding: "14px 14px 14px 4px" }}>
             <div className="relative">
               <span style={{ position: "absolute", left: 16, top: 6, bottom: 6, width: 2, background: "var(--border)" }} />
@@ -207,7 +209,7 @@ export function TraceDetail({ id }: { id: string }) {
       <div className="mt-4 shrink-0 overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-1)" }}>
         <button onClick={() => setCovOpen((o) => !o)} className="flex w-full items-center border-none" style={{ gap: 9, padding: "11px 16px", background: "transparent", cursor: "pointer", color: "var(--text-0)" }}>
           <Icon name="pulse" size={15} style={{ color: "var(--text-2)" }} />
-          <span style={{ fontWeight: 700, fontSize: 14 }}>Coverage summary</span>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>{t("trace.coverage_summary")}</span>
           <div className="flex-1" />
           <Icon name="chevronDown" size={15} style={{ color: "var(--text-2)", transform: covOpen ? "none" : "rotate(-90deg)", transition: "transform .15s var(--ease)" }} />
         </button>
@@ -217,7 +219,7 @@ export function TraceDetail({ id }: { id: string }) {
               <div className="flex items-center" style={{ gap: 16 }}>
                 <Donut verified={vCount} asserted={aCount} />
                 <div className="flex flex-col" style={{ gap: 8 }}>
-                  {[{ label: "verified", count: vCount, c: "var(--trust-verified)" }, { label: "asserted", count: aCount, c: "var(--trust-asserted)" }].map((r) => (
+                  {[{ label: t("trace.verified"), count: vCount, c: "var(--trust-verified)" }, { label: t("trace.asserted"), count: aCount, c: "var(--trust-asserted)" }].map((r) => (
                     <div key={r.label} className="flex items-center" style={{ gap: 8, fontSize: "var(--fs-sm)" }}>
                       <span style={{ width: 10, height: 10, borderRadius: 3, background: r.c }} />
                       <span style={{ width: 64, color: "var(--text-1)", fontWeight: 600 }}>{r.label}</span>
@@ -227,7 +229,7 @@ export function TraceDetail({ id }: { id: string }) {
                 </div>
               </div>
               <div className="grid" style={{ gridTemplateColumns: "repeat(2, auto)", gap: "10px 28px" }}>
-                {[{ label: "authority gates", value: cov.authority_gates }, { label: "grounded claims", value: cov.grounded_claims }, { label: "asserted claims", value: cov.asserted_claims }, { label: "total events", value: evs.length }].map((m) => (
+                {[{ label: t("trace.authority_gates"), value: cov.authority_gates }, { label: t("trace.grounded_claims"), value: cov.grounded_claims }, { label: t("trace.asserted_claims"), value: cov.asserted_claims }, { label: t("trace.total_events"), value: evs.length }].map((m) => (
                   <div key={m.label}>
                     <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: "var(--text-0)", lineHeight: 1 }}>{m.value}</div>
                     <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", marginTop: 3 }}>{m.label}</div>
@@ -237,7 +239,7 @@ export function TraceDetail({ id }: { id: string }) {
             </div>
             {trace.result != null && (
               <div style={{ marginTop: 16 }}>
-                <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>Result</div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>{t("trace.result")}</div>
                 <div className="rounded-[var(--r-md)] border border-[var(--border)]" style={{ background: "var(--bg-inset)", padding: 12 }}>
                   <JsonView data={trace.result} />
                 </div>

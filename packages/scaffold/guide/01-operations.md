@@ -175,7 +175,17 @@ precondition or HITL confirmation before execution. No suitable tool → throws
 
 ## Output
 
-### `conclude<T>() → T`
-Terminal. Declares the **type** of the structured result. The runtime validates
-the actual result against the schema. Uncaught failure produces a partial
-failure-conclude, not a silent drop.
+### `conclude<T>(result: T) → T`
+Terminal. The script explicitly maps each field of `T` to a variable from prior
+steps. Sem handles are cast via `as` (e.g. `pattern as string`). The runtime
+validates the actual result against the schema at the seam. Uncaught failure
+produces a partial failure-conclude, not a silent drop.
+
+```ts
+return conclude<Result>({
+  insight: pattern as string,
+  replaces: mechanisms as string[],
+  confidence: assess().status === "converging" ? "high" : "medium",
+  tradeoffs: [antithesis, stress] as string[],
+});
+```

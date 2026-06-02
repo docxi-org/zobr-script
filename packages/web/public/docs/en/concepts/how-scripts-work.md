@@ -37,11 +37,14 @@ export function reflect(context: string): Result {
   const pattern = synthesize(mechanisms, friction);
   checkpoint("analysis_done", { pattern, friction });
 
-  return conclude<Result>();
+  return conclude<Result>({
+    pattern: pattern as string,
+    friction: friction as string[],
+  });
 }
 ```
 
-The script doesn't execute these operations itself — the **agent** does. Each operation is a directive: `survey` means "explore this space", `doubt` means "stress-test this", `commit` means "declare your evaluation criteria".
+Each field of the result is explicitly mapped to a variable from a prior step. The script doesn't execute these operations itself — the **agent** does. Each operation is a directive: `survey` means "explore this space", `doubt` means "stress-test this", `commit` means "declare your evaluation criteria".
 
 ## Operations
 
@@ -75,7 +78,7 @@ The server module runs on the server (not in the model), so its results carry [a
 
 ## Types and shapes
 
-The `conclude<Result>()` call at the end declares the expected output type. The server validates the actual result against this shape — if it doesn't match, the run fails rather than producing a silently wrong answer.
+The `conclude<Result>({...})` call at the end maps each result field to a variable from prior steps. The server validates the actual result against the declared shape — if it doesn't match, the run fails rather than producing a silently wrong answer.
 
 [Checkpoints](checkpoints) can also declare shapes for their payloads, giving the server a contract to validate at each decision point.
 

@@ -24,8 +24,8 @@ The cognitive part is a TypeScript file with:
 
 1. **JSDoc description** — first `/** ... */` comment becomes the script's
    description in the library listing.
-2. **Exported result type** — the schema for `conclude<T>()`.
-3. **Exported entry function** — typed input parameters + body + `conclude`.
+2. **Exported result type** — the schema for `conclude<T>(result)`.
+3. **Exported entry function** — typed input parameters + body + explicit `conclude` with field mapping.
 
 ```ts
 /** A minimal demo script. */
@@ -34,7 +34,10 @@ export type Result = { summary: string; confidence: "low" | "medium" | "high" };
 export function analyze(topic: string): Result {
   const overview = survey(topic, { count: 3 });
   const critique = doubt(overview);
-  return conclude<Result>();
+  return conclude<Result>({
+    summary: synthesize([overview, critique], { method: "concise verdict" }) as string,
+    confidence: assess().status === "converging" ? "high" : "medium",
+  });
 }
 ```
 

@@ -14,13 +14,17 @@ export type Result = { summary: string; confidence: "low" | "medium" | "high" };
 export function analyze(topic: string): Result {
   const overview = survey(topic, { count: 3 });
   const critique = doubt(overview);
-  return conclude<Result>();
+  return conclude<Result>({
+    summary: synthesize([overview, critique], { method: "concise verdict" }) as string,
+    confidence: assess().status === "converging" ? "high" : "medium",
+  });
 }
 ```
 
 **What it shows:**
 - JSDoc description → library listing
 - Exported type → conclude schema
+- Explicit field mapping: summary from synthesize, confidence from assess
 - Linear flow: discover → challenge → conclude
 - No server module needed
 
@@ -65,8 +69,19 @@ export function reflect(context: string): Result {
   });
 
   check(c, { pattern, antithesis, stress });
+
+  const state = assess();
+  const confidence = state.status === "converging" ? "high" as const
+    : state.status === "stuck" ? "low" as const
+    : "medium" as const;
+
   checkpoint("reflection_done", { pattern, replaces: mechanisms, stress });
-  return conclude<Result>();
+  return conclude<Result>({
+    insight: pattern as string,
+    replaces: mechanisms as string[],
+    confidence,
+    tradeoffs: [antithesis, stress] as string[],
+  });
 }
 ```
 
@@ -116,7 +131,7 @@ export function plan_and_execute(task: string): Result {
     ["approve", "revise", "cancel"] as const,
   );
 
-  if (approval === "cancel") return conclude<Result>();
+  if (approval === "cancel") return conclude<Result>({ plan: plan as string, approved: false });
   if (approval === "revise") {
     const revised = reframe(plan, { lens: "address the identified risks" });
     report("plan_revised", { revised });
@@ -124,7 +139,11 @@ export function plan_and_execute(task: string): Result {
 
   checkpoint("pre_execution", { plan, approval });
   const outcome = act("execute the approved plan", { reversible: false });
-  return conclude<Result>();
+  return conclude<Result>({
+    plan: plan as string,
+    approved: true,
+    outcome: outcome as string,
+  });
 }
 ```
 
@@ -150,7 +169,11 @@ export function compare(topic_a: string, topic_b: string): Result {
     "tools/deep-analysis", { topic: topic_b }
   );
   const comparison = contrast(analysis_a, { with: analysis_b });
-  return conclude<Result>();
+  return conclude<Result>({
+    comparison: comparison as string,
+    winner: synthesize([analysis_a, analysis_b, comparison], { method: "pick winner" }) as string,
+    confidence: assess().status as string,
+  });
 }
 ```
 

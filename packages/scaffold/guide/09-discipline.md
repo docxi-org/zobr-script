@@ -64,9 +64,10 @@ instance store. When checkpointing, send summaries and structure, not raw prose.
 
 ## Conclude
 
-Produce the result matching the `conclude<T>()` schema. The server validates
-the shape at the seam. Uncaught failure → produce a partial failure-conclude,
-not a silent drop.
+Produce the result by explicitly mapping each field of `T` to variables from
+prior steps: `conclude<Result>({ insight: pattern as string, ... })`. The
+server validates the shape at the seam. Uncaught failure → produce a partial
+failure-conclude, not a silent drop.
 
 ## Reporting Convention
 

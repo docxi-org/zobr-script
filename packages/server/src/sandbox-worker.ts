@@ -256,7 +256,7 @@ parentPort!.on("message", (msg: Msg) => {
       const state: Record<string, unknown> = {};
       for (const key of Object.keys(inst)) {
         if (skip.has(key)) continue;
-        try { state[key] = JSON.parse(JSON.stringify(inst[key], replacer)); } catch {}
+        try { state[key] = JSON.parse(JSON.stringify(inst[key], replacer)); } catch { /* non-serializable field, skip */ }
       }
       parentPort!.postMessage({ type: "result", ok: true, callId: msg.callId, result: state });
 

@@ -61,6 +61,7 @@ export default {
   "trace.grounded_claims": "обоснованные утверждения",
   "trace.asserted_claims": "необоснованные утверждения",
   "trace.total_events": "всего событий",
+  "trace.result_trust": "доверие к результату",
   "trace.not_found": "Трассировка не найдена",
   "trace.loading": "Загрузка трассировки…",
   "trace.parent": "Родитель",

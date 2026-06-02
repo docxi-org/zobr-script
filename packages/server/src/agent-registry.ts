@@ -1,5 +1,5 @@
 // AgentRegistry — persistent agent registration (doc 12 §6).
-// Idempotent by name: same name → same agent_id.
+// Idempotent by name: same name → same agent_id (reconnect mechanism).
 // Persisted to SQLite (zs_agents) via InfraStore when Db is provided.
 // activeInvocations is ephemeral (in-memory only).
 import { randomUUID } from "node:crypto";

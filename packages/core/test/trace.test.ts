@@ -34,9 +34,19 @@ describe("Trace — the product", () => {
     expect(c.authority_gates).toBe(1);
     expect(c.grounded_claims).toBe(1); // the verified retrieve
     expect(c.asserted_claims).toBe(2); // assert + ground
+    expect(c.final_result_trust).toBeNull();
   });
 
   it("coverage is zero on an empty trace", () => {
-    expect(new Trace().coverage().verified).toBe(0);
+    const c = new Trace().coverage();
+    expect(c.verified).toBe(0);
+    expect(c.final_result_trust).toBeNull();
+  });
+
+  it("final_result_trust reflects conclude event trust", () => {
+    const tr = new Trace();
+    tr.append({ op: "survey", realizer: "llm", trust: "asserted", inputs: [] });
+    tr.append({ op: "conclude", realizer: "llm", trust: "asserted", inputs: [] });
+    expect(tr.coverage().final_result_trust).toBe("asserted");
   });
 });

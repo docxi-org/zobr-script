@@ -4,6 +4,7 @@ export interface Coverage {
   authority_gates: number;
   grounded_claims: number;
   asserted_claims: number;
+  final_result_trust: string | null;
 }
 
 export interface TraceRow {

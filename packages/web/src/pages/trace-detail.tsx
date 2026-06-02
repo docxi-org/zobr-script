@@ -230,7 +230,7 @@ export function TraceDetail({ id }: { id: string }) {
                 </div>
               </div>
               <div className="grid" style={{ gridTemplateColumns: "repeat(2, auto)", gap: "10px 28px" }}>
-                {[{ label: t("trace.authority_gates"), value: cov.authority_gates }, { label: t("trace.grounded_claims"), value: cov.grounded_claims }, { label: t("trace.asserted_claims"), value: cov.asserted_claims }, { label: t("trace.total_events"), value: evs.length }].map((m) => (
+                {[{ label: t("trace.authority_gates"), value: cov.authority_gates }, { label: t("trace.grounded_claims"), value: cov.grounded_claims }, { label: t("trace.asserted_claims"), value: cov.asserted_claims }, { label: t("trace.total_events"), value: evs.length }, ...(cov.final_result_trust ? [{ label: t("trace.result_trust"), value: cov.final_result_trust }] : [])].map((m) => (
                   <div key={m.label}>
                     <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: "var(--text-0)", lineHeight: 1 }}>{m.value}</div>
                     <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", marginTop: 3 }}>{m.label}</div>

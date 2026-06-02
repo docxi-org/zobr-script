@@ -61,6 +61,7 @@ export default {
   "trace.grounded_claims": "grounded claims",
   "trace.asserted_claims": "asserted claims",
   "trace.total_events": "total events",
+  "trace.result_trust": "result trust",
   "trace.not_found": "Trace not found",
   "trace.loading": "Loading trace…",
   "trace.parent": "Parent",

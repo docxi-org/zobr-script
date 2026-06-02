@@ -15,6 +15,8 @@ import type { Shape, InstanceSnapshot } from "@zobr/core";
 import { cognitiveAmbient, serverAmbient, guideTopics } from "@zobr/scaffold";
 import { validateScript, extractStoreSchema, extractCogShapes, extractClassInfo } from "@zobr/validator";
 import type { ListRes, ReadRes, ValidateReq, ValidateRes, CreateReq, CreateRes, DeleteRes, RegisterRes, StartReq, ConcludeReq, ResumeReq } from "@zobr/protocol";
+import { log as defaultLog } from "./logger";
+import type { Logger } from "./logger";
 
 const STATE_CHANGING_TOOLS = new Set(["zs_sandbox", "zs_checkpoint", "zs_report", "zs_ask_record", "zs_act_record"]);
 
@@ -29,6 +31,7 @@ export interface ZsAppOptions extends ZsServiceOptions {
   readonly invocationTtlMs?: number | undefined;
   readonly awaitingTtlMs?: number | undefined;
   readonly maxActiveInvocations?: number | undefined;
+  readonly logger?: Logger | undefined;
 }
 
 const DEFAULT_INVOCATION_TTL = 60 * 60 * 1000; // 1 hour
@@ -46,8 +49,10 @@ export class ZsApp {
   readonly #invocationTtlMs: number;
   readonly #awaitingTtlMs: number;
   readonly #maxActive: number;
+  readonly #log: Logger;
 
   constructor(reader: ScriptSourceReader, opts?: ZsAppOptions) {
+    this.#log = (opts?.logger ?? defaultLog).child({ module: "app" });
     this.registry = new InvocationRegistry();
     const dbPath = opts?.dbPath;
     this.#loader = new FsScriptLoader(reader, dbPath);
@@ -593,7 +598,8 @@ export class ZsApp {
         serverFunctions,
         ...shapes,
       };
-    } catch {
+    } catch (err) {
+      this.#log.warn({ ref, err: (err as Error).message }, "apiGetScriptDetail failed");
       return null;
     }
   }

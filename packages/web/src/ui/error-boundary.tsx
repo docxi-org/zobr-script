@@ -39,16 +39,28 @@ function ErrorFallback({ error, onReset }: { error: Error; onReset: () => void }
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  resetKey?: string;
 }
 
 interface State {
   error: Error | null;
+  prevResetKey?: string | undefined;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
+    if (props.resetKey !== undefined && props.resetKey !== state.prevResetKey && state.error) {
+      return { error: null, prevResetKey: props.resetKey };
+    }
+    if (props.resetKey !== state.prevResetKey) {
+      return { prevResetKey: props.resetKey };
+    }
+    return null;
+  }
+
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { error };
   }
 

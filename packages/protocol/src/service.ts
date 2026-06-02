@@ -22,6 +22,7 @@ function tryParseJson(value: unknown): unknown {
 export interface ZsServiceOptions {
   readonly defaultBudgets?: { steps: number; iterations: number; tokens?: number };
   readonly startPreamble?: string;
+  readonly maxRunDepth?: number;
 }
 
 interface RunCtx {
@@ -36,12 +37,14 @@ export class ZsService {
   readonly #ctx = new Map<string, RunCtx>(); // invocation_id -> per-run wiring
   readonly #budgets: { steps: number; iterations: number; tokens?: number };
   readonly #preamble: string | undefined;
+  readonly #maxRunDepth: number;
 
   constructor(loader: ScriptLoader, registry: InvocationRegistry, opts: ZsServiceOptions = {}) {
     this.#loader = loader;
     this.#registry = registry;
     this.#budgets = opts.defaultBudgets ?? { steps: 1000, iterations: 100 };
     this.#preamble = opts.startPreamble;
+    this.#maxRunDepth = opts.maxRunDepth ?? 10;
   }
 
   get defaultBudgets() { return this.#budgets; }
@@ -51,12 +54,18 @@ export class ZsService {
     if (idem.hit) return idem.value as StartRes;
 
     const loaded = await this.#loader.load(req.script_ref); // validate-at-start (throws on bad)
+    const depth = req.parent_invocation_id !== undefined
+      ? (this.#registry.get(req.parent_invocation_id)?.depth ?? 0) + 1
+      : 0;
+    if (depth >= this.#maxRunDepth) {
+      throw new Error(`Maximum run depth (${this.#maxRunDepth}) exceeded for script "${req.script_ref}"`);
+    }
     const params = {
       script_ref: loaded.script_ref,
       code_snapshot: loaded.code,
       budgets: this.#budgets,
       ...(req.parent_invocation_id !== undefined ? { parent_invocation_id: req.parent_invocation_id } : {}),
-      ...(req.parent_invocation_id !== undefined ? { depth: (this.#registry.get(req.parent_invocation_id)?.depth ?? 0) + 1 } : {}),
+      ...(depth > 0 ? { depth } : {}),
     };
     const inst = new Instance(params);
     this.#registry.register(inst);

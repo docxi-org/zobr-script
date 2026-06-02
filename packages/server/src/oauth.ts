@@ -153,14 +153,15 @@ export function createZsOAuth(config: ZsOAuthConfig): { auth: ZsAuth; seedAdmin:
   });
 
   const seedAdmin = async () => {
-    try {
-      await (auth.api as Record<string, Function>)["signUpEmail"]!({
-        body: { email: config.adminEmail, password: config.adminPassword, name: "Admin" },
-      });
-      config.logger?.info("OAuth: seeded admin user %s", config.adminEmail);
-    } catch {
-      // already exists
+    const count = (db.prepare("SELECT COUNT(*) as c FROM user").get() as { c: number }).c;
+    if (count > 0) return;
+    if (config.adminPassword === "admin") {
+      config.logger?.warn("ZS_ADMIN_PASSWORD not set — seeding admin with default password 'admin'. Change it immediately.");
     }
+    await (auth.api as Record<string, Function>)["signUpEmail"]!({
+      body: { email: config.adminEmail, password: config.adminPassword, name: "Admin" },
+    });
+    config.logger?.warn("Seeded admin user: %s", config.adminEmail);
   };
 
   return { auth: auth as unknown as ZsAuth, seedAdmin };
@@ -177,6 +178,7 @@ export function createOAuthRoutes(auth: ZsAuth, mcpUrl: string): Router {
 
   router.get("/oauth/sign-in", (req: Request, res: Response) => {
     const q = new URLSearchParams(req.query as Record<string, string>);
+    const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     res.send(`<!DOCTYPE html>
 <html><head><title>ZS OAuth Login</title>
 <style>body{font-family:system-ui;max-width:400px;margin:80px auto;padding:0 20px}
@@ -184,7 +186,7 @@ input,button{width:100%;padding:10px;margin:6px 0;box-sizing:border-box;border-r
 button{background:#333;color:#fff;border:none;cursor:pointer;font-weight:600}</style></head>
 <body><h2>ZS — Sign in</h2>
 <form method="POST" action="/oauth/sign-in">
-<input type="hidden" name="redirect" value="${q.toString()}">
+<input type="hidden" name="redirect" value="${esc(q.toString())}">
 <input name="email" type="email" placeholder="Email" required>
 <input name="password" type="password" placeholder="Password" required>
 <button type="submit">Sign in</button>

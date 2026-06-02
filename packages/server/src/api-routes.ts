@@ -6,6 +6,11 @@ import { AuthService, type Role, type UserRecord } from "./auth";
 
 function rateLimit(windowMs: number, max: number) {
   const hits = new Map<string, { count: number; resetAt: number }>();
+  const cleanup = setInterval(() => {
+    const now = Date.now();
+    for (const [k, v] of hits) if (now > v.resetAt) hits.delete(k);
+  }, windowMs * 2);
+  cleanup.unref();
   return (req: Request, res: Response, next: NextFunction) => {
     const key = req.ip ?? "unknown";
     const now = Date.now();
@@ -27,19 +32,19 @@ interface AuthedRequest extends Request {
   user: UserRecord;
 }
 
-const COOKIE_OPTS = { httpOnly: true, sameSite: "lax" as const, path: "/api" };
+const SECURE_SUFFIX = process.env.NODE_ENV === "production" ? "; Secure" : "";
 
 function setTokenCookies(res: Response, token: string, refreshToken: string, tokenTtl: number, refreshTtl: number): void {
   res.setHeader("Set-Cookie", [
-    `zs_token=${token}; HttpOnly; SameSite=Lax; Path=/api; Max-Age=${tokenTtl}`,
-    `zs_refresh=${refreshToken}; HttpOnly; SameSite=Lax; Path=/api/auth; Max-Age=${refreshTtl}`,
+    `zs_token=${token}; HttpOnly; SameSite=Strict; Path=/api; Max-Age=${tokenTtl}${SECURE_SUFFIX}`,
+    `zs_refresh=${refreshToken}; HttpOnly; SameSite=Strict; Path=/api/auth; Max-Age=${refreshTtl}${SECURE_SUFFIX}`,
   ]);
 }
 
 function clearTokenCookies(res: Response): void {
   res.setHeader("Set-Cookie", [
-    "zs_token=; HttpOnly; SameSite=Lax; Path=/api; Max-Age=0",
-    "zs_refresh=; HttpOnly; SameSite=Lax; Path=/api/auth; Max-Age=0",
+    `zs_token=; HttpOnly; SameSite=Strict; Path=/api; Max-Age=0${SECURE_SUFFIX}`,
+    `zs_refresh=; HttpOnly; SameSite=Strict; Path=/api/auth; Max-Age=0${SECURE_SUFFIX}`,
   ]);
 }
 
@@ -56,6 +61,8 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
   // ── Auth (public) ──
 
   const loginLimiter = rateLimit(60_000, 10);
+  const refreshLimiter = rateLimit(60_000, 10);
+  const passwordLimiter = rateLimit(60_000, 5);
 
   router.post("/auth/login", loginLimiter, async (req, res) => {
     const { email, password } = req.body as { email?: string; password?: string };
@@ -72,7 +79,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     res.json({ user: result.user });
   });
 
-  router.post("/auth/refresh", async (req, res) => {
+  router.post("/auth/refresh", refreshLimiter, async (req, res) => {
     const refreshToken = parseCookieValue(req.headers.cookie, "zs_refresh")
       ?? (req.body as { refreshToken?: string }).refreshToken;
     if (!refreshToken) {
@@ -85,7 +92,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
       res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Invalid or expired refresh token" } });
       return;
     }
-    res.setHeader("Set-Cookie", `zs_token=${result.token}; HttpOnly; SameSite=Lax; Path=/api; Max-Age=${auth.tokenTtlSec}`);
+    setTokenCookies(res, result.token, result.refreshToken, auth.tokenTtlSec, auth.refreshTtlSec);
     res.json({ ok: true });
   });
 
@@ -99,7 +106,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     res.json({ id: user.id, email: user.email, role: user.role });
   });
 
-  router.put("/auth/password", auth.middleware(), (req, res) => {
+  router.put("/auth/password", auth.middleware(), passwordLimiter, (req, res) => {
     const user = (req as AuthedRequest).user;
     const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
     if (!currentPassword || !newPassword) {
@@ -241,7 +248,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
       const result = zsApp.storeCollections() as { ok: boolean; names: string[]; counts: Record<string, number> };
       const collections = result.names.map((name) => ({ name, count: result.counts[name] ?? 0 }));
       res.json({ collections });
-    } catch {
+    } catch { /* store not initialized */
       res.json({ collections: [] });
     }
   });
@@ -304,7 +311,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     try {
       const { cognitiveAmbient, serverAmbient } = await import("@zobr/scaffold");
       res.json({ cognitive: cognitiveAmbient, server: serverAmbient });
-    } catch {
+    } catch { /* scaffold not available */
       res.json({ cognitive: "", server: "" });
     }
   });

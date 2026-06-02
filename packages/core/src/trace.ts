@@ -20,6 +20,7 @@ export interface Coverage {
   readonly authority_gates: number;
   readonly grounded_claims: number;
   readonly asserted_claims: number;
+  readonly final_result_trust: TrustClass | null;
 }
 
 export type NewEvent = Omit<TraceEvent, "seq" | "t"> & { t?: string };
@@ -65,7 +66,9 @@ export class Trace {
     let authority_gates = 0;
     let grounded_claims = 0;
     let asserted_claims = 0;
+    let final_result_trust: TrustClass | null = null;
     for (const e of this.#events) {
+      if (e.op === "conclude") final_result_trust = e.trust;
       if (e.trust === "n/a") continue;
       if (e.trust === "verified") verified += 1;
       else if (e.trust === "asserted") asserted += 1;
@@ -80,6 +83,7 @@ export class Trace {
       authority_gates,
       grounded_claims,
       asserted_claims,
+      final_result_trust,
     };
   }
 }

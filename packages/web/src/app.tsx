@@ -149,7 +149,7 @@ export function App() {
             flexDirection: "column",
           }}>
             <div style={{ flex: isTallPage(route.path) ? 1 : "none", minHeight: 0, display: isTallPage(route.path) ? "flex" : "block", flexDirection: "column" }}>
-              <ErrorBoundary key={route.path}>
+              <ErrorBoundary resetKey={route.path}>
                 <Routed path={route.path} role={role} theme={theme} />
               </ErrorBoundary>
             </div>

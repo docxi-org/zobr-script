@@ -89,14 +89,15 @@ export class AuthService {
     return { token, refreshToken, user };
   }
 
-  async refresh(refreshToken: string): Promise<{ token: string } | null> {
-    const payload = await this.#verifyToken(refreshToken);
+  async refresh(oldRefreshToken: string): Promise<{ token: string; refreshToken: string } | null> {
+    const payload = await this.#verifyToken(oldRefreshToken);
     if (!payload) return null;
     const row = this.#db.prepare("SELECT * FROM zs_users WHERE id = ? AND active = 1").get(payload.sub) as UserRow | undefined;
     if (!row) return null;
     const user: UserRecord = { id: row.id, email: row.email, role: row.role as Role, active: true, created_at: row.created_at, last_login: row.last_login };
     const token = await this.#signToken(user, this.#tokenTtl);
-    return { token };
+    const refreshToken = await this.#signToken(user, this.#refreshTtl);
+    return { token, refreshToken };
   }
 
   async verifyRequest(token: string): Promise<UserRecord | null> {

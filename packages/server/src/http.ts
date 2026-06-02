@@ -53,6 +53,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
     ...(awaitingTtlMs !== undefined ? { awaitingTtlMs } : {}),
     ...(maxActiveInvocations !== undefined ? { maxActiveInvocations } : {}),
     startPreamble: START_PREAMBLE,
+    logger: parentLog ?? defaultLog,
   });
 
   const mcpServer = new McpServer(

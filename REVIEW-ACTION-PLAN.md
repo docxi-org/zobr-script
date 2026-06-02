@@ -7,33 +7,29 @@
 
 ## P0 — CRITICAL (перед production)
 
-- [ ] **P0-1. Security: Secure flag на cookies**
+- [x] **P0-1. Security: Secure flag на cookies** ✅ 2026-06-03
   - Источник: E-17
   - Проблема: JWT cookies без `Secure` — уязвимы при HTTP fallback в production
   - Решение: `Secure` conditional на `NODE_ENV=production`, `SameSite=Strict`
   - Файлы: `api-routes.ts` (setTokenCookies, clearTokenCookies)
-  - Effort: 30 min
 
-- [ ] **P0-2. Security: Rate limiting на все auth endpoints**
+- [x] **P0-2. Security: Rate limiting на все auth endpoints** ✅ 2026-06-03
   - Источник: E-19
   - Проблема: Только `/auth/login` защищён. `/auth/refresh`, `/auth/password` открыты для brute-force
-  - Решение: Добавить `rateLimit` на refresh (10/min), password (5/min). Cleanup interval для Map (prevent OOM)
+  - Решение: `rateLimit` на refresh (10/min), password (5/min). Cleanup interval для Map (prevent OOM)
   - Файлы: `api-routes.ts`
-  - Effort: 2h
 
-- [ ] **P0-3. Security: XSS в OAuth login page**
+- [x] **P0-3. Security: XSS в OAuth login page** ✅ 2026-06-03
   - Источник: E-16
   - Проблема: URLSearchParams из query без экранирования → XSS через `redirect` параметр
   - Решение: HTML-escape `q.toString()` в inline template
   - Файлы: `oauth.ts` (router.get "/oauth/sign-in")
-  - Effort: 30 min
 
-- [ ] **P0-4. Runtime: Max depth check**
+- [x] **P0-4. Runtime: Max depth check** ✅ 2026-06-03
   - Источник: D-15, H-30
   - Проблема: `run()` может вызывать бесконечно вложенные скрипты, нет depth limit
   - Решение: `ZS_MAX_RUN_DEPTH` env (default 10), проверка в `ZsService.start()` при `depth >= max`
   - Файлы: `protocol/src/service.ts`, `server/src/main.ts`
-  - Effort: 1h
 
 - [ ] **P0-5. Security: OAuth E2E тест**
   - Источник: E-16, H-35
@@ -45,26 +41,19 @@
 
 ## P1 — HIGH (сразу после production)
 
-- [ ] **P1-1. Frontend: ErrorBoundary key сбрасывает state**
+- [x] **P1-1. Frontend: ErrorBoundary key сбрасывает state** ✅ 2026-06-03
   - Источник: F-24
-  - Проблема: `<ErrorBoundary key={route.path}>` пересоздаётся при навигации → tab state теряется в Script Detail
-  - Решение: Убрать key из ErrorBoundary или переместить state persistence в URL params
-  - Файлы: `app.tsx`
-  - Effort: 1h
+  - Решение: `key={route.path}` → `resetKey={route.path}`. ErrorBoundary сбрасывает ошибку при навигации через `getDerivedStateFromProps`, но не пересоздаёт дочерние компоненты.
+  - Файлы: `error-boundary.tsx`, `app.tsx`
 
-- [ ] **P1-2. MCP: EXECUTOR_INSTRUCTION слишком скудна**
+- [x] **P1-2. MCP: EXECUTOR_INSTRUCTION слишком скудна** ✅ 2026-06-03
   - Источник: B-8
-  - Проблема: 2 строки — агент не знает про ошибки, роли, TTL, Sem handles, директивы checkpoint
-  - Решение: Расширить до 7 правил (~100 слов): error handling, roles, TTL, Sem, checkpoint directives, retrieve vs ground
+  - Решение: Расширено до 7 правил: error handling, fail-closed, Sem handles, checkpoint directives, TTL, roles.
   - Файлы: `instructions.ts`
-  - Effort: 1h
 
-- [ ] **P1-3. MCP: zs_register namespace collision**
+- [x] **P1-3. MCP: zs_register namespace collision** — BY DESIGN, 2026-06-03
   - Источник: B-7
-  - Проблема: Идемпотентность по имени — два клиента с одним именем делят agent_id, invocations, роль
-  - Решение: Session-based identity (agent_id per session, имя для UI) или (name, owner) хеш
-  - Файлы: `agent-registry.ts`, `app.ts`
-  - Effort: 4h
+  - Решение: idempotent-by-name — это reconnect mechanism (агент сохраняет agent_id, роль и invocations при переподключении). Не баг.
 
 - [ ] **P1-4. Deployment: Бэкапы SQLite**
   - Источник: G-28
@@ -73,33 +62,25 @@
   - Файлы: deploy.yml или отдельный cron на VPS
   - Effort: 4h
 
-- [ ] **P1-5. Trust: Coverage metric — final_result_trust**
+- [x] **P1-5. Trust: Coverage metric — final_result_trust** ✅ 2026-06-03
   - Источник: C-10
-  - Проблема: coverage = verified/(verified+asserted) без веса. Одна checkpoint gate = один report по весу
-  - Решение: Добавить `final_result_trust` в Coverage (trust класс conclude event). Раздельный breakdown
-  - Файлы: `core/src/trace.ts`, frontend coverage display
-  - Effort: 2h
+  - Решение: `final_result_trust: TrustClass | null` в Coverage interface. Берётся из conclude event. Отображается в Trace Detail Coverage Summary.
+  - Файлы: `core/src/trace.ts`, `web/src/api/types.ts`, `trace-detail.tsx`, i18n en/ru
 
-- [ ] **P1-6. Server: Empty catch blocks**
+- [x] **P1-6. Server: Empty catch blocks** ✅ 2026-06-03
   - Источник: H-33
-  - Проблема: 10 empty catch blocks скрывают ошибки (app.ts:3, db.ts:1, loader.ts:1, oauth.ts:1, etc.)
-  - Решение: Добавить `logger.debug` или `logger.warn` в каждый catch
-  - Файлы: по списку из review-H
-  - Effort: 2h
+  - Решение: pino logger пробросён в ZsApp (`opts.logger`, child `{ module: "app" }`). Критичные catch → `this.#log.warn`. Intentional catch (file checks, JWT verify, migrations) — пояснительные комментарии.
+  - Файлы: `app.ts`, `api-routes.ts`, `sandbox-worker.ts`
 
-- [ ] **P1-7. Security: OAuth seed admin only on first boot**
+- [x] **P1-7. Security: OAuth seed admin only on first boot** ✅ 2026-06-03
   - Источник: E-16
-  - Проблема: seedAdmin() при каждом рестарте, с default password 'admin' если env не задан
-  - Решение: Создавать только если таблица user пуста
+  - Решение: `seedAdmin()` проверяет `SELECT COUNT(*) FROM user` — создаёт admin только если таблица пуста. Предупреждение в лог при default пароле.
   - Файлы: `oauth.ts`
-  - Effort: 30 min
 
-- [ ] **P1-8. Security: Refresh token rotation**
+- [x] **P1-8. Security: Refresh token rotation** ✅ 2026-06-03
   - Источник: E-17
-  - Проблема: Refresh token переиспользуется, нет rotation
-  - Решение: При refresh выдавать новый refresh token, старый инвалидировать
+  - Решение: `auth.refresh()` возвращает `{ token, refreshToken }`. Оба cookie перезаписываются через `setTokenCookies`. SPA прозрачно — cookies обновляются сервером.
   - Файлы: `auth.ts`, `api-routes.ts`
-  - Effort: 2h
 
 ---
 

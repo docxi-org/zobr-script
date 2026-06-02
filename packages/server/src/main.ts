@@ -17,6 +17,7 @@ const BUDGET_ITERATIONS = Number(process.env["ZS_BUDGET_ITERATIONS"] ?? 100);
 const INVOCATION_TTL = Number(process.env["ZS_INVOCATION_TTL"] ?? 3600) * 1000;
 const AWAITING_TTL = Number(process.env["ZS_AWAITING_TTL"] ?? 86400) * 1000;
 const MAX_ACTIVE = Number(process.env["ZS_MAX_ACTIVE_INVOCATIONS"] ?? 100);
+const MAX_RUN_DEPTH = Number(process.env["ZS_MAX_RUN_DEPTH"] ?? 10);
 
 log.info({ library: LIB_ROOT }, "materializing scaffold");
 await materializeScaffold(LIB_ROOT);
@@ -48,7 +49,7 @@ const { app } = await createZsHttpApp({
   invocationTtlMs: INVOCATION_TTL,
   awaitingTtlMs: AWAITING_TTL,
   maxActiveInvocations: MAX_ACTIVE,
-  serviceOpts: { defaultBudgets: { steps: BUDGET_STEPS, iterations: BUDGET_ITERATIONS } },
+  serviceOpts: { defaultBudgets: { steps: BUDGET_STEPS, iterations: BUDGET_ITERATIONS }, maxRunDepth: MAX_RUN_DEPTH },
   logger: log,
   oauth,
 });

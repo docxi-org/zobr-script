@@ -5,7 +5,7 @@ const codes = (name: string, src: string) => fence(name, src).map((d) => d.code)
 
 describe("structural fence", () => {
   it("passes a clean script", () => {
-    expect(fence("/zs/ok.cog.ts", `export function f(){ const x = survey("t", { count: 2 }); return conclude<{a:number}>(); }`)).toHaveLength(0);
+    expect(fence("/zs/ok.cog.ts", `export function f(){ const x = survey("t", { count: 2 }); return conclude<{a:number}>({a:0}); }`)).toHaveLength(0);
   });
   it("flags eval and Function as errors", () => {
     expect(codes("/zs/e.cog.ts", `function f(){ eval("1"); }`)).toContain("fence/no-eval");

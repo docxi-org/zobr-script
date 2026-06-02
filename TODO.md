@@ -92,3 +92,46 @@
 - [x] **10.9.4** Тесты: `PUT /api/agents/:id/role` — 5 тестов в api.test.ts.
 - [x] **10.9.5** Typecheck clean, 228 тестов зелёные.
 - [x] **10.9.6** Обновить CLAUDE.md, README.md.
+
+---
+
+## Срез 11 — Explicit conclude(result)
+
+Замысел: `conclude<T>()` → `conclude<T>(result: T): T`. Скрипт явно привязывает
+каждое поле Result к конкретным шагам рассуждения. Агент не додумывает — исполняет.
+Sem-хэндлы кастятся через `as` (`pattern as string`). Сервер валидирует итоговую форму
+(shape validation не меняется).
+
+### 11.1. Ambient + scaffold
+
+- [x] **11.1.1** `packages/scaffold/lib-template/zs.cognitive.d.ts` — `conclude<T>()` → `conclude<T>(result: T): T`.
+- [x] **11.1.2** `zs-lib/zs.cognitive.d.ts` — обновлено вручную (scaffold пересоздаст при старте).
+
+### 11.2. Example scripts
+
+- [x] **11.2.1** `zs-lib/examples/hello.cog.ts` — явный result: summary из synthesize, confidence из assess.
+- [x] **11.2.2** `zs-lib/examples/insight.cog.ts` — полный маппинг: pattern as string, mechanisms as string[], assess → confidence, [antithesis, stress] as string[].
+
+### 11.3. Guide
+
+- [ ] **11.3.1** `packages/scaffold/guide/01-operations.md` — обновить описание conclude.
+- [ ] **11.3.2** `packages/scaffold/guide/03-script-structure.md` — обновить пример контракта.
+- [ ] **11.3.3** `packages/scaffold/guide/08-patterns.md` — обновить все 4 паттерна.
+- [ ] **11.3.4** `packages/scaffold/guide/10-ambients.md` — обновить статическую копию сигнатуры.
+
+### 11.4. Help (user-facing docs)
+
+- [ ] **11.4.1** `public/docs/en/concepts/how-scripts-work.md` + `ru/` — обновить примеры conclude.
+- [ ] **11.4.2** `public/docs/en/concepts/what-is-zs.md` + `ru/` — если упоминается conclude.
+
+### 11.5. Validator / Fence
+
+- [x] **11.5.1** `extractCogShapes` — парсит `conclude<T>({...})` корректно (извлекает type arg, не function arg).
+- [x] **11.5.2** Fence — не блокирует conclude с аргументом.
+- [x] **11.5.3** Изменений в validator/fence не потребовалось.
+
+### 11.6. Тесты
+
+- [x] **11.6.1** `packages/scaffold/test/` — fixtures обновлены.
+- [x] **11.6.2** `packages/validator/test/` — все inline fixtures обновлены + server test fixtures.
+- [x] **11.6.3** Typecheck clean, 228 тестов зелёные.

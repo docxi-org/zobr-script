@@ -29,7 +29,7 @@ export class FakeLoader implements ScriptLoader {
     if (script_ref !== this.ref) return Promise.reject(new Error(`not found: ${script_ref}`));
     const loaded: LoadedScript = {
       script_ref,
-      code: this.opts.code ?? "export function f(){ return conclude<{a:number}>(); }",
+      code: this.opts.code ?? "export function f(){ return conclude<{a:number}>({a:0}); }",
       sandboxSpecs: [{ name: "rank", needs: [] }],
       capabilities: [],
       sandboxHost: new MapHost({ rank: (xs: unknown) => (xs as number[]).slice().sort((a, b) => b - a) }),

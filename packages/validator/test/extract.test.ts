@@ -6,7 +6,7 @@ describe("extractCogShapes", () => {
   it("extracts concludeShape from conclude<T>()", () => {
     const cog = `
 export type Result = { summary: string; confidence: "low" | "medium" | "high" };
-export function analyze(t: string): Result { return conclude<Result>(); }
+export function analyze(t: string): Result { return conclude<Result>({ summary: "" as string, confidence: "medium" }); }
 `;
     const shapes = extractCogShapes([{ name: "/zs/test.cog.ts", content: cog }], cognitiveAmbient);
     expect(shapes.concludeShape).toEqual({
@@ -24,7 +24,7 @@ interface ThesisCheck { holds: boolean }
 export function analyze(t: string) {
   checkpoint("thesis_tested", { holds: true } as ThesisCheck);
   checkpoint("count_check", { n: 5 });
-  return conclude();
+  return conclude({});
 }
 `;
     const shapes = extractCogShapes([{ name: "/zs/test.cog.ts", content: cog }], cognitiveAmbient);
@@ -42,7 +42,7 @@ export function analyze(t: string) {
     const cog = `
 export function analyze(t: string) {
   report("stats", { count: 42, quality: "ok" });
-  return conclude();
+  return conclude({});
 }
 `;
     const shapes = extractCogShapes([{ name: "/zs/test.cog.ts", content: cog }], cognitiveAmbient);
@@ -53,7 +53,7 @@ export function analyze(t: string) {
   });
 
   it("returns no concludeShape when conclude has no type argument", () => {
-    const cog = `export function f() { return conclude(); }`;
+    const cog = `export function f() { return conclude({}); }`;
     const shapes = extractCogShapes([{ name: "/zs/test.cog.ts", content: cog }], cognitiveAmbient);
     expect(shapes.concludeShape).toBeUndefined();
     expect(shapes.checkpointShapes).toEqual({});

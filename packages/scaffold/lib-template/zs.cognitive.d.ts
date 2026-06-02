@@ -45,4 +45,4 @@ declare function ask_user<T extends string>(prompt: string, choices: readonly T[
 declare function act(intent: string, o?: { reversible?: boolean }): Sem;
 
 // — Output —
-declare function conclude<T>(): T;
+declare function conclude<T>(result: T): T;

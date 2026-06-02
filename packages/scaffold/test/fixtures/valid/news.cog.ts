@@ -10,5 +10,8 @@ export function analyze(news_text: string): Result {
   synthesize(t.topics, { method: "thematic" });
   const d = checkpoint("topics_ready", t);
   if (d === "halt") pivot("server halted");
-  return conclude<Result>();
+  return conclude<Result>({
+    summary: synthesize([t, ev], { method: "verdict" }) as string,
+    confidence: "medium",
+  });
 }

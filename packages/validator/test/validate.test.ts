@@ -4,7 +4,7 @@ import { validateScript } from "../src/index";
 const TOPICS = `
 export type Input = { text: string };
 export type Result = { topics: string[] };
-export function topics(input: Input): Result { survey(input.text, { count: 3 }); return conclude<Result>(); }
+export function topics(input: Input): Result { survey(input.text, { count: 3 }); return conclude<Result>({ topics: [] }); }
 `;
 const NEWS = `
 import type { Input as TIn, Result as TOut } from "./topics.cog";
@@ -12,7 +12,7 @@ export type Result = { summary: string };
 export function analyze(t: string): Result {
   const r = run<TIn, TOut>("topics", { text: t });
   synthesize(r.topics, { method: "x" });
-  return conclude<Result>();
+  return conclude<Result>({ summary: "" as string });
 }
 `;
 const SRV = `export default class extends ZsScript { onReport(label: string, data: unknown): void {} }`;
@@ -29,7 +29,7 @@ describe("validateScript (engine: tsc + fence)", () => {
 
   it("fence errors make a bundle not ok", () => {
     const r = validateScript({
-      cog: [{ name: "/zs/x.cog.ts", content: `export function f(){ eval("1"); return conclude<{a:number}>(); }` }],
+      cog: [{ name: "/zs/x.cog.ts", content: `export function f(){ eval("1"); return conclude<{a:number}>({a:0}); }` }],
       srv: [],
     });
     expect(r.ok).toBe(false);
@@ -38,7 +38,7 @@ describe("validateScript (engine: tsc + fence)", () => {
 
   it("warnings alone do not break ok", () => {
     const r = validateScript({
-      cog: [{ name: "/zs/w.cog.ts", content: `export function f(){ while(true){} return conclude<{a:number}>(); }` }],
+      cog: [{ name: "/zs/w.cog.ts", content: `export function f(){ while(true){} return conclude<{a:number}>({a:0}); }` }],
       srv: [],
     });
     expect(r.ok).toBe(true);
@@ -50,7 +50,7 @@ describe("validateScript (engine: tsc + fence)", () => {
 export type Result = { items: string[] };
 export function analyze(topic: string): Result {
   const items = findByTopic(topic);
-  return conclude<Result>();
+  return conclude<Result>({ items: findByTopic(topic) });
 }
 `;
     const srv = `
@@ -70,7 +70,7 @@ export default class TestScript extends ZsScript {
     const cog = `
 export function analyze(topic: string) {
   const items = nonExistentMethod(topic);
-  return conclude();
+  return conclude({});
 }
 `;
     const srv = `

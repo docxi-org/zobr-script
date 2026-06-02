@@ -11,10 +11,10 @@ export class FakeReader implements ScriptSourceReader {
 
 export const VALID_COG = `
 export type Result = { summary: string };
-export function analyze(t: string): Result { survey(t, { count: 2 }); return conclude<Result>(); }
+export function analyze(t: string): Result { survey(t, { count: 2 }); return conclude<Result>({ summary: "" as string }); }
 `;
 export const INVALID_COG = `
-export function analyze(t: string){ eval("nope"); return conclude<{a:number}>(); }
+export function analyze(t: string){ eval("nope"); return conclude<{a:number}>({a:0}); }
 `;
 
 export const TYPED_COG = `
@@ -28,6 +28,6 @@ export function analyze(topic: string) {
   const state = assess();
   checkpoint("progress", { step: 1, findings, status: state.status } as ProgressData);
   report("metrics", { total: 3, quality: state.status });
-  return conclude<{ summary: string }>();
+  return conclude<{ summary: string }>({ summary: "" as string });
 }
 `;

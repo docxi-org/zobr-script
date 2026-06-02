@@ -46,7 +46,17 @@ export function reflect(context: string): Result {
   // 5. Verdict
   check(c, { pattern, antithesis, stress });
 
+  const state = assess();
+  const confidence = state.status === "converging" ? "high" as const
+    : state.status === "stuck" ? "low" as const
+    : "medium" as const;
+
   checkpoint("reflection_done", { pattern, replaces: mechanisms, stress });
 
-  return conclude<Result>();
+  return conclude<Result>({
+    insight: pattern as string,
+    replaces: mechanisms as string[],
+    confidence,
+    tradeoffs: [antithesis, stress] as string[],
+  });
 }

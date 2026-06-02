@@ -185,7 +185,7 @@ describe("6b Express + MCP Streamable HTTP transport", () => {
 
   it("guards architect-only tools by per-agent role (executor gets soft rejection)", async () => {
     const { sid, agent_id } = await initWithAgent();
-    const res = await mcpPost({ jsonrpc: "2.0", id: 6, method: "tools/call", params: { name: "zs_create", arguments: { agent_id, script_ref: "test/x", cog: [{ name: "x.cog.ts", content: "export function x(){return conclude<{a:string}>();}" }] } } }, sid);
+    const res = await mcpPost({ jsonrpc: "2.0", id: 6, method: "tools/call", params: { name: "zs_create", arguments: { agent_id, script_ref: "test/x", cog: [{ name: "x.cog.ts", content: "export function x(){return conclude<{a:string}>({a:''});}" }] } } }, sid);
     const result = parseToolResult(res.body) as { ok: boolean; error?: { kind: string } };
     expect(result.ok).toBe(false);
     expect(result.error?.kind).toBe("role_insufficient");
@@ -237,7 +237,7 @@ describe("6b Express + MCP Streamable HTTP transport", () => {
   });
 
   it("loads class-based srv and exposes runtime with serverFunctions", async () => {
-    const cogSrc = `export type R = { score: number };\nexport function analyze(t: string): R { return conclude<R>(); }`;
+    const cogSrc = `export type R = { score: number };\nexport function analyze(t: string): R { return conclude<R>({} as R); }`;
     const srvSrc = `export default class extends ZsScript {\n  rank(items: string[]): string[] { return items.sort(); }\n}`;
     const loader = new FsScriptLoader(new FakeReader({
       demo: {
@@ -253,7 +253,7 @@ describe("6b Express + MCP Streamable HTTP transport", () => {
   });
 
   it("instantiates SrvRuntime over class-based srv.ts at start", async () => {
-    const cogSrc = `export type R = { x: number };\nexport function f(t: string): R { return conclude<R>(); }`;
+    const cogSrc = `export type R = { x: number };\nexport function f(t: string): R { return conclude<R>({} as R); }`;
     const srvSrc = `export default class extends ZsScript {\n  double(n: number): number { return n * 2; }\n}`;
     const loader = new FsScriptLoader(new FakeReader({
       calc: {
@@ -282,7 +282,7 @@ describe("6b library ScriptSourceReader (filesystem)", () => {
     libRoot = await mkdtemp(join(tmpdir(), "zs-test-"));
     await writeFile(
       join(libRoot, "demo.cog.ts"),
-      `export type R = { x: string };\nexport function run(t: string): R { return conclude<R>(); }\n`,
+      `export type R = { x: string };\nexport function run(t: string): R { return conclude<R>({} as R); }\n`,
     );
   });
 
@@ -318,7 +318,7 @@ describe("6b library ScriptSourceReader (filesystem)", () => {
     const res = (await zsApp.callTool("zs_create", {
       agent_id,
       script_ref: "new-script",
-      cog: [{ name: "new-script.cog.ts", content: `export function f() { return conclude<{ok:boolean}>(); }` }],
+      cog: [{ name: "new-script.cog.ts", content: `export function f() { return conclude<{ok:boolean}>({ok:true}); }` }],
     })) as { ok: boolean };
     expect(res.ok).toBe(true);
     const read = (await zsApp.callTool("zs_read", { agent_id, script_ref: "new-script" })) as { cog: string };

@@ -9,7 +9,7 @@ const errs = <T extends { severity: string }>(ds: readonly T[]): T[] => ds.filte
 const TOPICS = `
 export type Input = { text: string };
 export type Result = { topics: string[] };
-export function topics(input: Input): Result { survey(input.text, { count: 3 }); return conclude<Result>(); }
+export function topics(input: Input): Result { survey(input.text, { count: 3 }); return conclude<Result>({ topics: [] }); }
 `;
 const NEWS_OK = `
 import type { Input as TIn, Result as TOut } from "./topics.cog";
@@ -17,7 +17,7 @@ export type Result = { summary: string };
 export function analyze(t: string): Result {
   const r = run<TIn, TOut>("topics", { text: t });
   synthesize(r.topics, { method: "x" });
-  return conclude<Result>();
+  return conclude<Result>({ summary: "" });
 }
 `;
 const NEWS_BAD = NEWS_OK.replace("{ text: t }", "{ txt: t }");

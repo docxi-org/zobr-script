@@ -21,7 +21,7 @@ mkdirSync(libRoot, { recursive: true });
 writeFileSync(join(libRoot, "hello.cog.ts"), `/** Test script. */
 export type Result = { msg: string };
 export function greet(name: string): Result {
-  return conclude<Result>();
+  return conclude<Result>({ msg: "" as string });
 }
 `);
 

@@ -275,7 +275,7 @@ describe("Standalone store tools", () => {
   });
 
   it("full snapshot includes worker state (class instance properties)", async () => {
-    const srvCog = `export type R = { x: number };\nexport function f(): R { checkpoint("c", {}); return conclude<R>(); }`;
+    const srvCog = `export type R = { x: number };\nexport function f(): R { checkpoint("c", {}); return conclude<R>({} as R); }`;
     const srvSrv = `export default class extends ZsScript {\n  private counter = 0;\n  onCheckpoint(label: string, data: unknown): Directive { this.counter++; return "proceed"; }\n}`;
     const srvReader = new FakeReader({
       counted: {
@@ -434,7 +434,7 @@ describe("Standalone store tools", () => {
   });
 
   it("resume from cold restores full state (Instance + worker)", async () => {
-    const srvCog = `export type R = { x: number };\nexport function f(): R { checkpoint("c", {}); return conclude<R>(); }`;
+    const srvCog = `export type R = { x: number };\nexport function f(): R { checkpoint("c", {}); return conclude<R>({} as R); }`;
     const srvSrv = `export default class extends ZsScript {\n  private counter = 0;\n  onCheckpoint(label: string, data: unknown): Directive { this.counter++; return this.counter >= 3 ? "halt" : "proceed"; }\n}`;
     const srvReader = new FakeReader({
       counter: {

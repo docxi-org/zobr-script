@@ -86,9 +86,9 @@
 
 ### 10.9. Тесты и финализация
 
-- [ ] **10.9.1** Тесты: guide loading (оглавление + конкретный topic + несуществующий).
-- [ ] **10.9.2** Тесты: role gating (executor → architect tool → отказ, architect → ok).
-- [ ] **10.9.3** Тесты: coverage (report=asserted, start=n/a, sandbox=verified).
-- [ ] **10.9.4** Тесты: `PUT /api/agents/:id/role`.
-- [ ] **10.9.5** Typecheck clean, все существующие тесты зелёные.
-- [ ] **10.9.6** Обновить CLAUDE.md, README.md.
+- [x] **10.9.1** Тесты: guide loading (оглавление + конкретный topic + несуществующий). → mcp-tools.test.ts
+- [x] **10.9.2** Тесты: role gating (executor → architect tool → отказ, architect → ok). → 6b-contract.test.ts
+- [x] **10.9.3** Тесты: coverage (report=asserted, start=n/a, sandbox=verified). → control.test.ts, instance.test.ts
+- [x] **10.9.4** Тесты: `PUT /api/agents/:id/role` — 5 тестов в api.test.ts.
+- [x] **10.9.5** Typecheck clean, 228 тестов зелёные.
+- [x] **10.9.6** Обновить CLAUDE.md, README.md.

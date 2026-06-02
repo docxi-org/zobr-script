@@ -225,6 +225,41 @@ describe("GET /api/ambients", () => {
   });
 });
 
+// ── Agent role management ──
+
+describe("PUT /api/agents/:id/role", () => {
+  let agentId: string;
+  beforeAll(() => { agentId = zsApp.agents.register("test-role-agent"); });
+
+  it("changes agent role to architect", async () => {
+    const res = await request(app).put(`/api/agents/${agentId}/role`).set(adminReq()).send({ role: "architect" });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, role: "architect" });
+    expect(zsApp.agents.get(agentId)?.role).toBe("architect");
+  });
+
+  it("changes agent role back to executor", async () => {
+    const res = await request(app).put(`/api/agents/${agentId}/role`).set(adminReq()).send({ role: "executor" });
+    expect(res.status).toBe(200);
+    expect(res.body.role).toBe("executor");
+  });
+
+  it("rejects invalid role", async () => {
+    const res = await request(app).put(`/api/agents/${agentId}/role`).set(adminReq()).send({ role: "superadmin" });
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 404 for unknown agent", async () => {
+    const res = await request(app).put("/api/agents/ag_nonexistent/role").set(adminReq()).send({ role: "architect" });
+    expect(res.status).toBe(404);
+  });
+
+  it("rejects executor user (requires admin or architect)", async () => {
+    const res = await request(app).put(`/api/agents/${agentId}/role`).set(execReq()).send({ role: "architect" });
+    expect(res.status).toBe(403);
+  });
+});
+
 // ── Role-based access ──
 
 describe("role-based access", () => {

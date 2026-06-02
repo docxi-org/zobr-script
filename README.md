@@ -47,11 +47,12 @@ Browser                              REST API (/api/*)
 
 ## Features
 
-### MCP Server (28 tools)
+### MCP Server (27 tools)
 - Full lifecycle: start / sandbox / checkpoint / report / conclude / resume / abort
-- Agent registration (persistent, idempotent by name)
+- Agent registration with per-agent roles (executor / architect)
+- Unified guide: `zs_guide({ topic? })` — 11 topics covering operations, trust, patterns
 - Standalone store operations (collections + notes)
-- Script discovery / CRUD (architect mode)
+- Script discovery / CRUD (gated by agent role, not global flag)
 
 ### Script Runtime
 - **File-based model** — script = `ref.cog.ts` + optional `ref.srv.ts`, not a folder
@@ -66,7 +67,7 @@ Browser                              REST API (/api/*)
 - Rate limiting on login (10 req/min per IP)
 - SQL LIMIT/OFFSET pagination for traces
 - Shape extraction via `extractCogShapes` for Script Detail contract tab
-- 28 API tests (supertest)
+- 33 API tests (supertest)
 
 ### Frontend SPA
 - **13 pages** — Login, Dashboard, Traces, Trace Detail, Scripts (Tree/Cards/Table), Script Detail (Monaco Editor), New Script, Store, Agents, Settings, Users, Help
@@ -82,7 +83,7 @@ Browser                              REST API (/api/*)
 # Install
 pnpm install
 
-# Run tests (221 tests)
+# Run tests (228 tests)
 pnpm test
 
 # Type check all packages
@@ -109,7 +110,6 @@ ZS_BUDGET_ITERATIONS=100
 ZS_INVOCATION_TTL=3600          # seconds
 ZS_AWAITING_TTL=86400           # seconds
 ZS_MAX_ACTIVE_INVOCATIONS=100
-ZS_ARCHITECT_MODE=true          # enables create/update/delete tools
 ZS_JWT_SECRET=...               # random if not set (tokens lost on restart)
 ZS_ADMIN_PASSWORD=admin         # seed admin password
 LOG_LEVEL=info

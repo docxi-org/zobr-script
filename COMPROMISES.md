@@ -9,7 +9,7 @@
 
 - [ ] Шрифты загружаются через Google Fonts CDN, не self-hosted.
 - [ ] Mobile: нет tabs переключателя code/events в Trace Detail (split → tabs на узком экране).
-- [ ] localStorage для JWT токенов — не httpOnly cookie. Стандартный подход для SPA без BFF.
+- [x] ~~localStorage для JWT токенов~~ → httpOnly cookies (zs_token + zs_refresh). Fallback на Authorization header сохранён.
 
 ## Monaco Editor
 

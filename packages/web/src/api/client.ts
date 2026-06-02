@@ -1,24 +1,3 @@
-const TOKEN_KEY = "zs_token";
-const REFRESH_KEY = "zs_refresh_token";
-
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_KEY);
-}
-
-export function setTokens(token: string, refreshToken: string) {
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(REFRESH_KEY, refreshToken);
-}
-
-export function clearTokens() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_KEY);
-}
-
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -33,22 +12,12 @@ export class ApiError extends Error {
 let refreshPromise: Promise<boolean> | null = null;
 
 async function tryRefresh(): Promise<boolean> {
-  const rt = getRefreshToken();
-  if (!rt) return false;
-
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
     try {
-      const res = await fetch("/api/auth/refresh", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refreshToken: rt }),
-      });
-      if (!res.ok) return false;
-      const data = (await res.json()) as { token: string };
-      localStorage.setItem(TOKEN_KEY, data.token);
-      return true;
+      const res = await fetch("/api/auth/refresh", { method: "POST" });
+      return res.ok;
     } catch {
       return false;
     } finally {
@@ -60,24 +29,23 @@ async function tryRefresh(): Promise<boolean> {
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const doFetch = async (token: string | null) => {
+  const doFetch = () => {
     const headers: Record<string, string> = {};
-    if (token) headers["Authorization"] = `Bearer ${token}`;
     if (body !== undefined) headers["Content-Type"] = "application/json";
-
     return fetch(`/api${path}`, {
       method,
       headers,
+      credentials: "same-origin",
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
   };
 
-  let res = await doFetch(getToken());
+  let res = await doFetch();
 
-  if (res.status === 401 && getRefreshToken()) {
+  if (res.status === 401) {
     const refreshed = await tryRefresh();
     if (refreshed) {
-      res = await doFetch(getToken());
+      res = await doFetch();
     }
   }
 

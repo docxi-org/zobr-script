@@ -155,14 +155,18 @@ export class AuthService {
     }
   }
 
+  get tokenTtlSec(): number { return this.#tokenTtl; }
+  get refreshTtlSec(): number { return this.#refreshTtl; }
+
   middleware(requiredRoles?: Role[]) {
     return async (req: Request, res: Response, next: NextFunction) => {
+      const cookieToken = parseCookie(req.headers.cookie ?? "", "zs_token");
       const header = req.headers.authorization;
-      if (!header?.startsWith("Bearer ")) {
-        res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Missing or invalid Authorization header" } });
+      const token = cookieToken ?? (header?.startsWith("Bearer ") ? header.slice(7) : undefined);
+      if (!token) {
+        res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Missing authentication" } });
         return;
       }
-      const token = header.slice(7);
       const user = await this.verifyRequest(token);
       if (!user) {
         res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Invalid or expired token" } });
@@ -176,4 +180,9 @@ export class AuthService {
       next();
     };
   }
+}
+
+function parseCookie(header: string, name: string): string | undefined {
+  const match = header.match(new RegExp(`(?:^|;)\\s*${name}=([^;]*)`));
+  return match?.[1];
 }

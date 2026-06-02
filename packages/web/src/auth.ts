@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { api, setTokens, clearTokens, getToken, type ApiError } from "./api/client";
+import { api, type ApiError } from "./api/client";
 
 export type Role = "architect" | "executor" | "admin";
 
@@ -9,9 +9,9 @@ export interface User {
   role: Role;
 }
 
+const AUTHED_KEY = "zs_authed";
+
 interface LoginResponse {
-  token: string;
-  refreshToken: string;
   user: User;
 }
 
@@ -22,7 +22,7 @@ interface MeResponse {
 }
 
 export function useAuth() {
-  const [authed, setAuthed] = useState(() => !!getToken());
+  const [authed, setAuthed] = useState(() => localStorage.getItem(AUTHED_KEY) === "1");
   const [user, setUser] = useState<User>({ id: "", email: "", role: "executor" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +32,7 @@ export function useAuth() {
     setError("");
     try {
       const res = await api.post<LoginResponse>("/auth/login", { email, password });
-      setTokens(res.token, res.refreshToken);
+      localStorage.setItem(AUTHED_KEY, "1");
       setUser({ id: res.user.id, email: res.user.email, role: res.user.role });
       setAuthed(true);
       return true;
@@ -45,8 +45,9 @@ export function useAuth() {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    clearTokens();
+  const logout = useCallback(async () => {
+    try { await api.post("/auth/logout"); } catch {}
+    localStorage.removeItem(AUTHED_KEY);
     setAuthed(false);
     setUser({ id: "", email: "", role: "executor" });
   }, []);
@@ -55,9 +56,10 @@ export function useAuth() {
     try {
       const me = await api.get<MeResponse>("/auth/me");
       setUser({ id: me.id, email: me.email, role: me.role as Role });
+      localStorage.setItem(AUTHED_KEY, "1");
       setAuthed(true);
     } catch {
-      clearTokens();
+      localStorage.removeItem(AUTHED_KEY);
       setAuthed(false);
     }
   }, []);

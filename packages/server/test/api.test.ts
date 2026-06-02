@@ -33,20 +33,29 @@ const auth = new AuthService(db.rawDb, { jwtSecret: "test-secret", logger: log }
 const app = createMcpExpressApp({ host: "0.0.0.0" });
 app.use("/api", json(), createApiRouter(zsApp, auth, log));
 
-let adminToken = "";
-let executorToken = "";
+let adminCookie = "";
+let executorCookie = "";
+
+function extractCookie(res: request.Response, name: string): string {
+  const raw = res.headers["set-cookie"] as string | string[] | undefined;
+  const arr = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  for (const c of arr) {
+    const m = c.match(new RegExp(`${name}=([^;]*)`));
+    if (m) return `${name}=${m[1]}`;
+  }
+  return "";
+}
 
 beforeAll(async () => {
-  // seed admin is auto-created; create an executor user
   auth.createUser("exec@test.com", "pass123", "executor");
 
   const adminLogin = await request(app).post("/api/auth/login")
     .send({ email: "admin@docxi.org", password: "admin" });
-  adminToken = adminLogin.body.token;
+  adminCookie = extractCookie(adminLogin, "zs_token");
 
   const execLogin = await request(app).post("/api/auth/login")
     .send({ email: "exec@test.com", password: "pass123" });
-  executorToken = execLogin.body.token;
+  executorCookie = extractCookie(execLogin, "zs_token");
 });
 
 afterAll(() => {
@@ -54,20 +63,21 @@ afterAll(() => {
   rmSync(tmp, { recursive: true, force: true });
 });
 
-function adminReq() { return { Authorization: `Bearer ${adminToken}` }; }
-function execReq() { return { Authorization: `Bearer ${executorToken}` }; }
+function adminReq() { return { Cookie: adminCookie }; }
+function execReq() { return { Cookie: executorCookie }; }
 
 // ── Auth ──
 
 describe("POST /api/auth/login", () => {
-  it("returns token for valid credentials", async () => {
+  it("returns user and sets httpOnly cookies for valid credentials", async () => {
     const res = await request(app).post("/api/auth/login")
       .send({ email: "admin@docxi.org", password: "admin" });
     expect(res.status).toBe(200);
-    expect(res.body.token).toBeDefined();
-    expect(res.body.refreshToken).toBeDefined();
     expect(res.body.user.email).toBe("admin@docxi.org");
     expect(res.body.user.role).toBe("admin");
+    expect(res.body.token).toBeUndefined();
+    expect(extractCookie(res, "zs_token")).toContain("zs_token=");
+    expect(extractCookie(res, "zs_refresh")).toContain("zs_refresh=");
   });
 
   it("rejects invalid password", async () => {
@@ -83,18 +93,20 @@ describe("POST /api/auth/login", () => {
 });
 
 describe("POST /api/auth/refresh", () => {
-  it("returns new token for valid refresh token", async () => {
+  it("refreshes token via cookie", async () => {
     const login = await request(app).post("/api/auth/login")
       .send({ email: "admin@docxi.org", password: "admin" });
+    const refreshCookie = extractCookie(login, "zs_refresh");
     const res = await request(app).post("/api/auth/refresh")
-      .send({ refreshToken: login.body.refreshToken });
+      .set("Cookie", refreshCookie);
     expect(res.status).toBe(200);
-    expect(res.body.token).toBeDefined();
+    expect(res.body.ok).toBe(true);
+    expect(extractCookie(res, "zs_token")).toContain("zs_token=");
   });
 
-  it("rejects invalid refresh token", async () => {
+  it("rejects invalid refresh cookie", async () => {
     const res = await request(app).post("/api/auth/refresh")
-      .send({ refreshToken: "garbage" });
+      .set("Cookie", "zs_refresh=garbage");
     expect(res.status).toBe(401);
   });
 });

@@ -27,6 +27,28 @@ interface AuthedRequest extends Request {
   user: UserRecord;
 }
 
+const COOKIE_OPTS = { httpOnly: true, sameSite: "lax" as const, path: "/api" };
+
+function setTokenCookies(res: Response, token: string, refreshToken: string, tokenTtl: number, refreshTtl: number): void {
+  res.setHeader("Set-Cookie", [
+    `zs_token=${token}; HttpOnly; SameSite=Lax; Path=/api; Max-Age=${tokenTtl}`,
+    `zs_refresh=${refreshToken}; HttpOnly; SameSite=Lax; Path=/api/auth; Max-Age=${refreshTtl}`,
+  ]);
+}
+
+function clearTokenCookies(res: Response): void {
+  res.setHeader("Set-Cookie", [
+    "zs_token=; HttpOnly; SameSite=Lax; Path=/api; Max-Age=0",
+    "zs_refresh=; HttpOnly; SameSite=Lax; Path=/api/auth; Max-Age=0",
+  ]);
+}
+
+function parseCookieValue(header: string | undefined, name: string): string | undefined {
+  if (!header) return undefined;
+  const match = header.match(new RegExp(`(?:^|;)\\s*${name}=([^;]*)`));
+  return match?.[1];
+}
+
 export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger): Router {
   const router = Router();
   router.use(json());
@@ -46,21 +68,30 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
       res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Invalid credentials" } });
       return;
     }
-    res.json(result);
+    setTokenCookies(res, result.token, result.refreshToken, auth.tokenTtlSec, auth.refreshTtlSec);
+    res.json({ user: result.user });
   });
 
   router.post("/auth/refresh", async (req, res) => {
-    const { refreshToken } = req.body as { refreshToken?: string };
+    const refreshToken = parseCookieValue(req.headers.cookie, "zs_refresh")
+      ?? (req.body as { refreshToken?: string }).refreshToken;
     if (!refreshToken) {
-      res.status(400).json({ error: { code: "BAD_REQUEST", message: "refreshToken required" } });
+      res.status(400).json({ error: { code: "BAD_REQUEST", message: "refresh token required" } });
       return;
     }
     const result = await auth.refresh(refreshToken);
     if (!result) {
+      clearTokenCookies(res);
       res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Invalid or expired refresh token" } });
       return;
     }
-    res.json(result);
+    res.setHeader("Set-Cookie", `zs_token=${result.token}; HttpOnly; SameSite=Lax; Path=/api; Max-Age=${auth.tokenTtlSec}`);
+    res.json({ ok: true });
+  });
+
+  router.post("/auth/logout", (_req, res) => {
+    clearTokenCookies(res);
+    res.json({ ok: true });
   });
 
   router.get("/auth/me", auth.middleware(), (req, res) => {

@@ -5,7 +5,6 @@ import { Card } from "../ui/card";
 import { DataTable, type Column } from "../ui/data-table";
 import { SectionTitle } from "../ui/section-title";
 import { ScriptChip } from "../ui/script-chip";
-import { Segmented } from "../ui/segmented";
 import { timeAgo, fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
@@ -24,19 +23,52 @@ function MiniStat({ label, value, c }: { label: string; value: string | number; 
   );
 }
 
+const ROLE_COLOR: Record<string, string> = {
+  executor: "var(--st-done)",
+  architect: "var(--trust-asserted)",
+};
+
+const ROLE_KEY: Record<string, string> = { executor: "agents.role_executor", architect: "agents.role_architect" };
+
 function RoleToggle({ agentId, role, onChanged }: { agentId: string; role: string; onChanged: () => void }) {
-  const isArch = role === "architect";
+  const t = useT();
+  const c = ROLE_COLOR[role] ?? ROLE_COLOR["executor"]!;
   const toggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    await api.put(`/agents/${agentId}/role`, { role: isArch ? "executor" : "architect" });
+    await api.put(`/agents/${agentId}/role`, { role: role === "architect" ? "executor" : "architect" });
     onChanged();
   };
   return (
     <button onClick={toggle} className="inline-flex cursor-pointer items-center rounded-full border-none"
-      style={{ gap: 6, padding: "3px 10px 3px 6px", background: isArch ? "color-mix(in oklch, var(--accent) calc(var(--tint) * 100%), transparent)" : "var(--bg-2)", fontSize: "var(--fs-xs)", fontWeight: 600, color: isArch ? "var(--accent)" : "var(--text-2)", transition: "all .15s var(--ease)" }}>
-      <span style={{ width: 8, height: 8, borderRadius: 99, background: isArch ? "var(--accent)" : "var(--text-3)" }} />
-      {role}
+      style={{ gap: 6, padding: "3px 10px 3px 6px", background: `color-mix(in oklch, ${c} calc(var(--tint) * 100%), transparent)`, fontSize: "var(--fs-xs)", fontWeight: 600, color: c, transition: "all .15s var(--ease)" }}>
+      <span style={{ width: 8, height: 8, borderRadius: 99, background: c }} />
+      {t((ROLE_KEY[role] ?? ROLE_KEY["executor"]!) as Parameters<typeof t>[0])}
     </button>
+  );
+}
+
+function RoleSegmented({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useT();
+  const opts = [
+    { value: "executor", label: t("agents.role_executor"), c: ROLE_COLOR["executor"]! },
+    { value: "architect", label: t("agents.role_architect"), c: ROLE_COLOR["architect"]! },
+  ];
+  return (
+    <div className="inline-flex rounded-[var(--r-md)] border border-[var(--border)]" style={{ padding: 3, gap: 2, background: "var(--bg-2)" }}>
+      {opts.map((o) => {
+        const on = value === o.value;
+        return (
+          <button key={o.value} onClick={() => onChange(o.value)} className="cursor-pointer rounded-[6px]"
+            style={{ padding: "4px 11px", fontSize: "var(--fs-sm)", fontWeight: 600, border: "1px solid transparent", transition: "all .14s var(--ease)",
+              background: on ? `color-mix(in oklch, ${o.c} calc(var(--tint) * 100%), var(--bg-0))` : "transparent",
+              color: on ? o.c : "var(--text-3)",
+              borderColor: on ? `color-mix(in oklch, ${o.c} 30%, transparent)` : "transparent",
+            }}>
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -112,11 +144,7 @@ export function AgentDetailPage({ id }: { id: string }) {
             <span style={{ fontWeight: 600 }}>{t("agents.role")}</span>
             <span style={{ color: "var(--text-3)", fontSize: "var(--fs-xs)" }}>{t("agents.role_hint")}</span>
           </div>
-          <Segmented
-            value={agent.role ?? "executor"}
-            onChange={changeRole}
-            options={[{ value: "executor", label: t("agents.role_executor") }, { value: "architect", label: t("agents.role_architect") }]}
-          />
+          <RoleSegmented value={agent.role ?? "executor"} onChange={changeRole} />
         </div>
       </Card>
 

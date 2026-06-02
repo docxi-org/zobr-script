@@ -13,6 +13,6 @@
 
 ## Monaco Editor
 
-- [ ] Monaco загружается с CDN (unpkg). Кешируется браузером, preload при логине компенсирует.
+- [x] ~~Monaco с CDN (unpkg)~~ → бандлится Vite из node_modules через loader.config({ monaco }). Нет CDN-запросов.
 - [ ] Hex цвета в Monaco темах — ограничение Monaco API, не привязаны к CSS vars.
 - [ ] Diff view — наивный LCS O(n·m). Не проблема для скриптов <200 строк.

@@ -4,6 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
+  worker: { format: "es" },
   server: {
     port: 1980,
     proxy: {

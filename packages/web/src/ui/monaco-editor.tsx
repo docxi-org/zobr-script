@@ -1,7 +1,10 @@
 import { useRef, useEffect } from "react";
-import MonacoEditor, { type Monaco, type OnMount } from "@monaco-editor/react";
+import MonacoEditor, { loader, type Monaco, type OnMount } from "@monaco-editor/react";
+import * as monacoAll from "monaco-editor";
 import type { editor } from "monaco-editor";
 import { Icon } from "./icon";
+
+loader.config({ monaco: monacoAll });
 
 const ZS_OPS = [
   { label: "survey", detail: "Explore a space — gather candidates, scan for patterns.", insertText: 'survey(${1:topic}, {\n  lens: "${2:structural}",\n  count: ${3:10},\n})' },
@@ -146,7 +149,7 @@ async function loadAmbients(monaco: Monaco) {
 }
 
 export function preloadMonaco() {
-  import("@monaco-editor/react").then((mod) => mod.loader.init());
+  loader.init();
 }
 
 export interface EditorMarker {

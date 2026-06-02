@@ -55,11 +55,14 @@ Each field of the result is explicitly mapped to a variable from a prior step. T
 | `commit` | Declare criteria and basis for a decision | verified |
 | `synthesize` | Combine findings into a pattern | asserted |
 | `contrast` | Compare alternatives | asserted |
+| `retrieve` | Fetch data from an external source (agent uses own tools) | verified* |
 | `checkpoint` | Server-adjudicated gate → [directive](checkpoints) | verified |
 | `conclude` | Final result, validated against type `T` | verified |
 | `report` | Log an intermediate observation to the [trace](trace) | verified |
 
-> **Note:** these operations are not function calls that return computed values. They are prompts that the agent fulfills with its reasoning, and the results are recorded in the trace with the appropriate [trust class](trust-classes).
+\* `retrieve` is `verified` when the agent provides provenance (tool name, source URL), `asserted` otherwise.
+
+> **Note:** these operations are not function calls that return computed values. They are prompts that the agent fulfills with its reasoning, and the results are recorded in the trace with the appropriate [trust class](trust-classes). For `retrieve`, the agent uses its own host tools (MCP resources, APIs) to fetch data, then reports it to the server with provenance.
 
 ## The server module
 

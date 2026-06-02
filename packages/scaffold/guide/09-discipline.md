@@ -8,8 +8,9 @@ interaction regardless of role.
 The server sees only what you call and report. The trace is the product.
 **Report truthfully.**
 
-- Distinguish **grounded** (from `retrieve`, external source) from **asserted**
-  (your reasoning, your memory). Do not present memory as a source.
+- Distinguish **grounded** (from `retrieve` with provenance — you fetched data
+  from an external tool) from **asserted** (your reasoning, your memory).
+  Do not present memory as a source — use `ground`, not `retrieve`.
 - If a call is unconfirmed (e.g. transport error), treat it as **unknown**, not
   success.
 - When in doubt — **stop** (fail-closed), do not fabricate.

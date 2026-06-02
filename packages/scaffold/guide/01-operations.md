@@ -38,15 +38,23 @@ agent already has. Model memory is hallucination-prone. For real external data,
 use `retrieve`.
 
 ### `retrieve(query, { from? }) → Sem`
-**Trust:** verified (server source) or asserted-relay (host tool). Fetch data
-from an external source (`from`: `"kb"`, `"web"`, or a connector name).
+**Trust:** verified (with provenance) or asserted (without). Fetch data from an
+external source using your own tools (MCP resources, APIs, databases).
+
+**How it works:** you read `retrieve(query, { from: "source" })` in the script →
+use your own host tools to get the data → call `zs_retrieve` with the data and
+provenance (tool name, URL, method). The server records it in the trace.
+
+**Provenance determines trust:** if you provide provenance (the tool or source
+you used), the event is recorded as `verified`. If you omit provenance, it is
+`asserted` — effectively no better than ground.
 
 Key anti-hallucination mechanism: introduces an independent source of truth.
 Back a factual `assert` with a `retrieve` handle, not `ground` from memory.
 
 **`ground` vs `retrieve`:** ground = "what do I already know about this?"
 (asserted, may hallucinate). retrieve = "fetch real data from an external system"
-(verified when server-sourced).
+(verified when provenance is provided).
 
 ---
 

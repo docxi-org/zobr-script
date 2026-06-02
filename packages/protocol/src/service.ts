@@ -189,8 +189,18 @@ export class ZsService {
     return { ok: true };
   }
 
-  retrieve(_req: RetrieveReq): RetrieveRes {
-    return { ok: false, error: { kind: "not_implemented", message: "zs_retrieve requires a KB subsystem (not yet available)" } };
+  retrieve(req: RetrieveReq): RetrieveRes {
+    const inst = this.#registry.require(req.invocation_id);
+    const trust = req.provenance ? "verified" : "asserted";
+    inst.trace.append({
+      op: "retrieve",
+      realizer: "external",
+      trust,
+      inputs: [],
+      preview: typeof req.data === "string" ? req.data.slice(0, 200) : JSON.stringify(req.data).slice(0, 200),
+      meta: { query: req.query, ...(req.source ? { source: req.source } : {}), provenance: req.provenance },
+    });
+    return { ok: true };
   }
 
   resume(req: ResumeReq): ResumeRes {

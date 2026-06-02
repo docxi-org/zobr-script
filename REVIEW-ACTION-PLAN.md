@@ -142,10 +142,10 @@
   - Решение пересмотрено: config.json per-folder (пакет скриптов), не per-script. Подробное описание в ISSUES.md.
   - Effort: 4h
 
-- [ ] **P2-12. Protocol: zs_retrieve — agent-side retrieval** → TODO.md срез 13
+- [x] **P2-12. Protocol: zs_retrieve — agent-side retrieval** ✅ 2026-06-03
   - Источник: B-5, H-35
-  - Решение пересмотрено: агент выполняет retrieval своими host-tools, сервер фиксирует результат. Trust по provenance (verified/asserted). Не KB интеграция.
-  - Effort: 2-3h
+  - Решение: stub заменён на agent-side retrieval. Агент приносит data + provenance, сервер пишет в трейс. Trust: verified с provenance, asserted без. 3 теста. Docs обновлены (guide + help en/ru).
+  - Файлы: `protocol/src/messages.ts`, `protocol/src/service.ts`, `server/src/mcp-tools.ts`, guide (01, 02, 09), help (trust-classes, how-scripts-work) en+ru
 
 ---
 

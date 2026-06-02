@@ -115,6 +115,37 @@ describe("ZsService.askRecord / actRecord", () => {
   });
 });
 
+describe("ZsService.retrieve", () => {
+  it("records a verified event when provenance is provided", async () => {
+    const { reg, s } = svc();
+    const { invocation_id } = await s.start({ script_ref: "news" });
+    const r = s.retrieve({ invocation_id, query: "revenue Q3", data: { total: 42 }, provenance: "postgres_query" });
+    expect(r.ok).toBe(true);
+    const ev = reg.require(invocation_id).trace.events.find((e) => e.op === "retrieve");
+    expect(ev).toBeDefined();
+    expect(ev?.trust).toBe("verified");
+    expect(ev?.realizer).toBe("external");
+    expect(ev?.meta).toMatchObject({ query: "revenue Q3", provenance: "postgres_query" });
+  });
+
+  it("records an asserted event when provenance is empty", async () => {
+    const { reg, s } = svc();
+    const { invocation_id } = await s.start({ script_ref: "news" });
+    const r = s.retrieve({ invocation_id, query: "some fact", data: "answer", provenance: "" });
+    expect(r.ok).toBe(true);
+    const ev = reg.require(invocation_id).trace.events.find((e) => e.op === "retrieve");
+    expect(ev?.trust).toBe("asserted");
+  });
+
+  it("includes source in meta when provided", async () => {
+    const { reg, s } = svc();
+    const { invocation_id } = await s.start({ script_ref: "news" });
+    s.retrieve({ invocation_id, query: "docs", source: "company_db", data: {}, provenance: "pg_tool" });
+    const ev = reg.require(invocation_id).trace.events.find((e) => e.op === "retrieve");
+    expect(ev?.meta).toMatchObject({ source: "company_db" });
+  });
+});
+
 describe("ZsService.conclude", () => {
   it("validates result against concludeShape and finalizes", async () => {
     const shape = { kind: "object", fields: { a: { kind: "number" } } } as const;

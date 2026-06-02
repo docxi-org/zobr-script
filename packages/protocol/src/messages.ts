@@ -36,18 +36,16 @@ export const zSandboxRes = z.object({
   error: z.object({ kind: z.string(), message: z.string() }).optional(),
 });
 
-// --- zs_retrieve (contract only; real fetch is server/6b) ---
+// --- zs_retrieve (agent-side retrieval: agent fetches, server records) ---
 export const zRetrieveReq = z.object({
   invocation_id: z.string(),
   query: z.string(),
-  from: z.string().optional(),
-  idempotency_key: z.string().optional(),
+  source: z.string().optional(),
+  data: z.unknown(),
+  provenance: z.string(),
 });
 export const zRetrieveRes = z.object({
   ok: z.boolean(),
-  handle: zHandleRef.optional(),
-  preview: z.string().optional(),
-  provenance: z.record(z.string(), z.unknown()).optional(),
   error: z.object({ kind: z.string(), message: z.string() }).optional(),
 });
 

@@ -27,6 +27,7 @@ Trust is determined by the **origin of the content**, not merely by who executed
 - An `act` — action result relayed by the agent → `asserted`
 - A [server function](server-module) / `@sandbox` call — deterministic computation → `verified`
 - A [checkpoint](checkpoints) — the server evaluates data and returns a directive → `verified`
+- A `retrieve` with provenance (agent fetched data from an external tool and reported the source) → `verified`; without provenance → `asserted`
 - A `conclude` validated against its shape → `verified`
 - An `ask_user` response from the human → `authority`
 - A `start` or status transition → `n/a` (infrastructure, excluded from coverage)

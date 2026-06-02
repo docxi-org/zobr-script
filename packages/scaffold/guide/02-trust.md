@@ -22,8 +22,8 @@ Produced or checked by deterministic code or an independent source. Tamper-
 resistant when server-sourced (stored by handle, agent cannot overwrite).
 
 Examples: `@sandbox` functions, `checkpoint` (server evaluates and responds
-with a Directive), `conclude` shape validation, `retrieve` from a server-side
-source (KB).
+with a Directive), `conclude` shape validation, `retrieve` with provenance
+(agent fetched data from an external tool and reported the source).
 
 ### `authority`
 
@@ -100,7 +100,7 @@ mandatory seams (`@sandbox`, `run`) and voluntary reports (`report`,
 
 Honest limit: a cooperative agent may skip `report` or distort its content.
 Real enforcement comes only from (a) mandatory seams (sandbox — no other way
-to compute; gate-checkpoint; verified `retrieve`) and (b) server-driven
+to compute; gate-checkpoint; `retrieve` with provenance) and (b) server-driven
 execution (deferred).
 
 ## Agent Reporting Convention

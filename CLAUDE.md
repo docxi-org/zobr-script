@@ -171,7 +171,7 @@ Express app:
 ```
 
 27 MCP tools: 6 lifecycle + 2 trace records + 3 discovery + 4 CRUD +
-8 store + 1 register + 1 abort + 1 guide + 1 retrieve
+8 store + 1 register + 1 abort + 1 guide + 1 retrieve (agent-side, trust by provenance)
 
 ### Deployment
 

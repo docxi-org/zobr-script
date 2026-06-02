@@ -221,6 +221,13 @@ export function createProtectedResourceRouter(auth: ZsAuth, resourcePath = "/mcp
   return router;
 }
 
+export interface OAuthUserInfo {
+  userId: string;
+  email: string;
+  clientId: string;
+  scopes: string[];
+}
+
 export function requireBearerAuth(auth: ZsAuth, resourceMetadataUrl: string) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const header = req.headers.authorization;
@@ -233,9 +240,21 @@ export function requireBearerAuth(auth: ZsAuth, resourceMetadataUrl: string) {
     try {
       const headers = new Headers();
       headers.set("Authorization", `Bearer ${token}`);
-      const session = await (auth.api as Record<string, Function>)["getMcpSession"]!({ headers });
+      const api = auth.api as Record<string, Function>;
+      const session = await api["getMcpSession"]!({ headers }) as { userId?: string; clientId?: string; scopes?: string } | null;
       if (!session) throw new Error("Invalid token");
-      (req as Request & { oauthUser?: unknown }).oauthUser = session;
+      let email = "";
+      if (session.userId) {
+        const user = await api["getUser"]?.({ query: { id: session.userId } }) as { email?: string } | null;
+        email = user?.email ?? "";
+      }
+      const info: OAuthUserInfo = {
+        userId: session.userId ?? "",
+        email,
+        clientId: session.clientId ?? "",
+        scopes: typeof session.scopes === "string" ? session.scopes.split(" ") : [],
+      };
+      (req as Request & { oauthUser?: OAuthUserInfo }).oauthUser = info;
       next();
     } catch {
       res.set("WWW-Authenticate", `Bearer error="invalid_token", error_description="Invalid or expired token", resource_metadata="${resourceMetadataUrl}"`);

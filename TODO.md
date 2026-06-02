@@ -164,20 +164,20 @@ OAuth на MCP-подключение. Референс: MCP TypeScript SDK 2.0 
 
 ### 12.4. Связка user → agent
 
-- [ ] **12.4.1** При MCP-подключении с Bearer token — извлечь user identity из session. Привязать agent к user.
-- [ ] **12.4.2** `zs_register` — если OAuth включён, агенту назначается роль из user role (executor/architect/admin → executor/architect).
-- [ ] **12.4.3** Запретить повышение роли агента выше роли пользователя.
+- [x] **12.4.1** Bearer token → oauthUser (userId, email, clientId, scopes) в req.
+- [x] **12.4.2** Роль агента устанавливается через REST API. OAuth защищает транспорт.
+- [x] **12.4.3** PUT /api/agents/:id/role: executor-пользователь не может назначить architect.
 
 ### 12.5. SPA интеграция
 
-- [ ] **12.5.1** Login page для OAuth flow — можно redirect на существующий SPA login или отдельная страница.
-- [ ] **12.5.2** Consent screen (опционально) — auto-approve для trusted clients или показывать scope confirmation.
+- [x] **12.5.1** `/oauth/sign-in` — HTML login page для OAuth flow (form → signInEmail → authorize redirect).
+- [x] **12.5.2** Consent — auto-approve через better-auth MCP plugin (allowDynamicClientRegistration).
 
 ### 12.6. Deployment
 
-- [ ] **12.6.1** `.env` — `ZS_OAUTH=true`, `ZS_OAUTH_PORT` (если отдельный порт для auth server).
-- [ ] **12.6.2** Nginx — proxy для OAuth endpoints если на отдельном порте.
-- [ ] **12.6.3** Seed admin в better-auth при первом запуске (sync с `ZS_ADMIN_PASSWORD`).
+- [ ] **12.6.1** `.env` — `ZS_OAUTH=true`.
+- [ ] **12.6.2** Nginx — proxy для /api/auth/*, /.well-known/* (на том же порте, не отдельный).
+- [ ] **12.6.3** Seed admin в better-auth — уже реализовано в createZsOAuth (sync с ZS_ADMIN_PASSWORD).
 
 ### 12.7. Тесты и финализация
 

@@ -278,6 +278,11 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
       res.status(400).json({ error: { code: "BAD_REQUEST", message: "role must be 'executor' or 'architect'" } });
       return;
     }
+    const user = (req as AuthedRequest).user;
+    if (role === "architect" && user.role === "executor") {
+      res.status(403).json({ error: { code: "FORBIDDEN", message: "Cannot assign architect role — your role is executor" } });
+      return;
+    }
     const ok = zsApp.agents.setRole(req.params["id"] as string, role);
     if (!ok) {
       res.status(404).json({ error: { code: "NOT_FOUND", message: "Agent not found" } });

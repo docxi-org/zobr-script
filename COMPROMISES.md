@@ -7,7 +7,7 @@
 
 ## Общие (frontend)
 
-- [ ] Шрифты загружаются через Google Fonts CDN, не self-hosted.
+- [x] ~~Шрифты через Google Fonts CDN~~ → self-hosted variable woff2 в public/fonts/ (Inter 352KB + JetBrains Mono 307KB).
 - [ ] Mobile: нет tabs переключателя code/events в Trace Detail (split → tabs на узком экране).
 - [x] ~~localStorage для JWT токенов~~ → httpOnly cookies (zs_token + zs_refresh). Fallback на Authorization header сохранён.
 

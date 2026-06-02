@@ -156,7 +156,7 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
 
   const doValidate = async () => {
     try {
-      const result = await api.post<{ ok: boolean; errors: { code: string; message: string; file: string; line: number }[]; warnings: { code: string; message: string; file: string; line: number }[] }>(`/scripts/${scriptRef}/validate`, { cog, srv: hasSrv ? srv : undefined });
+      const result = await api.post<{ ok: boolean; errors: { code: string; message: string; file: string; line: number }[]; warnings: { code: string; message: string; file: string; line: number }[] }>(`/scripts/${scriptRef}/validate`, { cog: [{ name: `${scriptRef}.cog.ts`, content: cog }], srv: hasSrv ? [{ name: `${scriptRef}.srv.ts`, content: srv }] : [] });
       const errors = result.errors.map((e) => ({ code: e.code, message: e.message, line: e.line }));
       const warnings = result.warnings.map((w) => ({ code: w.code, message: w.message, line: w.line }));
       setValidation({ ok: result.ok, errors, warnings });

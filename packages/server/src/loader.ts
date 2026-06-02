@@ -55,6 +55,8 @@ export class FsScriptLoader implements ScriptLoader {
     const cogShapes = extractCogShapes(raw.cog, cognitiveAmbient);
     const hasServerModule = raw.srv.length > 0;
 
+    const budgets = parseBudgetTag(raw.cog[0]?.content ?? "");
+
     const optShapes = {
       ...(cogShapes.concludeShape !== undefined ? { concludeShape: cogShapes.concludeShape } : {}),
       ...(Object.keys(cogShapes.checkpointShapes).length > 0 ? { checkpointShapes: cogShapes.checkpointShapes } : {}),
@@ -71,6 +73,7 @@ export class FsScriptLoader implements ScriptLoader {
         sandboxHost: { has: () => false, invoke: () => Promise.reject(new Error("no sandbox host")) },
         controller: NO_CONTROLLER,
         ...optShapes,
+        ...(budgets ? { budgets } : {}),
       };
     }
 
@@ -95,8 +98,24 @@ export class FsScriptLoader implements ScriptLoader {
       runtime,
       serverFunctions,
       ...optShapes,
+      ...(budgets ? { budgets } : {}),
     };
   }
+}
+
+function parseBudgetTag(source: string): { steps?: number; iterations?: number } | undefined {
+  const m = source.match(/^\/\*\*[\s\S]*?\*\//);
+  if (!m) return undefined;
+  const bm = m[0].match(/@budget\s+(.+)/);
+  if (!bm) return undefined;
+  const result: { steps?: number; iterations?: number } = {};
+  for (const pair of bm[1]!.split(/\s+/)) {
+    const [k, v] = pair.split("=");
+    const n = Number(v);
+    if (k === "steps" && Number.isFinite(n) && n > 0) result.steps = n;
+    if (k === "iterations" && Number.isFinite(n) && n > 0) result.iterations = n;
+  }
+  return result.steps !== undefined || result.iterations !== undefined ? result : undefined;
 }
 
 export class StartRejected extends Error {

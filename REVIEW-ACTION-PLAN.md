@@ -86,88 +86,66 @@
 
 ## P2 — MEDIUM (v0.3 планирование)
 
-- [ ] **P2-1. Architecture: callTool refactor**
+- [ ] ⏸️ **P2-1. Architecture: callTool refactor** — ОТЛОЖЕНО (рефакторинг без изменения поведения)
   - Источник: A-2, H-32
-  - Проблема: God-method с 24 case ветками, store methods дублируются
-  - Решение: Extract auth/eviction в отдельные функции, store methods в StoreHandler class
   - Файлы: `app.ts`
   - Effort: 4h
 
-- [ ] **P2-2. MCP Guide: расширить паттерны**
+- [ ] ⏸️ **P2-2. MCP Guide: расширить паттерны** — ОТЛОЖЕНО (после реальных сценариев)
   - Источник: B-6
-  - Проблема: Только 2 примера (hello, insight). Нет: error handling, HITL, act, deep run, long-running
-  - Решение: +5-8 паттернов в guide/08-patterns.md + debugging guide + performance playbook
   - Файлы: `packages/scaffold/guide/`
   - Effort: 8h
 
-- [ ] **P2-3. Validator: Fence rules для commit/check**
+- [x] **P2-3. Validator: Fence rules для commit/check** ✅ 2026-06-03
   - Источник: H-30
-  - Проблема: commit без парного check, check без commit, act без checkpoint — не детектируются
-  - Решение: 3 fence warnings: `fence/unpaired-commit`, `fence/check-without-commit`, `fence/ungated-act`
-  - Файлы: `packages/validator/src/fence.ts`
-  - Effort: 4h
+  - Решение: 3 fence warnings: `fence/unpaired-commit`, `fence/check-without-commit`, `fence/ungated-act`. Анализ per-function body. 5 тестов.
+  - Файлы: `packages/validator/src/fence.ts`, `test/fence.test.ts`
 
-- [ ] **P2-4. Runtime: Per-script budgets**
+- [x] **P2-4. Runtime: Per-script budgets** ✅ 2026-06-03
   - Источник: D-15
-  - Проблема: Budgets глобальные (env). Дорогой скрипт не может получить больше ресурсов
-  - Решение: JSDoc comment `@budget steps=5000` или `script.json` metadata + StartReq override
-  - Файлы: `protocol/src/service.ts`, `server/src/loader.ts`
-  - Effort: 4h
+  - Решение: `@budget steps=N iterations=N` в JSDoc `.cog.ts`. Парсинг в loader, merge с defaults в service.start().
+  - Файлы: `protocol/src/ports.ts`, `protocol/src/service.ts`, `server/src/loader.ts`
 
-- [ ] **P2-5. Core: Shape validation — discriminated unions, tuples**
+- [x] **P2-5. Core: Shape validation — union support** ✅ 2026-06-03
   - Источник: D-14
-  - Проблема: Сложные типы fallback на `unknown` → валидация отключена
-  - Решение: Расширить Shape type: `{ kind: "union", members: Shape[] }`, `{ kind: "tuple", elements: Shape[] }`
-  - Файлы: `core/src/shape.ts`, `validator/src/extract.ts`
-  - Effort: 8h
+  - Решение: `{ kind: "union", members: Shape[] }` — checkShape проверяет хотя бы один member. extract.ts генерирует union вместо fallback unknown. shapeToTypeText поддерживает union. Tuple и рекурсия — отложены (не востребованы). 3 теста.
+  - Файлы: `core/src/shape.ts`, `validator/src/extract.ts`, `core/test/shape.test.ts`
 
-- [ ] **P2-6. Frontend: Mobile tabs для Trace Detail**
+- [ ] ⏸️ **P2-6. Frontend: Mobile tabs для Trace Detail** — ОТЛОЖЕНО
   - Источник: F-21, H-30
-  - Проблема: Split view code/events неудобен на narrow screens
-  - Решение: Conditional rendering: split на desktop, tabs на mobile (media query)
-  - Файлы: `pages/trace-detail.tsx`
   - Effort: 4h
 
-- [ ] **P2-7. Frontend: Monaco/DiffEditor adaptive height**
+- [x] **P2-7. Frontend: Monaco/DiffEditor adaptive height** ✅ 2026-06-03
   - Источник: F-25
-  - Проблема: Фиксированные 400/500px
-  - Решение: flex-based layout с `height: 100%` в grid-контейнере
-  - Файлы: `pages/script-detail.tsx`, `ui/monaco-editor.tsx`
-  - Effort: 2h
+  - Решение: `isTallPage` включён для `/scripts/*`, корневой div = flex-col flex-1, editor container = flex:1 minHeight:200, DiffEditor height=100%. Редактор растягивается до футера.
+  - Файлы: `app.tsx`, `ui/monaco-editor.tsx`, `pages/script-detail.tsx`
 
-- [ ] **P2-8. Deployment: Atomic deploy**
+- [x] **P2-8. Deployment: Atomic deploy** ✅ 2026-06-03
   - Источник: G-26
-  - Проблема: rsync с --delete не атомарен
+  - Решение: rsync → staging dir, cp .env+data+node_modules, pnpm install в staging, pm2 stop → mv live→old → mv staging→live → pm2 start, rm old. Init .env вынесен в отдельный шаг.
   - Решение: rsync в staging dir → atomic mv → PM2 reload
   - Файлы: `.github/workflows/deploy.yml`
   - Effort: 4h
 
-- [ ] **P2-9. Deployment: Schema migrations**
+- [x] **P2-9. Deployment: Schema migrations** ✅ 2026-06-03
   - Источник: G-28
-  - Проблема: CREATE TABLE IF NOT EXISTS + ALTER TABLE в try/catch. Нет версионирования
-  - Решение: `_schema_version` таблица, numbered migration files, apply-on-start
-  - Файлы: `server/src/db.ts` + `migrations/`
-  - Effort: 4h
+  - Решение: `_schema_version` таблица + `MIGRATIONS[]` массив в db.ts. `migrate()` применяет непримёненные в транзакции. v1 = полная схема. ALTER TABLE try/catch удалён. Идемпотентно на существующих базах. 2 теста.
+  - Файлы: `server/src/db.ts`, `server/test/db.test.ts`
 
-- [ ] **P2-10. Trust: checkpoint schema_mismatch trust class**
+- [x] **P2-10. Trust: checkpoint schema_mismatch trust class** ✅ 2026-06-03
   - Источник: C-9
-  - Проблема: Checkpoint fail записывается как trust=verified, хотя данные отвергнуты
-  - Решение: Отдельный trust class для fail events или trust=asserted для rejected data
+  - Решение: `#recordFail` trust `"verified"` → `"n/a"`. Техническая ошибка формата не влияет на coverage. Retry с правильными данными учтётся как verified.
   - Файлы: `core/src/control.ts`
-  - Effort: 1h
 
-- [ ] **P2-11. Architecture: config.json per-script**
+- [ ] ⏸️ **P2-11. Architecture: config.json per-folder** — ОТЛОЖЕНО → ISSUES.md
   - Источник: A-4
-  - Проблема: Заявлена в спеке, не реализована. Reader не читает, runtime не передаёт
-  - Решение: reader.ts: загрузка config.json рядом со скриптом → передача в worker
-  - Файлы: `server/src/reader.ts`, `server/src/srv-runtime.ts`
+  - Решение пересмотрено: config.json per-folder (пакет скриптов), не per-script. Подробное описание в ISSUES.md.
   - Effort: 4h
 
-- [ ] **P2-12. Protocol: zs_retrieve stub**
+- [ ] **P2-12. Protocol: zs_retrieve — agent-side retrieval** → TODO.md срез 13
   - Источник: B-5, H-35
-  - Проблема: Полностью stub, возвращает "not_implemented"
-  - Решение: Интеграция с KB или минимальный file-based retrieval
-  - Effort: 16h+
+  - Решение пересмотрено: агент выполняет retrieval своими host-tools, сервер фиксирует результат. Trust по provenance (verified/asserted). Не KB интеграция.
+  - Effort: 2-3h
 
 ---
 

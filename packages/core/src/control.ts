@@ -84,7 +84,7 @@ export class ControlDriver {
     inst.trace.append({
       op,
       realizer: "server",
-      trust: "verified",
+      trust: "n/a",
       inputs: [],
       meta: { label, failed: "schema_mismatch", message },
     });

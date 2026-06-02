@@ -41,7 +41,42 @@ export function fence(name: string, content: string): Diagnostic[] {
 
   const seenLabels = new Map<string, { fn: string; node: ts.Node }>();
 
+  const checkCommitCheckPairing = (body: ts.Node): void => {
+    const commits: ts.CallExpression[] = [];
+    const checks: ts.CallExpression[] = [];
+    const checkpoints: ts.CallExpression[] = [];
+    const acts: ts.CallExpression[] = [];
+
+    const collect = (n: ts.Node): void => {
+      if (ts.isCallExpression(n) && ts.isIdentifier(n.expression)) {
+        switch (n.expression.text) {
+          case "commit": commits.push(n); break;
+          case "check": checks.push(n); break;
+          case "checkpoint": checkpoints.push(n); break;
+          case "act": acts.push(n); break;
+        }
+      }
+      ts.forEachChild(n, collect);
+    };
+    collect(body);
+
+    if (commits.length > 0 && checks.length === 0) {
+      for (const c of commits) push(c, "fence/unpaired-commit", "commit() without a matching check() — criteria will never be verified", "warning");
+    }
+    for (const c of checks) {
+      if (commits.length === 0) {
+        push(c, "fence/check-without-commit", "check() without a preceding commit() — nothing to verify against", "warning");
+      }
+    }
+    if (acts.length > 0 && checkpoints.length === 0) {
+      for (const a of acts) push(a, "fence/ungated-act", "act() without a checkpoint gate — side effects should be gated by checkpoint", "warning");
+    }
+  };
+
   const walk = (node: ts.Node): void => {
+    if (ts.isFunctionDeclaration(node) && node.body) checkCommitCheckPairing(node.body);
+    if (ts.isFunctionExpression(node) && node.body) checkCommitCheckPairing(node.body);
+    if (ts.isArrowFunction(node) && node.body) checkCommitCheckPairing(node.body);
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
       const fn = node.expression.text;
       if ((fn === "checkpoint" || fn === "report") && node.arguments.length >= 1) {

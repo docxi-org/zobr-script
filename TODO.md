@@ -186,3 +186,39 @@ OAuth на MCP-подключение. Референс: MCP TypeScript SDK 2.0 
 - [x] **12.7.3** Тест: executor не может назначить architect (api.test.ts).
 - [x] **12.7.4** Typecheck clean, 228 тестов зелёные.
 - [x] **12.7.5** Обновить CLAUDE.md, README.md.
+
+---
+
+## Срез 13 — zs_retrieve: agent-side retrieval
+
+Агент выполняет retrieval своими host-tools, сервер фиксирует результат в трейсе.
+Trust по provenance: внешний источник → verified, из знаний агента → asserted.
+
+### 13.1. Protocol
+
+- [ ] **13.1.1** `messages.ts` — расширить `zRetrieveReq`: `query: string`, `source?: string`, `data: unknown`, `provenance: string`. Убрать старый формат.
+- [ ] **13.1.2** `messages.ts` — `zRetrieveRes`: `{ ok: true }` (данные приняты) или ошибка.
+- [ ] **13.1.3** `service.ts` — убрать stub `retrieve()`. Записать событие в трейс: `op: "retrieve"`, `realizer: "external"`, `trust` по provenance. Если provenance содержит tool/source → `"verified"`, иначе `"asserted"`.
+
+### 13.2. MCP tool
+
+- [ ] **13.2.1** `mcp-tools.ts` — обновить description `zs_retrieve`: "Report data retrieved from an external source using your own tools. Provide the data you obtained and the provenance (tool name, source, URL)."
+- [ ] **13.2.2** `app.ts` — если retrieve проходит через callTool dispatching, обновить case.
+
+### 13.3. Guide (agent-facing docs)
+
+- [ ] **13.3.1** `guide/01-operations.md` — retrieve: семантика, пример с provenance, отличие от report (retrieve = факты, report = рассуждения).
+- [ ] **13.3.2** `guide/02-trust.md` — trust по provenance: verified если данные из внешнего tool, asserted если из знаний агента.
+- [ ] **13.3.3** `guide/09-discipline.md` — retrieve vs ground: когда что.
+
+### 13.4. Help (user-facing docs)
+
+- [ ] **13.4.1** `public/docs/en/concepts/how-scripts-work.md` + `ru/` — retrieve с примером.
+- [ ] **13.4.2** `public/docs/en/concepts/trust-classes.md` + `ru/` — retrieve provenance → trust.
+
+### 13.5. Тесты и финализация
+
+- [ ] **13.5.1** Тест: `zs_retrieve` с provenance → событие в трейсе, trust verified.
+- [ ] **13.5.2** Тест: `zs_retrieve` без provenance → trust asserted.
+- [ ] **13.5.3** Typecheck clean, тесты зелёные.
+- [ ] **13.5.4** Обновить CLAUDE.md.

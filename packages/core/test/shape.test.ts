@@ -41,4 +41,28 @@ describe("checkShape — schema at the seam (form, not truth)", () => {
     // confidence 'high' with empty topics is semantically dubious but well-formed.
     expect(conforms({ summary: "the earth is flat", confidence: "high", topics: [] }, resultShape)).toBe(true);
   });
+
+  it("union accepts any matching member", () => {
+    const shape: Shape = { kind: "union", members: [{ kind: "string" }, { kind: "number" }] };
+    expect(conforms("hello", shape)).toBe(true);
+    expect(conforms(42, shape)).toBe(true);
+    expect(conforms(true, shape)).toBe(false);
+  });
+  it("union with object members (discriminated)", () => {
+    const shape: Shape = {
+      kind: "union",
+      members: [
+        { kind: "object", fields: { type: { kind: "literal", values: ["a"] }, x: { kind: "number" } } },
+        { kind: "object", fields: { type: { kind: "literal", values: ["b"] }, y: { kind: "string" } } },
+      ],
+    };
+    expect(conforms({ type: "a", x: 1 }, shape)).toBe(true);
+    expect(conforms({ type: "b", y: "hi" }, shape)).toBe(true);
+    expect(conforms({ type: "c", z: true }, shape)).toBe(false);
+  });
+  it("union error message lists member kinds", () => {
+    const shape: Shape = { kind: "union", members: [{ kind: "string" }, { kind: "number" }] };
+    const errs = checkShape(true, shape);
+    expect(errs[0]?.expected).toBe("string | number");
+  });
 });

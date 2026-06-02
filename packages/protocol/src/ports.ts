@@ -29,6 +29,7 @@ export interface LoadedScript {
   readonly concludeShape?: Shape;
   readonly checkpointShapes?: Readonly<Record<string, Shape>>;
   readonly reportShapes?: Readonly<Record<string, Shape>>;
+  readonly budgets?: { steps?: number; iterations?: number } | undefined;
 }
 
 export interface ScriptLoader {

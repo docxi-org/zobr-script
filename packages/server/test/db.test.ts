@@ -160,4 +160,24 @@ describe("Db (SQLite)", () => {
       db.infra.finishInvocation("inv-h1", "done");
     });
   });
+
+  describe("schema migrations", () => {
+    it("_schema_version is created and set to latest", () => {
+      const row = db.rawDb.prepare("SELECT version FROM _schema_version").get() as { version: number };
+      expect(row.version).toBeGreaterThanOrEqual(1);
+    });
+
+    it("reopening the same db is idempotent", () => {
+      const dbPath = join(dir, "test.sqlite");
+      const col = db.collection("reopen_test");
+      col.insertOne({ x: 1 });
+      db.close();
+      const db2 = createDb(dbPath);
+      expect(db2.collection("reopen_test").count()).toBe(1);
+      const v = (db2.rawDb.prepare("SELECT version FROM _schema_version").get() as { version: number }).version;
+      expect(v).toBeGreaterThanOrEqual(1);
+      db2.close();
+      db = createDb(dbPath);
+    });
+  });
 });

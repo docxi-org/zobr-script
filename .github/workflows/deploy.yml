@@ -31,17 +31,17 @@ jobs:
       - name: Build frontend
         run: pnpm --filter @zobr/web build
 
-      - name: Deploy via rsync
+      - name: Deploy via rsync (staging)
         uses: burnett01/rsync-deployments@7.0.1
         with:
           switches: -avz --delete --exclude='node_modules' --exclude='.env' --exclude='data' --exclude='zs-lib/*.d.ts' --exclude='zs-lib/tsconfig*.json'
           path: ./
-          remote_path: /opt/zobr-script/
+          remote_path: /opt/zobr-script-staging/
           remote_host: 80.74.31.205
           remote_user: root
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Install and restart
+      - name: Atomic swap and restart
         uses: appleboy/ssh-action@v1.2.2
         with:
           host: 80.74.31.205
@@ -51,9 +51,42 @@ jobs:
             set -e
             export NVM_DIR="/root/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-            cd /opt/zobr-script
 
-            # .env — create if missing, never overwrite
+            LIVE=/opt/zobr-script
+            STAGING=/opt/zobr-script-staging
+            OLD=/opt/zobr-script-old
+
+            # Carry over persistent state to staging
+            [ -f "$LIVE/.env" ] && cp "$LIVE/.env" "$STAGING/.env"
+            [ -d "$LIVE/data" ] && cp -a "$LIVE/data" "$STAGING/data"
+            [ -d "$LIVE/node_modules" ] && mv "$LIVE/node_modules" "$STAGING/node_modules"
+
+            # Install deps in staging
+            cd "$STAGING"
+            pnpm install --frozen-lockfile
+
+            # Atomic swap: live → old, staging → live
+            pm2 stop zobr-script || true
+            rm -rf "$OLD"
+            mv "$LIVE" "$OLD"
+            mv "$STAGING" "$LIVE"
+
+            cd "$LIVE"
+            pm2 startOrReload ecosystem.config.cjs --update-env
+            pm2 save
+
+            # Cleanup old release
+            rm -rf "$OLD"
+
+      - name: Init .env on first deploy
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: 80.74.31.205
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /opt/zobr-script
             if [ ! -f .env ]; then
               cat > .env << 'ENV'
             ZS_HOST=127.0.0.1
@@ -62,7 +95,6 @@ jobs:
             ZS_STORE_PATH=./data/store.sqlite
             ZS_BUDGET_STEPS=1000
             ZS_BUDGET_ITERATIONS=100
-            ZS_ARCHITECT_MODE=true
             ZS_INVOCATION_TTL=3600
             ZS_AWAITING_TTL=86400
             ZS_MAX_ACTIVE_INVOCATIONS=100
@@ -71,11 +103,11 @@ jobs:
             LOG_LEVEL=info
             ENV
               chmod 600 .env
+              export NVM_DIR="/root/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+              pm2 startOrReload ecosystem.config.cjs --update-env
+              pm2 save
             fi
-
-            pnpm install --frozen-lockfile
-            pm2 startOrReload ecosystem.config.cjs --update-env
-            pm2 save
 
       - name: Reset database
         if: inputs.reset_db == true

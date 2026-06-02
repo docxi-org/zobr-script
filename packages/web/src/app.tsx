@@ -21,8 +21,8 @@ import { TweaksPanel, useTweaks } from "./ui/tweaks-panel";
 import { useT } from "./i18n/context";
 import { preloadMonaco } from "./ui/monaco-editor";
 
-function isTallPage(_p: string) {
-  return false;
+function isTallPage(p: string) {
+  return p.startsWith("/scripts/");
 }
 
 function RoleGuard({ need }: { need: string }) {

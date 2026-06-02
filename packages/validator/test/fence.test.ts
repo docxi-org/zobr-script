@@ -52,4 +52,27 @@ describe("structural fence", () => {
     expect(codes("/zs/ok.srv.ts", src)).not.toContain("fence/no-reexport");
     expect(codes("/zs/ok.srv.ts", src)).not.toContain("fence/no-default-fn");
   });
+
+  it("warns on commit without check", () => {
+    const src = `function f(){ const c = commit({ accuracy: ">90%" }); survey("t"); }`;
+    expect(codes("/zs/c.cog.ts", src)).toContain("fence/unpaired-commit");
+  });
+  it("warns on check without commit", () => {
+    const src = `function f(){ check({} as any, {} as any); }`;
+    expect(codes("/zs/c.cog.ts", src)).toContain("fence/check-without-commit");
+  });
+  it("allows paired commit + check", () => {
+    const src = `function f(){ const c = commit({ accuracy: ">90%" }); const r = survey("t"); check(c, r); }`;
+    const c = codes("/zs/ok.cog.ts", src);
+    expect(c).not.toContain("fence/unpaired-commit");
+    expect(c).not.toContain("fence/check-without-commit");
+  });
+  it("warns on act without checkpoint gate", () => {
+    const src = `function f(){ act("send email"); }`;
+    expect(codes("/zs/a.cog.ts", src)).toContain("fence/ungated-act");
+  });
+  it("allows act after checkpoint", () => {
+    const src = `function f(){ checkpoint("gate", { approved: true }); act("send email"); }`;
+    expect(codes("/zs/ok.cog.ts", src)).not.toContain("fence/ungated-act");
+  });
 });

@@ -69,7 +69,7 @@ function ShapeView({ shape }: { shape: Shape }) {
 
 function DiffView({ oldText, newText, file, theme }: { oldText: string; newText: string; file: string; theme: "dark" | "light" }) {
   return (
-    <div className="overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-inset)" }}>
+    <div className="flex flex-1 flex-col overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-inset)", minHeight: 200 }}>
       <div className="flex shrink-0 items-center border-b border-[var(--border)]" style={{ gap: 8, padding: "8px 14px", background: "var(--bg-2)" }}>
         <Icon name="copy" size={13} style={{ color: "var(--text-2)" }} />
         <span className="mono" style={{ fontSize: "var(--fs-xs)", color: "var(--text-1)" }}>{file}</span>
@@ -81,7 +81,7 @@ function DiffView({ oldText, newText, file, theme }: { oldText: string; newText:
         language="typescript"
         theme={theme === "dark" ? "vs-dark" : "vs"}
         options={{ readOnly: true, minimap: { enabled: false }, renderSideBySide: true, scrollBeyondLastLine: false, fontSize: 13, lineNumbers: "on" }}
-        height={400}
+        height="100%"
       />
     </div>
   );
@@ -190,7 +190,7 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
   const scriptBase = scriptRef.split("/").pop()!;
 
   return (
-    <div>
+    <div className="flex flex-1 flex-col" style={{ minHeight: 0 }}>
       <ScriptCrumb scriptRef={scriptRef} />
       <div className="mb-4 flex items-center" style={{ gap: 12 }}>
         <Icon name="filecode" size={20} style={{ color: "var(--text-1)" }} />

@@ -65,7 +65,9 @@ export function tsTypeToShape(type: ts.Type, checker: ts.TypeChecker): Shape {
     if (allLiterals && literals.length > 0) {
       return { kind: "literal", values: literals };
     }
-    return { kind: "unknown" };
+    const shapes = members.map((m) => tsTypeToShape(m, checker));
+    if (shapes.every((s) => s.kind === "unknown")) return { kind: "unknown" };
+    return { kind: "union", members: shapes };
   }
 
   if (type.flags & ts.TypeFlags.Object) {
@@ -250,6 +252,8 @@ export function shapeToTypeText(shape: Shape): string {
       const fields = entries.map(([k, v]) => `${k}${opt.has(k) ? "?" : ""}: ${shapeToTypeText(v)}`);
       return `{ ${fields.join("; ")} }`;
     }
+    case "union":
+      return shape.members.map((m) => shapeToTypeText(m)).join(" | ");
   }
 }
 

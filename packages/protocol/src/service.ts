@@ -60,10 +60,13 @@ export class ZsService {
     if (depth >= this.#maxRunDepth) {
       throw new Error(`Maximum run depth (${this.#maxRunDepth}) exceeded for script "${req.script_ref}"`);
     }
+    const budgets = loaded.budgets
+      ? { steps: loaded.budgets.steps ?? this.#budgets.steps, iterations: loaded.budgets.iterations ?? this.#budgets.iterations }
+      : this.#budgets;
     const params = {
       script_ref: loaded.script_ref,
       code_snapshot: loaded.code,
-      budgets: this.#budgets,
+      budgets,
       ...(req.parent_invocation_id !== undefined ? { parent_invocation_id: req.parent_invocation_id } : {}),
       ...(depth > 0 ? { depth } : {}),
     };

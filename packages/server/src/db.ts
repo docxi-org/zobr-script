@@ -81,70 +81,90 @@ function buildWhere(collection: string, filter?: Record<string, unknown>): { cla
   return { clause: conditions.join(" AND "), params };
 }
 
+const MIGRATIONS: { version: number; sql: string }[] = [
+  {
+    version: 1,
+    sql: `
+      CREATE TABLE IF NOT EXISTS zs_documents (
+        collection TEXT NOT NULL,
+        _id TEXT NOT NULL,
+        data TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (collection, _id)
+      );
+      CREATE TABLE IF NOT EXISTS zs_notes (
+        key TEXT PRIMARY KEY,
+        type TEXT,
+        data TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS zs_traces (
+        invocation_id TEXT PRIMARY KEY,
+        script_ref TEXT NOT NULL,
+        code_snapshot TEXT NOT NULL,
+        status TEXT NOT NULL,
+        events TEXT NOT NULL,
+        coverage TEXT,
+        result TEXT,
+        created_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS zs_instances (
+        invocation_id TEXT PRIMARY KEY,
+        script_ref TEXT NOT NULL,
+        state TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS zs_invocations (
+        invocation_id TEXT PRIMARY KEY,
+        script_ref TEXT NOT NULL,
+        status TEXT NOT NULL,
+        agent_id TEXT,
+        started_at INTEGER NOT NULL,
+        finished_at INTEGER
+      );
+      CREATE TABLE IF NOT EXISTS zs_agents (
+        agent_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        registered_at INTEGER NOT NULL,
+        role TEXT NOT NULL DEFAULT 'executor'
+      );
+      CREATE TABLE IF NOT EXISTS zs_users (
+        id TEXT PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        salt TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'executor',
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL,
+        last_login INTEGER
+      );`,
+  },
+];
+
+function migrate(db: DatabaseType): void {
+  db.exec("CREATE TABLE IF NOT EXISTS _schema_version (version INTEGER NOT NULL)");
+  const row = db.prepare("SELECT version FROM _schema_version").get() as { version: number } | undefined;
+  let current = row?.version ?? 0;
+  if (current === 0 && !row) {
+    db.prepare("INSERT INTO _schema_version (version) VALUES (0)").run();
+  }
+  for (const m of MIGRATIONS) {
+    if (m.version <= current) continue;
+    db.transaction(() => {
+      db.exec(m.sql);
+      db.prepare("UPDATE _schema_version SET version = ?").run(m.version);
+    })();
+    current = m.version;
+  }
+}
+
 export function createDb(path: string): Db {
   const db = new Database(path);
   db.pragma("journal_mode = WAL");
   db.pragma("busy_timeout = 5000");
-
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS zs_documents (
-      collection TEXT NOT NULL,
-      _id TEXT NOT NULL,
-      data TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL,
-      PRIMARY KEY (collection, _id)
-    );
-    CREATE TABLE IF NOT EXISTS zs_notes (
-      key TEXT PRIMARY KEY,
-      type TEXT,
-      data TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS zs_traces (
-      invocation_id TEXT PRIMARY KEY,
-      script_ref TEXT NOT NULL,
-      code_snapshot TEXT NOT NULL,
-      status TEXT NOT NULL,
-      events TEXT NOT NULL,
-      coverage TEXT,
-      result TEXT,
-      created_at INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS zs_instances (
-      invocation_id TEXT PRIMARY KEY,
-      script_ref TEXT NOT NULL,
-      state TEXT NOT NULL,
-      updated_at INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS zs_invocations (
-      invocation_id TEXT PRIMARY KEY,
-      script_ref TEXT NOT NULL,
-      status TEXT NOT NULL,
-      agent_id TEXT,
-      started_at INTEGER NOT NULL,
-      finished_at INTEGER
-    );
-    CREATE TABLE IF NOT EXISTS zs_agents (
-      agent_id TEXT PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
-      registered_at INTEGER NOT NULL,
-      role TEXT NOT NULL DEFAULT 'executor'
-    );
-    CREATE TABLE IF NOT EXISTS zs_users (
-      id TEXT PRIMARY KEY,
-      email TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
-      salt TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'executor',
-      active INTEGER NOT NULL DEFAULT 1,
-      created_at INTEGER NOT NULL,
-      last_login INTEGER
-    );
-  `);
-
-  try { db.exec("ALTER TABLE zs_agents ADD COLUMN role TEXT NOT NULL DEFAULT 'executor'"); } catch {}
+  migrate(db);
 
   function collection<T = unknown>(name: string): Collection<T> {
     return {

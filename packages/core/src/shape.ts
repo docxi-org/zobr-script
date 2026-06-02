@@ -10,7 +10,8 @@ export type Shape =
   | { readonly kind: "unknown" } // accepts anything (Sem); no structural check
   | { readonly kind: "literal"; readonly values: readonly (string | number | boolean)[] }
   | { readonly kind: "array"; readonly of: Shape }
-  | { readonly kind: "object"; readonly fields: Readonly<Record<string, Shape>>; readonly optional?: readonly string[] };
+  | { readonly kind: "object"; readonly fields: Readonly<Record<string, Shape>>; readonly optional?: readonly string[] }
+  | { readonly kind: "union"; readonly members: readonly Shape[] };
 
 export interface ShapeError {
   readonly path: string;
@@ -61,6 +62,13 @@ export function checkShape(value: unknown, shape: Shape, path = "$"): ShapeError
         errs.push(...checkShape(obj[key], fieldShape, `${path}.${key}`));
       }
       return errs;
+    }
+    case "union": {
+      for (const member of shape.members) {
+        if (checkShape(value, member, path).length === 0) return [];
+      }
+      const expected = shape.members.map((m) => m.kind).join(" | ");
+      return [{ path, expected, got: typeName(value) }];
     }
   }
 }

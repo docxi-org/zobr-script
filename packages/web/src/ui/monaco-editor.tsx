@@ -213,8 +213,8 @@ export function ZsMonacoEditor({ value, onChange, file, readOnly = false, theme,
   const monacoTheme = theme === "dark" ? "zs-dark" : "zs-light";
 
   return (
-    <div className="flex flex-col rounded-[var(--r-lg)] border border-[var(--border)]"
-      style={{ background: "var(--bg-inset)", height: 500, position: "relative" }}>
+    <div className="flex flex-col overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]"
+      style={{ background: "var(--bg-inset)", flex: 1, minHeight: 200, position: "relative" }}>
       <div className="flex shrink-0 items-center border-b border-[var(--border)]"
         style={{ gap: 8, padding: "8px 14px", background: "var(--bg-2)" }}>
         <Icon name="filecode" size={13} style={{ color: "var(--text-2)" }} />

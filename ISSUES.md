@@ -37,13 +37,8 @@
 В agent-driven это: агент делает `zs_start` child с `parent_invocation_id`,
 исполняет child, `zs_conclude` child, продолжает parent с результатом.
 
-- [ ] **Нет лимита глубины вложенности.**
-  Instance хранит `depth` (0, 1, 2...), но ZsService.start() не проверяет
-  максимум. Скрипт A → B → C → D → ... без ограничения. Doc 06 G21
-  требует: «глубина ограничена рантаймом → halted_budget».
-  **Следствия:** бесконечная рекурсия скриптов не блокируется сервером.
-  **Решение:** проверка `depth >= maxDepth` в ZsService.start(), конфиг
-  `ZS_MAX_RUN_DEPTH` (default 10), reject при превышении.
+- [x] **Лимит глубины вложенности.** ✅ 2026-06-03 (P0-4)
+  `ZS_MAX_RUN_DEPTH` (default 10), проверка в `ZsService.start()`.
 
 - [ ] **Нет runtime-проверки контракта parent↔child.**
   Родитель ожидает `run<Input, Result>("topics", ...)`. tsc проверяет типы
@@ -103,9 +98,8 @@ const result = act("create a task 'Fix login bug' in the project tracker",
   но рантайм этот параметр не обрабатывает — никакой разницы между
   `reversible: true` и `reversible: false`.
 
-- [ ] **Нет fence-правила.**
-  Спека подразумевает, что скрипт с `act(intent, { reversible: false })`
-  ОБЯЗАН иметь checkpoint перед ним. Fence это не проверяет.
+- [x] **Fence-правило `fence/ungated-act`.** ✅ 2026-06-03 (P2-3)
+  act() без предшествующего checkpoint — warning.
 
 Важный контекст: в agent-driven модели сервер физически не может
 заблокировать host-tools агента (doc 05 §5: «сервер не может заставить
@@ -167,12 +161,8 @@ check(c, { stakeholders });
   этот путь не реализован. Весь `check` — asserted, даже когда критерий
   механизируем.
 
-- [ ] **Нет fence-правила для unpaired commit.**
-  Doc 09 §7: «предупреждение о commit без парного check до conclude».
-  Fence проверяет duplicate labels для checkpoint/report, но НЕ проверяет,
-  что каждый `commit` имеет парный `check`. Агент может написать
-  `commit(...)`, забыть `check(...)`, и дойти до `conclude` без сверки —
-  валидатор промолчит.
+- [x] **Fence-правила для commit/check.** ✅ 2026-06-03 (P2-3)
+  `fence/unpaired-commit` и `fence/check-without-commit` — оба warning.
 
 - [ ] **Нет `criteria_unmet` throw.**
   `check` объявлен как `declare function check(c: Criteria, results: Sem): void`
@@ -190,3 +180,51 @@ check, (б) сказать «всё ок» когда не ок. Сервер н
 **Решение:** два fence-правила:
 - `fence/unpaired-commit` (warning): commit без парного check до conclude
 - `fence/check-without-commit` (warning): check без предшествующего commit
+
+---
+
+## Конфигурация скриптов (config.json)
+
+Спека (doc 04) предполагала `config.json` рядом со скриптом — статические
+настройки, доступные серверному модулю через `this.config`. Не реализовано.
+
+- [ ] **config.json per-folder — общая конфигурация тематического набора скриптов.**
+
+  Папка в `zs-lib/` — не просто группировка, а **пакет**: тематический набор
+  скриптов с общими настройками. `config.json` в папке виден всем скриптам
+  этой папки через `this.config` в srv.ts.
+
+  ```
+  zs-lib/
+    config.json              ← корневой default (опционально)
+    analytics/
+      config.json            ← override для папки analytics
+      market-scan.cog.ts
+      market-scan.srv.ts
+      trend-analysis.cog.ts
+    examples/
+      hello.cog.ts           ← нет config.json → наследует корневой
+  ```
+
+  **Семантика merge:** config.json в папке полностью заменяет корневой
+  (shallow override, не deep merge). Если нужен per-script override —
+  `script-name.config.json` рядом с `.cog.ts` (мержится поверх folder config).
+
+  **Применение:**
+  - Модельные параметры (`model`, `temperature`)
+  - Пороги и лимиты (`threshold`, `maxRetries`)
+  - API endpoints и ключи (не в коде скрипта)
+  - Budget overrides (альтернатива `@budget` в JSDoc — для внешнего управления)
+
+  **Реализация:**
+  1. `reader.ts` — при `read(script_ref)` искать config.json: сначала
+     `{folder}/config.json`, затем `{folder}/{name}.config.json`, затем
+     корневой `zs-lib/config.json`. Merge в порядке: root → folder → script.
+  2. `LoadedScript` — добавить `config?: Record<string, unknown>`
+  3. `loader.ts` — передать config из reader в LoadedScript
+  4. `srv-runtime.ts` / worker — пробросить config в `this.config`
+  5. `ZsScript` base class — `this.config` уже объявлен, подставить реальные данные
+
+  **Когда делать:** при появлении реального потребителя — третий-четвёртый
+  скрипт в одной папке, или скрипт с внешними настройками (API ключ, модель).
+  До тех пор `@budget` в JSDoc покрывает самый частый per-script override.

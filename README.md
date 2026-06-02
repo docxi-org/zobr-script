@@ -53,6 +53,7 @@ Browser                              REST API (/api/*)
 - Unified guide: `zs_guide({ topic? })` — 11 topics covering operations, trust, patterns
 - Standalone store operations (collections + notes)
 - Script discovery / CRUD (gated by agent role, not global flag)
+- OAuth 2.1 (`ZS_OAUTH=true`) — better-auth + MCP plugin, Bearer auth on /mcp
 
 ### Script Runtime
 - **File-based model** — script = `ref.cog.ts` + optional `ref.srv.ts`, not a folder
@@ -112,6 +113,7 @@ ZS_AWAITING_TTL=86400           # seconds
 ZS_MAX_ACTIVE_INVOCATIONS=100
 ZS_JWT_SECRET=...               # random if not set (tokens lost on restart)
 ZS_ADMIN_PASSWORD=admin         # seed admin password
+ZS_OAUTH=true                   # enable MCP OAuth 2.1 (opt-in, default off)
 LOG_LEVEL=info
 ```
 

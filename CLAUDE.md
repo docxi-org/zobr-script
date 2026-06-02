@@ -219,6 +219,7 @@ ZS_AWAITING_TTL=86400           # seconds, default 24h
 ZS_MAX_ACTIVE_INVOCATIONS=100
 ZS_JWT_SECRET=...               # random if not set (tokens lost on restart)
 ZS_ADMIN_PASSWORD=admin         # seed admin password
+ZS_OAUTH=true                   # enable MCP OAuth 2.1 (opt-in)
 LOG_LEVEL=info
 ```
 
@@ -255,3 +256,4 @@ LOG_LEVEL=info
 - **Per-agent roles** — executor (default) / architect. Gating в callTool, не скрытие tools. UI переключатель на /agents
 - **Coverage trust-by-content** — report=asserted, start/transition=n/a, coverage() пропускает n/a
 - **ZS_ARCHITECT_MODE удалён** — роль per-agent, не глобальный env-флаг
+- **MCP OAuth 2.1** — `ZS_OAUTH=true` opt-in. better-auth + MCP plugin, Bearer middleware на /mcp, discovery endpoints, login page. Executor-пользователь не может назначить architect-агента

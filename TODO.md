@@ -175,14 +175,14 @@ OAuth на MCP-подключение. Референс: MCP TypeScript SDK 2.0 
 
 ### 12.6. Deployment
 
-- [ ] **12.6.1** `.env` — `ZS_OAUTH=true`.
-- [ ] **12.6.2** Nginx — proxy для /api/auth/*, /.well-known/* (на том же порте, не отдельный).
-- [ ] **12.6.3** Seed admin в better-auth — уже реализовано в createZsOAuth (sync с ZS_ADMIN_PASSWORD).
+- [x] **12.6.1** `.env` — `ZS_OAUTH=true` (opt-in). OAuth DB отдельный файл (store-oauth.sqlite).
+- [x] **12.6.2** Nginx — не требуется, все OAuth routes на том же порте 1978.
+- [x] **12.6.3** Seed admin — реализовано в createZsOAuth (signUpEmail при старте).
 
 ### 12.7. Тесты и финализация
 
-- [ ] **12.7.1** Тест: MCP без OAuth → работает как раньше.
-- [ ] **12.7.2** Тест: MCP с OAuth → 401 без токена, 200 с валидным Bearer.
-- [ ] **12.7.3** Тест: agent role ограничена user role.
-- [ ] **12.7.4** Typecheck clean, все тесты зелёные.
-- [ ] **12.7.5** Обновить CLAUDE.md, README.md.
+- [x] **12.7.1** Тест: MCP без OAuth → 228 тестов зелёные (обратная совместимость).
+- [ ] **12.7.2** Тест: MCP с OAuth → 401 без токена, 200 с валидным Bearer. (Требует E2E с better-auth — отложено до ручной проверки на VPS).
+- [x] **12.7.3** Тест: executor не может назначить architect (api.test.ts).
+- [x] **12.7.4** Typecheck clean, 228 тестов зелёные.
+- [x] **12.7.5** Обновить CLAUDE.md, README.md.

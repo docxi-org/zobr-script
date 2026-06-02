@@ -66,6 +66,7 @@ const TRUST_META: Record<string, { c: string }> = {
   verified: { c: "var(--trust-verified)" },
   authority: { c: "var(--trust-authority)" },
   error: { c: "var(--trust-error)" },
+  "n/a": { c: "var(--text-3)" },
 };
 
 export function TrustBadge({ trust }: { trust: string }) {

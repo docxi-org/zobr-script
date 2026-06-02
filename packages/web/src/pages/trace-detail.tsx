@@ -18,6 +18,7 @@ const OP_ICON: Record<string, string> = {
 const TRUST_COLORS: Record<string, string> = {
   asserted: "var(--trust-asserted)", verified: "var(--trust-verified)",
   authority: "var(--trust-authority)", error: "var(--trust-error)",
+  "n/a": "var(--text-3)",
 };
 
 const DIRECTIVE_META: Record<string, { c: string }> = {
@@ -93,7 +94,7 @@ function Donut({ verified, asserted }: { verified: number; asserted: number }) {
     <svg width="84" height="84" viewBox="0 0 84 84">
       <circle cx="42" cy="42" r={r} fill="none" stroke="var(--trust-asserted)" strokeWidth="14" />
       <circle cx="42" cy="42" r={r} fill="none" stroke="var(--trust-verified)" strokeWidth="14"
-        strokeDasharray={`${c * vPct} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 42 42)"
+        strokeDasharray={`${c * vPct} ${c}`} transform="rotate(-90 42 42)"
         style={{ transition: "stroke-dasharray .4s var(--ease)" }} />
       <text x="42" y="42" textAnchor="middle" dominantBaseline="central" className="mono"
         style={{ fontSize: 15, fontWeight: 700, fill: "var(--text-0)" }}>{Math.round(vPct * 100)}%</text>
@@ -175,8 +176,8 @@ export function TraceDetail({ id }: { id: string }) {
         </div>
       </div>
 
-      <div ref={wrapRef} className="mt-4 flex flex-1 overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]"
-        style={{ minHeight: 380, background: "var(--bg-1)" }}>
+      <div ref={wrapRef} className="mt-4 flex overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]"
+        style={{ height: "min(60vh, 500px)", background: "var(--bg-1)" }}>
         <div className="flex min-w-0 flex-col" style={{ width: split + "%" }}>
           <PanelHead icon="filecode" title={t("trace.code_snapshot")} sub={`${trace.script_ref}.cog.ts`} />
           <div className="flex-1 overflow-hidden">

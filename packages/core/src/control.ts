@@ -1,7 +1,7 @@
 // Control operations driver (doc 05 §6): report (fire-and-forget telemetry) and
-// checkpoint (synchronous gate -> Directive). Both are verified (realizer: server
-// module). Both run the value through schema-at-seam validation before it crosses
-// into the server (doc 05 §3): a malformed payload is schema_mismatch.
+// checkpoint (synchronous gate -> Directive). Report is asserted (server merely
+// records agent-produced data). Checkpoint is verified (server evaluates and
+// responds). Both run the value through schema-at-seam validation (doc 05 §3).
 import type { Instance } from "./instance";
 import type { ControllerHost, Directive } from "./controller";
 import { isAsk } from "./controller";
@@ -40,7 +40,7 @@ export class ControlDriver {
     inst.trace.append({
       op: "report",
       realizer: "server",
-      trust: "verified",
+      trust: "asserted",
       inputs: [],
       preview: makePreview(data).summary,
       meta: { label },

@@ -66,6 +66,7 @@ export class Trace {
     let grounded_claims = 0;
     let asserted_claims = 0;
     for (const e of this.#events) {
+      if (e.trust === "n/a") continue;
       if (e.trust === "verified") verified += 1;
       else if (e.trust === "asserted") asserted += 1;
       else if (e.trust === "authority") authority_gates += 1;

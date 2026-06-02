@@ -28,7 +28,7 @@ describe("Instance", () => {
     expect(i.status).toBe("done");
     expect(i.trace.length).toBe(2);
     expect(i.trace.events[1]?.op).toBe("status_transition");
-    expect(i.trace.events[1]?.trust).toBe("verified");
+    expect(i.trace.events[1]?.trust).toBe("n/a");
   });
 
   it("refuses an illegal transition (fail-closed)", () => {

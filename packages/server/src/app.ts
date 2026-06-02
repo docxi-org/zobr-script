@@ -12,9 +12,9 @@ import { createDb } from "./db";
 import type { Db } from "./db";
 import { checkShape, Instance, isTerminal } from "@zobr/core";
 import type { Shape, InstanceSnapshot } from "@zobr/core";
-import { cognitiveAmbient, serverAmbient } from "@zobr/scaffold";
+import { cognitiveAmbient, serverAmbient, guideTopics } from "@zobr/scaffold";
 import { validateScript, extractStoreSchema, extractCogShapes, extractClassInfo } from "@zobr/validator";
-import type { OperationsRes, ListRes, ReadRes, ValidateReq, ValidateRes, CreateReq, CreateRes, DeleteRes, RegisterRes, StartReq, ConcludeReq, ResumeReq } from "@zobr/protocol";
+import type { ListRes, ReadRes, ValidateReq, ValidateRes, CreateReq, CreateRes, DeleteRes, RegisterRes, StartReq, ConcludeReq, ResumeReq } from "@zobr/protocol";
 
 const STATE_CHANGING_TOOLS = new Set(["zs_sandbox", "zs_checkpoint", "zs_report", "zs_ask_record", "zs_act_record"]);
 
@@ -101,14 +101,13 @@ export class ZsApp {
     }
 
     switch (name) {
-      case "zs_operations": return this.operations();
+      case "zs_guide": return this.guide(parsed["topic"] as string | undefined);
       case "zs_list": return this.list();
       case "zs_read": return this.read(parsed["script_ref"] as string);
       case "zs_validate": return this.validate(parsed as unknown as ValidateReq);
       case "zs_create": return this.createScript(parsed as unknown as CreateReq);
       case "zs_update": return this.createScript(parsed as unknown as CreateReq);
       case "zs_delete": return this.deleteScript(parsed["script_ref"] as string);
-      case "zs_authoring_guide": return this.authoringGuide();
       case "zs_abort": return this.abort(agentId!, parsed["invocation_id"] as string | undefined);
       case "zs_register": {
         await this.sweepExpired();
@@ -403,8 +402,53 @@ export class ZsApp {
     return { agent_id, active_invocations };
   }
 
-  operations(): OperationsRes {
-    return { reference: cognitiveAmbient };
+  guide(topic?: string): { type: "toc" | "article"; content: string } {
+    if (topic === undefined) {
+      const lines = guideTopics.map((t) => `- **${t.topic}** [${t.audience}] — ${t.title}`);
+      return { type: "toc", content: "# ZS Guide — Table of Contents\n\n" + lines.join("\n") };
+    }
+    const entry = guideTopics.find((t) => t.topic === topic);
+    if (!entry) {
+      const available = guideTopics.map((t) => t.topic).join(", ");
+      return { type: "article", content: `Unknown topic: "${topic}". Available: ${available}` };
+    }
+    if (topic === "ambients") {
+      let storeSchema = "// No store.d.ts found in library";
+      if (this.#library) {
+        try {
+          storeSchema = readFileSync(join(this.#library.libraryRoot, "store.d.ts"), "utf8");
+        } catch {}
+      }
+      const content = [
+        "# Ambient Declarations",
+        "",
+        "Full TypeScript signatures available to scripts. These are loaded dynamically from the running server.",
+        "",
+        "## Cognitive Ambient (`zs.cognitive.d.ts`)",
+        "",
+        "Available in `.cog.ts` files.",
+        "",
+        "```ts",
+        cognitiveAmbient,
+        "```",
+        "",
+        "## Server Ambient (`zs.server.d.ts`)",
+        "",
+        "Available in `.srv.ts` files.",
+        "",
+        "```ts",
+        serverAmbient,
+        "```",
+        "",
+        "## Store Schema (`store.d.ts`)",
+        "",
+        "```ts",
+        storeSchema,
+        "```",
+      ].join("\n");
+      return { type: "article", content };
+    }
+    return { type: "article", content: entry.content };
   }
 
   async list(): Promise<ListRes> {
@@ -448,10 +492,6 @@ export class ZsApp {
     const cog = raw.cog.map((f) => f.content).join("\n\n");
     const srvContent = raw.srv.map((f) => f.content).join("\n\n");
     return { script_ref, cog, ...(srvContent.length > 0 ? { srv: srvContent } : {}) };
-  }
-
-  authoringGuide(): { instruction: string } {
-    return { instruction: AUTHORING_GUIDE };
   }
 
   validate(req: ValidateReq): ValidateRes {
@@ -599,24 +639,4 @@ export class ZsApp {
     return result;
   }
 }
-
-const AUTHORING_GUIDE = `You are a ZS script architect. Design scripts together with the user.
-
-Role: co-design with user in the loop. Write to library only with human confirmation.
-
-Workflow:
-1. Understand the need: what cognitive work, inputs, desired result.
-2. Fix the contract early: input + conclude<T>() schema.
-3. Draft cognitive part; server module only if needed (verified-compute, gating, persistence).
-4. Validate iteratively with zs_validate; fix before showing. Library holds only valid scripts.
-5. Show the user, discuss trade-offs, revise.
-6. Publish with confirmed human save (publication gate).
-
-Privileged asymmetry: cognitive part — write freely. Server module is privileged (adjudicator, KB, sandbox). Keep minimal, justify each capability, mark for explicit human confirmation.
-
-Design for the trace: commit/check and checkpoint on real milestones, not for show. Route important claims through verified seams (@sandbox, retrieve).
-
-Composition ladder: define-inline (reuse) < @sandbox (deterministic compute) < run (full sub-script, isolation). Use the minimal sufficient tier.
-
-Honesty: surface trade-offs and design assumptions to the user. Do not fabricate requirements or smuggle capabilities silently.`;
 

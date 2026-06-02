@@ -83,6 +83,13 @@ export const zConcludeRes = z.object({
 export const zOperationsReq = z.object({});
 export const zOperationsRes = z.object({ reference: z.string() });
 
+// --- zs_guide ---
+export const zGuideReq = z.object({ topic: z.string().optional() });
+export const zGuideRes = z.object({
+  type: z.enum(["toc", "article"]),
+  content: z.string(),
+});
+
 // --- zs_list ---
 export const zListReq = z.object({ path: z.string().optional() });
 export const zListRes = z.object({ entries: z.array(z.object({ name: z.string(), hasSrv: z.boolean() })) });
@@ -115,8 +122,6 @@ export const zDeleteReq = z.object({ script_ref: z.string() });
 export const zDeleteRes = z.object({ ok: z.boolean() });
 
 // --- zs_authoring_guide ---
-export const zAuthoringGuideReq = z.object({});
-export const zAuthoringGuideRes = z.object({ instruction: z.string() });
 
 // --- zs_abort ---
 export const zAbortReq = z.object({ invocation_id: z.string().optional() });
@@ -196,3 +201,5 @@ export type ActRecordReq = z.infer<typeof zActRecordReq>;
 export type ActRecordRes = z.infer<typeof zActRecordRes>;
 export type RegisterReq = z.infer<typeof zRegisterReq>;
 export type RegisterRes = z.infer<typeof zRegisterRes>;
+export type GuideReq = z.infer<typeof zGuideReq>;
+export type GuideRes = z.infer<typeof zGuideRes>;

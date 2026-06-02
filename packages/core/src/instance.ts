@@ -61,7 +61,7 @@ export class Instance {
     this.trace.append({
       op: "start",
       realizer: "server",
-      trust: "verified",
+      trust: "n/a",
       inputs: [],
       preview: "invocation started",
       meta: { script_ref: p.script_ref, ...(p.parent_invocation_id !== undefined ? { parent: p.parent_invocation_id } : {}) },
@@ -86,7 +86,7 @@ export class Instance {
     this.trace.append({
       op: "status_transition",
       realizer: "server",
-      trust: "verified",
+      trust: "n/a",
       inputs: [],
       meta: { from, to, ...(reason !== undefined ? { reason } : {}) },
     });

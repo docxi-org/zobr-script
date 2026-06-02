@@ -4,11 +4,12 @@
 // wire layer carries no business logic, only transport.
 import {
   zStartReq, zSandboxReq, zReportReq, zCheckpointReq, zConcludeReq, zStatusReq,
-  zAskRecordReq, zActRecordReq, zOperationsReq, zListReq, zReadReq,
-  zValidateReq, zCreateReq, zUpdateReq, zDeleteReq, zAuthoringGuideReq,
+  zAskRecordReq, zActRecordReq, zListReq, zReadReq,
+  zValidateReq, zCreateReq, zUpdateReq, zDeleteReq,
   zRetrieveReq, zResumeReq, zRegisterReq,
   zStoreInsertReq, zStoreFindReq, zStoreUpdateReq, zStoreDeleteReq, zStoreCollectionsReq,
   zStorePutReq, zStoreGetReq, zStoreListReq, zAbortReq,
+  zGuideReq,
 } from "@zobr/protocol";
 import type { ZsService } from "@zobr/protocol";
 import type { z } from "zod";
@@ -39,14 +40,12 @@ export const MCP_TOOLS: readonly McpTool[] = [
   tool({ name: "zs_status", description: "Get instance status + cursor.", input: zStatusReq, role: "executor", handle: (s, a) => s.status(a) }),
   tool({ name: "zs_ask_record", description: "Record a human-in-the-loop answer into the trace (authority).", input: zAskRecordReq, role: "executor", handle: (s, a) => s.askRecord(a) }),
   tool({ name: "zs_act_record", description: "Record an action outcome into the trace (asserted, with provenance).", input: zActRecordReq, role: "executor", handle: (s, a) => s.actRecord(a) }),
-  tool({ name: "zs_operations", description: "Get the reference of all built-in ZS operations (the cognitive ambient).", input: zOperationsReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_list", description: "List available scripts in the library.", input: zListReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_read", description: "Read a script's source from the library.", input: zReadReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_validate", description: "Validate a script source (tsc + fence). Returns errors/warnings.", input: zValidateReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_create", description: "Create a new script in the library (validate-then-save). Architect only.", input: zCreateReq, role: "architect", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_update", description: "Update an existing script (validate-then-save). Architect only.", input: zUpdateReq, role: "architect", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_delete", description: "Delete a script from the library. Architect only.", input: zDeleteReq, role: "architect", handle: () => "dispatched_by_app" }),
-  tool({ name: "zs_authoring_guide", description: "Get the authoring instruction for script architects (doc 11b). Architect only.", input: zAuthoringGuideReq, role: "architect", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_retrieve", description: "Retrieve data from an external source (KB/web). Stub: KB not yet available.", input: zRetrieveReq, role: "executor", handle: (s, a) => s.retrieve(a) }),
   tool({ name: "zs_resume", description: "Resume a suspended or awaiting_user instance.", input: zResumeReq, role: "executor", handle: (s, a) => s.resume(a) }),
   tool({ name: "zs_register", description: "Register as an agent. Returns agent_id required for all subsequent calls.", input: zRegisterReq, role: "executor", handle: () => "dispatched_by_app" }),
@@ -59,6 +58,7 @@ export const MCP_TOOLS: readonly McpTool[] = [
   tool({ name: "zs_store_put", description: "Put a note (key-value). Blocked during active invocation.", input: zStorePutReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_get", description: "Get a note by key.", input: zStoreGetReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_list", description: "List notes, optionally filtered by type.", input: zStoreListReq, role: "executor", handle: () => "dispatched_by_app" }),
+  tool({ name: "zs_guide", description: "System reference. No args → table of contents. With topic → full article.", input: zGuideReq, role: "executor", handle: () => "dispatched_by_app" }),
 ] as const;
 
 /** Parse + dispatch one tool call by name (used by the Nest adapter and tests). */

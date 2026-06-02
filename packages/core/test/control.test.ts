@@ -13,7 +13,7 @@ describe("ControlDriver.report", () => {
     const r = await d.report(inst, "progress", { done: 2 });
     expect(r.ok).toBe(true);
     expect(ctrl.reports).toEqual([{ label: "progress", data: { done: 2 } }]);
-    expect(inst.trace.events.at(-1)).toMatchObject({ op: "report", trust: "verified", meta: { label: "progress" } });
+    expect(inst.trace.events.at(-1)).toMatchObject({ op: "report", trust: "asserted", meta: { label: "progress" } });
   });
 
   it("works with no controller (purely cognitive script)", async () => {

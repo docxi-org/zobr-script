@@ -22,7 +22,7 @@ async function registered(a: ZsApp): Promise<string> {
 describe("MCP tool registry", () => {
   it("declares the expected zs_* tools", () => {
     const names = MCP_TOOLS.map((t) => t.name);
-    expect(names).toEqual(["zs_start", "zs_sandbox", "zs_report", "zs_checkpoint", "zs_conclude", "zs_status", "zs_ask_record", "zs_act_record", "zs_operations", "zs_list", "zs_read", "zs_validate", "zs_create", "zs_update", "zs_delete", "zs_authoring_guide", "zs_retrieve", "zs_resume", "zs_register", "zs_store_insert", "zs_store_find", "zs_store_update", "zs_store_delete", "zs_store_collections", "zs_abort", "zs_store_put", "zs_store_get", "zs_store_list"]);
+    expect(names).toEqual(["zs_start", "zs_sandbox", "zs_report", "zs_checkpoint", "zs_conclude", "zs_status", "zs_ask_record", "zs_act_record", "zs_list", "zs_read", "zs_validate", "zs_create", "zs_update", "zs_delete", "zs_retrieve", "zs_resume", "zs_register", "zs_store_insert", "zs_store_find", "zs_store_update", "zs_store_delete", "zs_store_collections", "zs_abort", "zs_store_put", "zs_store_get", "zs_store_list", "zs_guide"]);
     for (const t of MCP_TOOLS) expect(t.description.length).toBeGreaterThan(0);
   });
 
@@ -46,12 +46,29 @@ describe("MCP tool registry", () => {
     await expect(a.callTool("zs_nope", { agent_id })).rejects.toThrow(/unknown MCP tool/);
   });
 
-  it("zs_operations returns the cognitive ambient reference", async () => {
+  it("zs_guide returns table of contents without topic", async () => {
     const a = app();
     const agent_id = await registered(a);
-    const res = (await a.callTool("zs_operations", { agent_id })) as { reference: string };
-    expect(res.reference).toContain("declare function survey");
-    expect(res.reference).toContain("declare function conclude");
+    const res = (await a.callTool("zs_guide", { agent_id })) as { type: string; content: string };
+    expect(res.type).toBe("toc");
+    expect(res.content).toContain("overview");
+    expect(res.content).toContain("operations");
+    expect(res.content).toContain("trust");
+  });
+
+  it("zs_guide returns article for a specific topic", async () => {
+    const a = app();
+    const agent_id = await registered(a);
+    const res = (await a.callTool("zs_guide", { agent_id, topic: "overview" })) as { type: string; content: string };
+    expect(res.type).toBe("article");
+    expect(res.content).toContain("ZS");
+  });
+
+  it("zs_guide returns error for unknown topic", async () => {
+    const a = app();
+    const agent_id = await registered(a);
+    const res = (await a.callTool("zs_guide", { agent_id, topic: "nonexistent" })) as { type: string; content: string };
+    expect(res.content).toContain("Unknown topic");
   });
 
   it("zs_read returns script source (requires library)", async () => {

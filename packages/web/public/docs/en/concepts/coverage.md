@@ -20,11 +20,14 @@ asserted:  43%  ██████░░░░░
 
 The server counts events by [trust class](trust-classes) at the end of each run:
 
-- **verified** — events with trust `verified` (checkpoints, conclude, shape checks)
-- **asserted** — events with trust `asserted` (cognitive operations like survey, doubt)
-- **authority_gates** — events with trust `authority` (server function calls, I/O)
+- **verified** — events with trust `verified` (sandbox calls, checkpoints, conclude shape validation)
+- **asserted** — events with trust `asserted` (cognitive operations, `report` with agent-produced data, `act`)
+- **authority_gates** — events with trust `authority` (human-in-the-loop responses)
+- **n/a** — infrastructure events (`start`, status transitions) — **excluded** from the ratio
 
-Coverage = `verified / (verified + asserted)`. Authority events are counted separately because they represent external dependencies, not model reasoning.
+Coverage = `verified / (verified + asserted)`. Authority events are counted separately because they represent external decisions, not model reasoning. Infrastructure events (`n/a`) are excluded entirely.
+
+The key distinction: `report` counts as **asserted** because the server merely records what the agent sends — the content originates from the agent. `checkpoint` counts as **verified** because the server evaluates the data and responds with a directive.
 
 > **Tip:** coverage is not a quality score. A short fully-verified run can be trivial, and a rich asserted exploration can be exactly what you wanted. Read it alongside the [event timeline](trace), never alone.
 

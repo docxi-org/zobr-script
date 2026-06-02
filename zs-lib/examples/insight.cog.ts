@@ -12,11 +12,13 @@ export function reflect(context: string): Result {
   const mechanisms = survey("distinct mechanisms, workarounds, and conventions in the system", {
     count: 10,
   });
+  report("survey_mechanisms", { topic: "mechanisms and workarounds", count: 10 });
 
   // 2. Find friction: which of these feel forced or fragile
   const friction = doubt(mechanisms, {
     lens: "which mechanisms exist only to compensate for a missing abstraction",
   });
+  report("doubt_friction", { target: "mechanisms", lens: "missing abstraction" });
 
   // 3. Look for a common root
   const c = commit({
@@ -29,6 +31,7 @@ export function reflect(context: string): Result {
   const pattern = synthesize([mechanisms, friction], {
     method: "what real-world concept (object, protocol, lifecycle) do these pieces imitate separately",
   });
+  report("synthesize_pattern", { sources: 2, method: "real-world concept mapping" });
 
   // 4. Challenge: does the concept actually simplify?
   const antithesis = contrast(pattern, {
@@ -38,6 +41,7 @@ export function reflect(context: string): Result {
   const stress = doubt(pattern, {
     lens: "what edge cases break the proposed abstraction",
   });
+  report("doubt_stress", { target: "proposed abstraction", lens: "edge cases" });
 
   // 5. Verdict
   check(c, { pattern, antithesis, stress });

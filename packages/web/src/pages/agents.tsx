@@ -5,9 +5,11 @@ import { Card } from "../ui/card";
 import { DataTable, type Column } from "../ui/data-table";
 import { SectionTitle } from "../ui/section-title";
 import { ScriptChip } from "../ui/script-chip";
+import { Segmented } from "../ui/segmented";
 import { timeAgo, fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
+import { api } from "../api/client";
 import { useT } from "../i18n/context";
 import type { Agent, AgentDetail } from "../api/types";
 
@@ -22,8 +24,24 @@ function MiniStat({ label, value, c }: { label: string; value: string | number; 
   );
 }
 
+function RoleToggle({ agentId, role, onChanged }: { agentId: string; role: string; onChanged: () => void }) {
+  const isArch = role === "architect";
+  const toggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await api.put(`/agents/${agentId}/role`, { role: isArch ? "executor" : "architect" });
+    onChanged();
+  };
+  return (
+    <button onClick={toggle} className="inline-flex cursor-pointer items-center rounded-full border-none"
+      style={{ gap: 6, padding: "3px 10px 3px 6px", background: isArch ? "color-mix(in oklch, var(--accent) calc(var(--tint) * 100%), transparent)" : "var(--bg-2)", fontSize: "var(--fs-xs)", fontWeight: 600, color: isArch ? "var(--accent)" : "var(--text-2)", transition: "all .15s var(--ease)" }}>
+      <span style={{ width: 8, height: 8, borderRadius: 99, background: isArch ? "var(--accent)" : "var(--text-3)" }} />
+      {role}
+    </button>
+  );
+}
+
 export function AgentsList() {
-  const { data } = useApi<{ agents: Agent[] }>("/agents");
+  const { data, refetch } = useApi<{ agents: Agent[] }>("/agents");
   const agents = data?.agents ?? [];
   const t = useT();
 
@@ -34,11 +52,12 @@ export function AgentsList() {
         {r.name}
       </span>
     ) },
+    { key: "role", label: t("agents.role"), width: 120, sortable: true, sortVal: (r) => r.role, render: (r) => <RoleToggle agentId={r.agent_id} role={r.role} onChanged={refetch} /> },
     { key: "agent_id", label: t("col.agent_id"), mono: true, muted: true },
     { key: "registered", label: t("col.registered"), mono: true, muted: true, sortable: true, sortVal: (r) => r.registered_at, render: (r) => timeAgo(r.registered_at, NOW) + " " + t("common.ago") },
     { key: "active", label: t("col.active"), align: "right", sortable: true, sortVal: (r) => r.active_invocations, render: (r) => r.active_invocations > 0 ? <Badge color="var(--st-running)">{r.active_invocations}</Badge> : <span className="mono" style={{ color: "var(--text-3)" }}>0</span> },
     { key: "total", label: t("col.total_runs"), align: "right", mono: true, sortable: true, sortVal: (r) => r.total_runs, render: (r) => r.total_runs },
-  ], [t]);
+  ], [t, refetch]);
 
   return (
     <div>
@@ -52,9 +71,14 @@ export function AgentsList() {
 }
 
 export function AgentDetailPage({ id }: { id: string }) {
-  const { data: agent, loading } = useApi<AgentDetail>(`/agents/${id}`, [id]);
+  const { data: agent, loading, refetch } = useApi<AgentDetail>(`/agents/${id}`, [id]);
 
   const t = useT();
+
+  const changeRole = async (role: string) => {
+    await api.put(`/agents/${id}/role`, { role });
+    refetch();
+  };
   if (loading) return <div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>{t("agents.loading")}</div>;
   if (!agent) return (
     <div className="flex flex-col items-center justify-center" style={{ padding: "56px 24px", color: "var(--text-2)" }}>
@@ -80,6 +104,21 @@ export function AgentDetailPage({ id }: { id: string }) {
           <span className="mono" style={{ fontSize: "var(--fs-sm)", color: "var(--text-2)" }}>{agent.agent_id}</span>
         </div>
       </div>
+
+      <Card className="mb-5">
+        <div className="flex items-center justify-between" style={{ gap: 12, fontSize: "var(--fs-sm)" }}>
+          <div className="flex items-center" style={{ gap: 10 }}>
+            <Icon name="users" size={16} style={{ color: "var(--text-2)" }} />
+            <span style={{ fontWeight: 600 }}>{t("agents.role")}</span>
+            <span style={{ color: "var(--text-3)", fontSize: "var(--fs-xs)" }}>{t("agents.role_hint")}</span>
+          </div>
+          <Segmented
+            value={agent.role ?? "executor"}
+            onChange={changeRole}
+            options={[{ value: "executor", label: t("agents.role_executor") }, { value: "architect", label: t("agents.role_architect") }]}
+          />
+        </div>
+      </Card>
 
       <div className="zs-stats mb-6 grid gap-[var(--gap)]" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         <MiniStat label={t("agents.registered")} value={timeAgo(agent.registered_at, NOW) + " " + t("common.ago")} />

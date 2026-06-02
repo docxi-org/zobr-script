@@ -241,6 +241,20 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     res.json({ agents: zsApp.apiListAgents() });
   });
 
+  router.put("/agents/:id/role", auth.middleware(["admin", "architect"]), (req, res) => {
+    const { role } = req.body as { role?: string };
+    if (role !== "executor" && role !== "architect") {
+      res.status(400).json({ error: { code: "BAD_REQUEST", message: "role must be 'executor' or 'architect'" } });
+      return;
+    }
+    const ok = zsApp.agents.setRole(req.params["id"] as string, role);
+    if (!ok) {
+      res.status(404).json({ error: { code: "NOT_FOUND", message: "Agent not found" } });
+      return;
+    }
+    res.json({ ok: true, role });
+  });
+
   router.get("/agents/:id", (req, res) => {
     const agent = zsApp.apiGetAgentDetail(req.params["id"] as string);
     if (!agent) {

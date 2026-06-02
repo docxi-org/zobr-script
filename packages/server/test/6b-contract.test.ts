@@ -155,16 +155,13 @@ describe("6b Express + MCP Streamable HTTP transport", () => {
     expect(res.headers.get("mcp-session-id")).toBeTruthy();
   });
 
-  it("registers executor MCP_TOOLS as tools (architect tools hidden in executor mode)", async () => {
+  it("registers all MCP_TOOLS as visible (role gating is per-agent, not per-visibility)", async () => {
     const sid = await initSession();
     await mcpPost({ jsonrpc: "2.0", method: "notifications/initialized" }, sid);
     const res = await mcpPost({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }, sid);
     const tools = (res.body.result?.tools ?? []).map((t) => t.name);
-    for (const t of MCP_TOOLS.filter((t) => t.role === "executor")) {
+    for (const t of MCP_TOOLS) {
       expect(tools).toContain(t.name);
-    }
-    for (const t of MCP_TOOLS.filter((t) => t.role === "architect")) {
-      expect(tools).not.toContain(t.name);
     }
   });
 
@@ -186,19 +183,12 @@ describe("6b Express + MCP Streamable HTTP transport", () => {
     expect(result.status).toBe("done");
   });
 
-  it("guards architect-only tools by role (doc 08) — executor mode hides them", async () => {
-    const sid = await initSession();
-    await mcpPost({ jsonrpc: "2.0", method: "notifications/initialized" }, sid);
-    const res = await mcpPost({ jsonrpc: "2.0", id: 6, method: "tools/list", params: {} }, sid);
-    const tools = (res.body.result?.tools ?? []).map((t) => t.name);
-    const architectTools = MCP_TOOLS.filter((t) => t.role === "architect").map((t) => t.name);
-    for (const name of architectTools) {
-      expect(tools).not.toContain(name);
-    }
-    const executorTools = MCP_TOOLS.filter((t) => t.role === "executor").map((t) => t.name);
-    for (const name of executorTools) {
-      expect(tools).toContain(name);
-    }
+  it("guards architect-only tools by per-agent role (executor gets soft rejection)", async () => {
+    const { sid, agent_id } = await initWithAgent();
+    const res = await mcpPost({ jsonrpc: "2.0", id: 6, method: "tools/call", params: { name: "zs_create", arguments: { agent_id, script_ref: "test/x", cog: [{ name: "x.cog.ts", content: "export function x(){return conclude<{a:string}>();}" }] } } }, sid);
+    const result = parseToolResult(res.body) as { ok: boolean; error?: { kind: string } };
+    expect(result.ok).toBe(false);
+    expect(result.error?.kind).toBe("role_insufficient");
   });
 
   it("rejects requests without session ID (except initialize)", async () => {
@@ -324,6 +314,7 @@ describe("6b library ScriptSourceReader (filesystem)", () => {
     const lib = new FsScriptSourceReader(libRoot);
     const zsApp = new ZsApp(lib);
     const { agent_id } = zsApp.register("test");
+    zsApp.agents.setRole(agent_id, "architect");
     const res = (await zsApp.callTool("zs_create", {
       agent_id,
       script_ref: "new-script",
@@ -338,6 +329,7 @@ describe("6b library ScriptSourceReader (filesystem)", () => {
     const lib = new FsScriptSourceReader(libRoot);
     const zsApp = new ZsApp(lib);
     const { agent_id } = zsApp.register("test");
+    zsApp.agents.setRole(agent_id, "architect");
     const res = (await zsApp.callTool("zs_create", {
       agent_id,
       script_ref: "bad-script",
@@ -351,6 +343,7 @@ describe("6b library ScriptSourceReader (filesystem)", () => {
     const lib = new FsScriptSourceReader(libRoot);
     const zsApp = new ZsApp(lib);
     const { agent_id } = zsApp.register("test");
+    zsApp.agents.setRole(agent_id, "architect");
     await zsApp.callTool("zs_create", {
       agent_id,
       script_ref: "to-delete",

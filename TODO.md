@@ -66,18 +66,18 @@
 
 ### 10.6. Per-agent роли
 
-- [ ] **10.6.1** Столбец `role` в таблице agents (`db.ts`), default `executor`.
-- [ ] **10.6.2** `AgentRegistry.setRole(agentId, role)` + persist в SQLite.
-- [ ] **10.6.3** `zs_register` response — добавить `role` и `hint` про guide и повышение.
-- [ ] **10.6.4** `callTool` — проверка роли агента перед architect-tools, мягкий отказ с подсказкой.
-- [ ] **10.6.5** Убрать `ZS_ARCHITECT_MODE` из env, `http.ts`, `ecosystem.config.cjs`, `.env` template.
-- [ ] **10.6.6** Регистрировать все tools всегда (не фильтровать по architectMode).
+- [x] **10.6.1** Столбец `role` в таблице agents (`db.ts`), default `executor`.
+- [x] **10.6.2** `AgentRegistry.setRole(agentId, role)` + persist в SQLite.
+- [x] **10.6.3** `zs_register` response — добавить `role` и `hint` про guide и повышение.
+- [x] **10.6.4** `callTool` — проверка роли агента перед architect-tools, мягкий отказ с подсказкой.
+- [x] **10.6.5** Убрать `ZS_ARCHITECT_MODE` из env, `http.ts`, `ecosystem.config.cjs`, `.env` template.
+- [x] **10.6.6** Регистрировать все tools всегда (не фильтровать по architectMode).
 
 ### 10.7. REST API + Frontend
 
-- [ ] **10.7.1** `PUT /api/agents/:id/role` — endpoint смены роли.
-- [ ] **10.7.2** Agent Detail (`pages/agents.tsx`) — переключатель роли executor/architect.
-- [ ] **10.7.3** i18n — ключи для роли, подсказок, переключателя (en + ru).
+- [x] **10.7.1** `PUT /api/agents/:id/role` — endpoint смены роли.
+- [x] **10.7.2** Agent Detail (`pages/agents.tsx`) — переключатель роли executor/architect.
+- [x] **10.7.3** i18n — ключи для роли, подсказок, переключателя (en + ru).
 
 ### 10.8. Help (user-facing docs)
 

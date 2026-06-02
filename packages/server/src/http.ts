@@ -27,7 +27,6 @@ export interface ZsHttpConfig {
   readonly maxActiveInvocations?: number;
   readonly mcpPath?: string;
   readonly logger?: Logger;
-  readonly architectMode?: boolean;
 }
 
 export interface ZsHttpApp {
@@ -37,7 +36,7 @@ export interface ZsHttpApp {
 }
 
 export function createZsHttpApp(config: ZsHttpConfig): ZsHttpApp {
-  const { library, serviceOpts, dbPath, invocationTtlMs, awaitingTtlMs, maxActiveInvocations, mcpPath = "/mcp", logger: parentLog, architectMode = false } = config;
+  const { library, serviceOpts, dbPath, invocationTtlMs, awaitingTtlMs, maxActiveInvocations, mcpPath = "/mcp", logger: parentLog } = config;
   const logger = (parentLog ?? defaultLog).child({ module: "http" });
 
   const zsApp = new ZsApp(library, {
@@ -54,8 +53,7 @@ export function createZsHttpApp(config: ZsHttpConfig): ZsHttpApp {
     { capabilities: { logging: {} }, instructions: EXECUTOR_INSTRUCTION },
   );
 
-  const visibleTools = MCP_TOOLS.filter((t) => t.role === "executor" || architectMode);
-  for (const tool of visibleTools) {
+  for (const tool of MCP_TOOLS) {
     const inputSchema = tool.name === "zs_register"
       ? tool.input
       : (tool.input as z.ZodObject<z.ZodRawShape>).extend({ agent_id: z.string() });
@@ -69,7 +67,7 @@ export function createZsHttpApp(config: ZsHttpConfig): ZsHttpApp {
       },
     );
   }
-  logger.info({ tools: visibleTools.map((t) => t.name), architectMode }, "registered MCP tools");
+  logger.info({ tools: MCP_TOOLS.map((t) => t.name) }, "registered MCP tools");
 
   const app = createMcpExpressApp({ host: "0.0.0.0" });
   const transports = new Map<string, NodeStreamableHTTPServerTransport>();

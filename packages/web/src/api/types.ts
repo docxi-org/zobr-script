@@ -57,6 +57,7 @@ export interface Invocation {
 export interface Agent {
   agent_id: string;
   name: string;
+  role: string;
   registered_at: number;
   active_invocations: number;
   total_runs: number;
@@ -65,6 +66,7 @@ export interface Agent {
 export interface AgentDetail {
   agent_id: string;
   name: string;
+  role: string;
   registered_at: number;
   active_invocations: string[];
   history: { invocation_id: string; script_ref: string; status: string; started_at: number; finished_at: number | null }[];

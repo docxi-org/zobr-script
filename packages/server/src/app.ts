@@ -85,6 +85,14 @@ export class ZsApp {
 
     const tool = MCP_TOOLS.find((t) => t.name === name);
     if (tool === undefined) throw new Error(`unknown MCP tool: ${name}`);
+
+    if (tool.role === "architect" && agentId) {
+      const entry = this.agents.get(agentId);
+      if (entry && entry.role !== "architect") {
+        return { ok: false, error: { kind: "role_insufficient", message: "This tool requires the architect role. Ask the user to upgrade your role on the Agents page." } };
+      }
+    }
+
     const parsed = tool.input.parse(rawArgs) as Record<string, unknown>;
 
     const invId = raw["invocation_id"] as string | undefined;
@@ -396,10 +404,16 @@ export class ZsApp {
     return { ok: true, aborted };
   }
 
-  register(name: string): { agent_id: string; active_invocations: string[] } {
+  register(name: string): { agent_id: string; role: string; active_invocations: string[]; hint: string } {
     const agent_id = this.agents.register(name);
-    const active_invocations = [...this.agents.get(agent_id)?.activeInvocations ?? []];
-    return { agent_id, active_invocations };
+    const entry = this.agents.get(agent_id)!;
+    const active_invocations = [...entry.activeInvocations];
+    return {
+      agent_id,
+      role: entry.role,
+      active_invocations,
+      hint: "Call zs_guide() for system reference. Your role is " + entry.role + " — ask the user to upgrade to architect on the Agents page if you need to create or modify scripts.",
+    };
   }
 
   guide(topic?: string): { type: "toc" | "article"; content: string } {
@@ -612,6 +626,7 @@ export class ZsApp {
     return {
       agent_id: agent.agentId,
       name: agent.name,
+      role: agent.role,
       registered_at: agent.registeredAt,
       active_invocations: [...agent.activeInvocations],
       total_runs: this.#db?.infra.countAgentInvocations(id) ?? 0,

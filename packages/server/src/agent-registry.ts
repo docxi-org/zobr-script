@@ -3,12 +3,13 @@
 // Persisted to SQLite (zs_agents) via InfraStore when Db is provided.
 // activeInvocations is ephemeral (in-memory only).
 import { randomUUID } from "node:crypto";
-import type { Db } from "./db";
+import type { Db, AgentRole } from "./db";
 
 export interface AgentEntry {
   readonly name: string;
   readonly agentId: string;
   readonly registeredAt: number;
+  role: AgentRole;
   readonly activeInvocations: Set<string>;
 }
 
@@ -26,6 +27,7 @@ export class AgentRegistry {
           name: row.name,
           agentId: row.agent_id,
           registeredAt: row.registered_at,
+          role: row.role ?? "executor",
           activeInvocations: new Set(),
         });
         this.#byName.set(row.name, row.agent_id);
@@ -43,10 +45,11 @@ export class AgentRegistry {
       name,
       agentId,
       registeredAt,
+      role: "executor",
       activeInvocations: new Set(),
     });
     this.#byName.set(name, agentId);
-    this.#db?.infra.saveAgent({ agent_id: agentId, name, registered_at: registeredAt });
+    this.#db?.infra.saveAgent({ agent_id: agentId, name, registered_at: registeredAt, role: "executor" });
     return agentId;
   }
 
@@ -76,11 +79,20 @@ export class AgentRegistry {
     return this.#invToAgent.get(invocationId);
   }
 
-  all(): { agent_id: string; name: string; registered_at: number }[] {
+  setRole(agentId: string, role: AgentRole): boolean {
+    const entry = this.#agents.get(agentId);
+    if (!entry) return false;
+    entry.role = role;
+    this.#db?.infra.setAgentRole(agentId, role);
+    return true;
+  }
+
+  all(): { agent_id: string; name: string; registered_at: number; role: AgentRole }[] {
     return [...this.#agents.values()].map((a) => ({
       agent_id: a.agentId,
       name: a.name,
       registered_at: a.registeredAt,
+      role: a.role,
     }));
   }
 

@@ -117,6 +117,10 @@ export default {
   "agents.invocation_history": "История вызовов",
   "agents.not_found": "Агент не найден",
   "agents.loading": "Загрузка агента…",
+  "agents.role": "Роль",
+  "agents.role_executor": "Исполнитель",
+  "agents.role_architect": "Архитектор",
+  "agents.role_hint": "Исполнители запускают скрипты. Архитекторы могут также создавать и изменять их.",
 
   // settings
   "settings.title": "Настройки",

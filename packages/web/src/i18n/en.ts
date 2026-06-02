@@ -117,6 +117,10 @@ export default {
   "agents.invocation_history": "Invocation history",
   "agents.not_found": "Agent not found",
   "agents.loading": "Loading agent…",
+  "agents.role": "Role",
+  "agents.role_executor": "Executor",
+  "agents.role_architect": "Architect",
+  "agents.role_hint": "Executors run scripts. Architects can also create and modify them.",
 
   // settings
   "settings.title": "Settings",

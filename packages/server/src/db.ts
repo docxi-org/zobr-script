@@ -31,10 +31,13 @@ export interface Notes {
   keys(type?: string): string[];
 }
 
+export type AgentRole = "executor" | "architect";
+
 export interface AgentRecord {
   agent_id: string;
   name: string;
   registered_at: number;
+  role: AgentRole;
 }
 
 export interface InfraStore {
@@ -44,6 +47,7 @@ export interface InfraStore {
   finishInvocation(invocation_id: string, status: string): void;
   saveAgent(agent: AgentRecord): void;
   loadAgents(): AgentRecord[];
+  setAgentRole(agentId: string, role: AgentRole): boolean;
   saveSnapshot(invocation_id: string, script_ref: string, state: string): void;
   deleteSnapshot(invocation_id: string): void;
   loadSnapshot(invocation_id: string): { script_ref: string; state: string } | null;
@@ -125,7 +129,8 @@ export function createDb(path: string): Db {
     CREATE TABLE IF NOT EXISTS zs_agents (
       agent_id TEXT PRIMARY KEY,
       name TEXT NOT NULL UNIQUE,
-      registered_at INTEGER NOT NULL
+      registered_at INTEGER NOT NULL,
+      role TEXT NOT NULL DEFAULT 'executor'
     );
     CREATE TABLE IF NOT EXISTS zs_users (
       id TEXT PRIMARY KEY,
@@ -138,6 +143,8 @@ export function createDb(path: string): Db {
       last_login INTEGER
     );
   `);
+
+  try { db.exec("ALTER TABLE zs_agents ADD COLUMN role TEXT NOT NULL DEFAULT 'executor'"); } catch {}
 
   function collection<T = unknown>(name: string): Collection<T> {
     return {
@@ -280,12 +287,16 @@ export function createDb(path: string): Db {
     },
 
     saveAgent(agent: AgentRecord): void {
-      db.prepare("INSERT OR IGNORE INTO zs_agents (agent_id, name, registered_at) VALUES (?, ?, ?)")
-        .run(agent.agent_id, agent.name, agent.registered_at);
+      db.prepare("INSERT OR IGNORE INTO zs_agents (agent_id, name, registered_at, role) VALUES (?, ?, ?, ?)")
+        .run(agent.agent_id, agent.name, agent.registered_at, agent.role);
     },
 
     loadAgents(): AgentRecord[] {
-      return db.prepare("SELECT agent_id, name, registered_at FROM zs_agents").all() as AgentRecord[];
+      return db.prepare("SELECT agent_id, name, registered_at, role FROM zs_agents").all() as AgentRecord[];
+    },
+
+    setAgentRole(agentId: string, role: AgentRole): boolean {
+      return db.prepare("UPDATE zs_agents SET role = ? WHERE agent_id = ?").run(role, agentId).changes > 0;
     },
 
     saveSnapshot(invocation_id: string, script_ref: string, state: string): void {

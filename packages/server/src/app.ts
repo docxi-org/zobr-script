@@ -408,12 +408,10 @@ export class ZsApp {
     const agent_id = this.agents.register(name);
     const entry = this.agents.get(agent_id)!;
     const active_invocations = [...entry.activeInvocations];
-    return {
-      agent_id,
-      role: entry.role,
-      active_invocations,
-      hint: "Call zs_guide() for system reference. Your role is " + entry.role + " — ask the user to upgrade to architect on the Agents page if you need to create or modify scripts.",
-    };
+    const hint = entry.role === "architect"
+      ? "Call zs_guide() for the full system reference. Your role is architect — you can create, update, and delete scripts in addition to running them."
+      : "Call zs_guide() for the full system reference. Your role is executor — you can run scripts but cannot create or modify them. To get architect privileges, ask the user to switch your role on the Agents page in the admin panel.";
+    return { agent_id, role: entry.role, active_invocations, hint };
   }
 
   guide(topic?: string): { type: "toc" | "article"; content: string } {

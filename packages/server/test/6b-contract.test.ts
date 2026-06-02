@@ -89,7 +89,7 @@ describe("6b Express + MCP Streamable HTTP transport", () => {
   let baseUrl: string;
 
   beforeAll(async () => {
-    const { app } = createZsHttpApp({
+    const { app } = await createZsHttpApp({
       library: new FakeReader({
         news: { script_ref: "news", cog: [{ name: "/zs/news.cog.ts", content: VALID_COG }], srv: [] },
         typed: { script_ref: "typed", cog: [{ name: "/zs/typed.cog.ts", content: TYPED_COG }], srv: [] },

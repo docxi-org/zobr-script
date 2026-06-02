@@ -17,6 +17,12 @@ import { log as defaultLog } from "./logger";
 import { EXECUTOR_INSTRUCTION, START_PREAMBLE } from "./instructions";
 import { createApiRouter } from "./api-routes";
 import { AuthService } from "./auth";
+import type { ZsAuth } from "./oauth";
+
+export interface OAuthConfig {
+  readonly auth: ZsAuth;
+  readonly mcpUrl: string;
+}
 
 export interface ZsHttpConfig {
   readonly library: ScriptLibrary | ScriptSourceReader;
@@ -27,6 +33,7 @@ export interface ZsHttpConfig {
   readonly maxActiveInvocations?: number;
   readonly mcpPath?: string;
   readonly logger?: Logger;
+  readonly oauth?: OAuthConfig | undefined;
 }
 
 export interface ZsHttpApp {
@@ -35,7 +42,7 @@ export interface ZsHttpApp {
   readonly mcpServer: McpServer;
 }
 
-export function createZsHttpApp(config: ZsHttpConfig): ZsHttpApp {
+export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> {
   const { library, serviceOpts, dbPath, invocationTtlMs, awaitingTtlMs, maxActiveInvocations, mcpPath = "/mcp", logger: parentLog } = config;
   const logger = (parentLog ?? defaultLog).child({ module: "http" });
 
@@ -71,6 +78,19 @@ export function createZsHttpApp(config: ZsHttpConfig): ZsHttpApp {
 
   const app = createMcpExpressApp({ host: "0.0.0.0" });
   const transports = new Map<string, NodeStreamableHTTPServerTransport>();
+
+  if (config.oauth) {
+    const { createOAuthRoutes, createProtectedResourceRouter, requireBearerAuth } = await import("./oauth");
+    const { auth, mcpUrl } = config.oauth;
+    const resourceMetadataUrl = `${mcpUrl.replace(/\/mcp$/, "")}/.well-known/oauth-protected-resource${mcpPath}`;
+    app.use(createOAuthRoutes(auth, mcpUrl));
+    app.use(createProtectedResourceRouter(auth, mcpPath));
+    const bearerMiddleware = requireBearerAuth(auth, resourceMetadataUrl);
+    app.post(mcpPath, bearerMiddleware);
+    app.get(mcpPath, bearerMiddleware);
+    app.delete(mcpPath, bearerMiddleware);
+    logger.info({ mcpUrl }, "OAuth enabled for MCP");
+  }
 
   app.post(mcpPath, async (req: Request, res: Response) => {
     const sessionId = req.headers["mcp-session-id"] as string | undefined;

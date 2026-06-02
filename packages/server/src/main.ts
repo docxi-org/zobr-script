@@ -21,7 +21,28 @@ const MAX_ACTIVE = Number(process.env["ZS_MAX_ACTIVE_INVOCATIONS"] ?? 100);
 log.info({ library: LIB_ROOT }, "materializing scaffold");
 await materializeScaffold(LIB_ROOT);
 
-const { app } = createZsHttpApp({
+const OAUTH_ENABLED = process.env["ZS_OAUTH"] === "true";
+let oauth: import("./http").OAuthConfig | undefined;
+
+if (OAUTH_ENABLED) {
+  const { createZsOAuth } = await import("./oauth");
+  const mcpUrl = `http://${process.env["ZS_HOST"] ?? "127.0.0.1"}:${PORT}/mcp`;
+  const authUrl = `http://${process.env["ZS_HOST"] ?? "127.0.0.1"}:${PORT}`;
+  const oauthDbPath = STORE_PATH.replace(/\.sqlite$/, "-oauth.sqlite");
+  const { auth, seedAdmin } = createZsOAuth({
+    dbPath: oauthDbPath,
+    mcpUrl,
+    authUrl,
+    adminEmail: "admin@docxi.org",
+    adminPassword: process.env["ZS_ADMIN_PASSWORD"] ?? "admin",
+    logger: log,
+  });
+  await seedAdmin();
+  oauth = { auth, mcpUrl };
+  log.info({ mcpUrl, oauthDbPath }, "OAuth enabled");
+}
+
+const { app } = await createZsHttpApp({
   library: new FsScriptSourceReader(LIB_ROOT),
   dbPath: STORE_PATH,
   invocationTtlMs: INVOCATION_TTL,
@@ -29,6 +50,7 @@ const { app } = createZsHttpApp({
   maxActiveInvocations: MAX_ACTIVE,
   serviceOpts: { defaultBudgets: { steps: BUDGET_STEPS, iterations: BUDGET_ITERATIONS } },
   logger: log,
+  oauth,
 });
 
 const SPA_DIR = join(import.meta.dirname, "../../web/dist");
@@ -39,9 +61,6 @@ if (existsSync(SPA_DIR)) {
 
 app.get("/health", (_req, res) => { res.json({ ok: true }); });
 
-app.get("/.well-known/oauth-protected-resource", (_req, res) => {
-  res.json({ resource: `https://${_req.headers.host ?? "localhost"}` });
-});
 
 const HOST = process.env["ZS_HOST"] ?? "127.0.0.1";
 

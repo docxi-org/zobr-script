@@ -27,8 +27,9 @@ let oauth: import("./http").OAuthConfig | undefined;
 
 if (OAUTH_ENABLED) {
   const { createZsOAuth } = await import("./oauth");
-  const mcpUrl = `http://${process.env["ZS_HOST"] ?? "127.0.0.1"}:${PORT}/mcp`;
-  const authUrl = `http://${process.env["ZS_HOST"] ?? "127.0.0.1"}:${PORT}`;
+  const publicBase = process.env["ZS_PUBLIC_URL"] ?? `http://${process.env["ZS_HOST"] ?? "127.0.0.1"}:${PORT}`;
+  const mcpUrl = `${publicBase}/mcp`;
+  const authUrl = publicBase;
   const oauthDbPath = STORE_PATH.replace(/\.sqlite$/, "-oauth.sqlite");
   const { auth, seedAdmin } = createZsOAuth({
     dbPath: oauthDbPath,

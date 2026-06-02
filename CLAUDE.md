@@ -222,6 +222,7 @@ ZS_MAX_RUN_DEPTH=10              # max nested run() depth
 ZS_JWT_SECRET=...               # random if not set (tokens lost on restart)
 ZS_ADMIN_PASSWORD=admin         # seed admin password
 ZS_OAUTH=true                   # enable MCP OAuth 2.1 (opt-in)
+ZS_PUBLIC_URL=https://zs.docxi.org  # public base URL for OAuth discovery
 LOG_LEVEL=info
 ```
 

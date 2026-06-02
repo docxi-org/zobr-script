@@ -5,6 +5,7 @@ import { CoverageBar } from "../ui/coverage-bar";
 import { Button } from "../ui/button";
 import { Tabs } from "../ui/tabs";
 import { DataTable, type Column } from "../ui/data-table";
+import { DiffEditor } from "@monaco-editor/react";
 import { ZsMonacoEditor, type EditorMarker } from "../ui/monaco-editor";
 import { fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
@@ -66,47 +67,22 @@ function ShapeView({ shape }: { shape: Shape }) {
 }
 
 
-function DiffView({ oldText, newText, file }: { oldText: string; newText: string; file: string }) {
-  const A = (oldText || "").split("\n");
-  const B = (newText || "").split("\n");
-  const n = A.length, m = B.length;
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0) as number[]);
-  for (let i = n - 1; i >= 0; i--)
-    for (let j = m - 1; j >= 0; j--)
-      dp[i]![j] = A[i] === B[j] ? dp[i + 1]![j + 1]! + 1 : Math.max(dp[i + 1]![j]!, dp[i]![j + 1]!);
-  const out: { t: string; text: string }[] = [];
-  let i = 0, j = 0;
-  while (i < n && j < m) {
-    if (A[i] === B[j]) { out.push({ t: " ", text: A[i]! }); i++; j++; }
-    else if (dp[i + 1]![j]! >= dp[i]![j + 1]!) { out.push({ t: "-", text: A[i]! }); i++; }
-    else { out.push({ t: "+", text: B[j]! }); j++; }
-  }
-  while (i < n) out.push({ t: "-", text: A[i++]! });
-  while (j < m) out.push({ t: "+", text: B[j++]! });
-
-  const adds = out.filter((r) => r.t === "+").length;
-  const dels = out.filter((r) => r.t === "-").length;
-  const bg: Record<string, string> = { "+": "color-mix(in oklch, var(--st-done) 14%, transparent)", "-": "color-mix(in oklch, var(--trust-error) 13%, transparent)", " ": "transparent" };
-  const fg: Record<string, string> = { "+": "var(--st-done)", "-": "var(--trust-error)", " ": "var(--text-3)" };
-
+function DiffView({ oldText, newText, file, theme }: { oldText: string; newText: string; file: string; theme: "dark" | "light" }) {
   return (
-    <div className="flex flex-1 flex-col overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-inset)", minHeight: 320 }}>
+    <div className="overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-inset)" }}>
       <div className="flex shrink-0 items-center border-b border-[var(--border)]" style={{ gap: 8, padding: "8px 14px", background: "var(--bg-2)" }}>
         <Icon name="copy" size={13} style={{ color: "var(--text-2)" }} />
         <span className="mono" style={{ fontSize: "var(--fs-xs)", color: "var(--text-1)" }}>{file}</span>
         <span className="mono" style={{ fontSize: "var(--fs-xs)", color: "var(--text-3)" }}>saved ↔ working</span>
-        <div className="flex-1" />
-        <span className="mono" style={{ fontSize: "var(--fs-xs)", color: "var(--st-done)" }}>+{adds}</span>
-        <span className="mono" style={{ fontSize: "var(--fs-xs)", color: "var(--trust-error)" }}>−{dels}</span>
       </div>
-      <div className="mono flex-1 overflow-auto" style={{ fontSize: "var(--fs-code)", lineHeight: 1.65 }}>
-        {out.map((r, k) => (
-          <div key={k} className="flex" style={{ background: bg[r.t] }}>
-            <span style={{ width: 22, flexShrink: 0, textAlign: "center", color: fg[r.t], userSelect: "none", fontWeight: 700 }}>{r.t === " " ? "" : r.t}</span>
-            <code style={{ paddingRight: 16, whiteSpace: "pre", color: r.t === " " ? "var(--cc-id)" : fg[r.t] }}>{r.text || " "}</code>
-          </div>
-        ))}
-      </div>
+      <DiffEditor
+        original={oldText}
+        modified={newText}
+        language="typescript"
+        theme={theme === "dark" ? "vs-dark" : "vs"}
+        options={{ readOnly: true, minimap: { enabled: false }, renderSideBySide: true, scrollBeyondLastLine: false, fontSize: 13, lineNumbers: "on" }}
+        height={400}
+      />
     </div>
   );
 }
@@ -242,10 +218,10 @@ export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string
 
       <div className="mt-3.5 flex flex-1 flex-col" style={{ minHeight: 320 }}>
         {tab === "cognitive" && (diff && canEdit
-          ? <DiffView oldText={script.cog} newText={cog} file={`${scriptRef}.cog.ts`} />
+          ? <DiffView oldText={script.cog} newText={cog} file={`${scriptRef}.cog.ts`} theme={theme} />
           : <ZsMonacoEditor value={cog} readOnly={!canEdit} onChange={(v) => { setCog(v); setValidation(null); setMarkers([]); }} file={`${scriptRef}.cog.ts`} theme={theme} markers={tab === "cognitive" ? markers : []} />)}
         {tab === "server" && (diff && canEdit
-          ? <DiffView oldText={script.srv ?? ""} newText={srv} file={`${scriptRef}.srv.ts`} />
+          ? <DiffView oldText={script.srv ?? ""} newText={srv} file={`${scriptRef}.srv.ts`} theme={theme} />
           : <ZsMonacoEditor value={srv} readOnly={!canEdit} onChange={(v) => { setSrv(v); setValidation(null); setMarkers([]); }} file={`${scriptRef}.srv.ts`} theme={theme} markers={tab === "server" ? markers : []} />)}
         {tab === "contract" && (
           <div className="flex flex-col rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-1)", padding: "var(--pad)", gap: 20 }}>

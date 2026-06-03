@@ -2,6 +2,7 @@ import { randomUUID, scryptSync, randomBytes, timingSafeEqual } from "node:crypt
 import { SignJWT, jwtVerify } from "jose";
 import type Database from "better-sqlite3";
 import type { Request, Response, NextFunction } from "express";
+import { config } from "./config";
 
 export type Role = "admin" | "architect" | "executor";
 
@@ -43,25 +44,24 @@ export class AuthService {
 
   constructor(db: Database.Database, opts?: { jwtSecret?: string; tokenTtlSec?: number; refreshTtlSec?: number; logger?: { warn: (msg: string) => void } }) {
     this.#db = db;
-    const envSecret = opts?.jwtSecret ?? process.env["ZS_JWT_SECRET"];
+    const envSecret = opts?.jwtSecret ?? config.jwtSecret;
     if (!envSecret) {
       opts?.logger?.warn("ZS_JWT_SECRET not set — using random secret, tokens will not survive restart");
     }
     this.#secret = new TextEncoder().encode(envSecret ?? randomBytes(32).toString("hex"));
-    this.#tokenTtl = opts?.tokenTtlSec ?? 3600;
-    this.#refreshTtl = opts?.refreshTtlSec ?? 7 * 86400;
+    this.#tokenTtl = opts?.tokenTtlSec ?? config.tokenTtlSec;
+    this.#refreshTtl = opts?.refreshTtlSec ?? config.refreshTtlSec;
     this.#seedAdmin(opts?.logger);
   }
 
   #seedAdmin(logger?: { warn: (msg: string) => void }) {
     const existing = this.#db.prepare("SELECT id FROM zs_users LIMIT 1").get() as { id: string } | undefined;
     if (existing) return;
-    const defaultPw = process.env["ZS_ADMIN_PASSWORD"] ?? "admin";
-    if (!process.env["ZS_ADMIN_PASSWORD"]) {
+    if (config.adminPassword === "admin") {
       logger?.warn("ZS_ADMIN_PASSWORD not set — seeding admin with default password 'admin'. Change it immediately.");
     }
-    this.createUser("admin@docxi.org", defaultPw, "admin");
-    logger?.warn("Seeded admin user: admin@docxi.org");
+    this.createUser(config.adminEmail, config.adminPassword, "admin");
+    logger?.warn(`Seeded admin user: ${config.adminEmail}`);
   }
 
   createUser(email: string, password: string, role: Role): UserRecord {

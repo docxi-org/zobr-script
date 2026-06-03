@@ -55,7 +55,7 @@
 
 ---
 
-## P3 — LOW (backlog / tech debt, 3/15)
+## P3 — LOW (backlog / tech debt, 5/15)
 
 - [x] **P3-1. Frontend: Router state persistence** ✅ 2026-06-03
   - Источник: F-21
@@ -77,17 +77,14 @@
   - Решение: `React.lazy` для ScriptDetailPage/NewScript + `Suspense`. `manualChunks` выделяет Monaco в отдельный chunk. Main bundle 300KB (было ~1.8MB).
   - Файлы: `app.tsx`, `vite.config.ts`
 
-- [ ] **P3-5. Server: Type bypasses cleanup**
+- [x] **P3-5. Server: Type bypasses cleanup** ✅ 2026-06-03
   - Источник: H-33
-  - Проблема: 13 `as never`/`as unknown` кастов
-  - Решение: Proper typing где возможно, документировать где нет
-  - Effort: 4h
+  - Решение: 13 → 7 кастов (better-auth удалён). Оставшиеся обоснованы: Zod type erasure, SDK Transport mismatch, JSON.parse. Zero `as any`.
 
-- [ ] **P3-6. Server: Hardcoded values → config**
+- [x] **P3-6. Server: Hardcoded values → config** ✅ 2026-06-03
   - Источник: H-34
-  - Проблема: 21 хардкод
-  - Решение: Centralized config object с defaults из env
-  - Effort: 4h
+  - Решение: `config.ts` — centralized config с env defaults. Подключён в main.ts, api-routes.ts, auth.ts, oauth.ts.
+  - Файлы: `config.ts` (new), `main.ts`, `api-routes.ts`, `auth.ts`, `oauth.ts`
 
 - [ ] **P3-7. Architecture: validator в runtime**
   - Источник: A-1
@@ -152,8 +149,8 @@
 | P0 CRITICAL | 5 | 5 | — |
 | P1 HIGH | 7 | 8 | ~4h |
 | P2 MEDIUM | 8 | 12 | ~20h (deferred) |
-| P3 LOW | 3 | 15 | ~61h |
-| **TOTAL** | **23** | **40** | **~85h** |
+| P3 LOW | 5 | 15 | ~53h |
+| **TOTAL** | **25** | **40** | **~77h** |
 
 Дополнительно реализовано за рамками плана:
 - SDK миграция 2.0-alpha.2 → 1.29.0 (per-session McpServer, StreamableHTTPServerTransport)

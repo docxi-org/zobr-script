@@ -1,5 +1,6 @@
-import { randomUUID, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import Database from "better-sqlite3";
+import { config } from "./config";
 import type { Response } from "express";
 import type { OAuthServerProvider, AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import type { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
@@ -138,7 +139,7 @@ export class ZsOAuthProvider implements OAuthServerProvider {
 
     const accessToken = generateToken();
     const refreshToken = generateToken();
-    const expiresIn = 3600;
+    const expiresIn = config.oauthTokenTtlSec;
     const now = Math.floor(Date.now() / 1000);
     this.#db.prepare("INSERT INTO oauth_tokens (access_token, refresh_token, client_id, scopes, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
       accessToken, refreshToken, client.client_id, "openid", now + expiresIn, now,
@@ -153,7 +154,7 @@ export class ZsOAuthProvider implements OAuthServerProvider {
 
     const newAccessToken = generateToken();
     const newRefreshToken = generateToken();
-    const expiresIn = 3600;
+    const expiresIn = config.oauthTokenTtlSec;
     const now = Math.floor(Date.now() / 1000);
     this.#db.prepare("INSERT INTO oauth_tokens (access_token, refresh_token, client_id, scopes, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
       newAccessToken, newRefreshToken, client.client_id, "openid", now + expiresIn, now,

@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from "express";
 import type { ZsApp } from "./app";
 import type { Logger } from "./logger";
 import { AuthService, type Role, type UserRecord } from "./auth";
+import { config } from "./config";
 
 function rateLimit(windowMs: number, max: number) {
   const hits = new Map<string, { count: number; resetAt: number }>();
@@ -60,9 +61,10 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
 
   // ── Auth (public) ──
 
-  const loginLimiter = rateLimit(60_000, 10);
-  const refreshLimiter = rateLimit(60_000, 10);
-  const passwordLimiter = rateLimit(60_000, 5);
+  const { rateLimitWindowMs, rateLimitLogin, rateLimitRefresh, rateLimitPassword } = config;
+  const loginLimiter = rateLimit(rateLimitWindowMs, rateLimitLogin);
+  const refreshLimiter = rateLimit(rateLimitWindowMs, rateLimitRefresh);
+  const passwordLimiter = rateLimit(rateLimitWindowMs, rateLimitPassword);
 
   router.post("/auth/login", loginLimiter, async (req, res) => {
     const { email, password } = req.body as { email?: string; password?: string };
@@ -149,7 +151,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
   router.get("/traces", (req, res) => {
     const scriptRef = req.query["script_ref"] as string | undefined;
     const status = req.query["status"] as string | undefined;
-    const limit = Math.min(Number(req.query["limit"]) || 20, 100);
+    const limit = Math.min(Number(req.query["limit"]) || config.tracesDefaultLimit, config.tracesMaxLimit);
     const offset = Number(req.query["offset"]) || 0;
 
     const filter = {

@@ -9,34 +9,25 @@ import { FsScriptSourceReader } from "./reader";
 import { materializeScaffold } from "./scaffold";
 import { log } from "./logger";
 
-const PORT = Number(process.env["ZS_PORT"] ?? 1978);
-const LIB_ROOT = process.env["ZS_LIBRARY"] ?? "./zs-lib";
-const STORE_PATH = process.env["ZS_STORE_PATH"] ?? "./data/store.sqlite";
-const BUDGET_STEPS = Number(process.env["ZS_BUDGET_STEPS"] ?? 1000);
-const BUDGET_ITERATIONS = Number(process.env["ZS_BUDGET_ITERATIONS"] ?? 100);
-const INVOCATION_TTL = Number(process.env["ZS_INVOCATION_TTL"] ?? 3600) * 1000;
-const AWAITING_TTL = Number(process.env["ZS_AWAITING_TTL"] ?? 86400) * 1000;
-const MAX_ACTIVE = Number(process.env["ZS_MAX_ACTIVE_INVOCATIONS"] ?? 100);
-const MAX_RUN_DEPTH = Number(process.env["ZS_MAX_RUN_DEPTH"] ?? 10);
+import { config as C } from "./config";
+const { port: PORT, library: LIB_ROOT, storePath: STORE_PATH } = C;
 
 log.info({ library: LIB_ROOT }, "materializing scaffold");
 await materializeScaffold(LIB_ROOT);
 
-const OAUTH_ENABLED = process.env["ZS_OAUTH"] === "true";
 let oauth: import("./http").OAuthConfig | undefined;
 
-if (OAUTH_ENABLED) {
+if (C.oauth) {
   const { ZsOAuthProvider } = await import("./oauth");
-  const publicBase = process.env["ZS_PUBLIC_URL"] ?? `http://${process.env["ZS_HOST"] ?? "127.0.0.1"}:${PORT}`;
+  const publicBase = C.publicUrl ?? `http://${C.host}:${PORT}`;
   const mcpUrl = `${publicBase}/mcp`;
   const oauthDbPath = STORE_PATH.replace(/\.sqlite$/, "-oauth.sqlite");
-  const adminPassword = process.env["ZS_ADMIN_PASSWORD"] ?? "admin";
-  if (adminPassword === "admin") log.warn("ZS_ADMIN_PASSWORD not set — using default 'admin'. Change it immediately.");
+  if (C.adminPassword === "admin") log.warn("ZS_ADMIN_PASSWORD not set — using default 'admin'. Change it immediately.");
   const provider = new ZsOAuthProvider({
     dbPath: oauthDbPath,
     issuerUrl: publicBase,
-    adminEmail: "admin@docxi.org",
-    adminPassword,
+    adminEmail: C.adminEmail,
+    adminPassword: C.adminPassword,
   });
   oauth = { provider, issuerUrl: publicBase, mcpUrl };
   log.info({ mcpUrl, oauthDbPath }, "OAuth enabled");
@@ -45,10 +36,10 @@ if (OAUTH_ENABLED) {
 const { app } = await createZsHttpApp({
   library: new FsScriptSourceReader(LIB_ROOT),
   dbPath: STORE_PATH,
-  invocationTtlMs: INVOCATION_TTL,
-  awaitingTtlMs: AWAITING_TTL,
-  maxActiveInvocations: MAX_ACTIVE,
-  serviceOpts: { defaultBudgets: { steps: BUDGET_STEPS, iterations: BUDGET_ITERATIONS }, maxRunDepth: MAX_RUN_DEPTH },
+  invocationTtlMs: C.invocationTtlMs,
+  awaitingTtlMs: C.awaitingTtlMs,
+  maxActiveInvocations: C.maxActiveInvocations,
+  serviceOpts: { defaultBudgets: { steps: C.budgetSteps, iterations: C.budgetIterations }, maxRunDepth: C.maxRunDepth },
   logger: log,
   oauth,
 });
@@ -62,7 +53,7 @@ if (existsSync(SPA_DIR)) {
 app.get("/health", (_req, res) => { res.json({ ok: true }); });
 
 
-const HOST = process.env["ZS_HOST"] ?? "127.0.0.1";
+const HOST = C.host;
 
 app.listen(PORT, HOST, () => {
   log.info({
@@ -70,6 +61,6 @@ app.listen(PORT, HOST, () => {
     mcp: `http://${HOST}:${PORT}/mcp`,
     health: `http://${HOST}:${PORT}/health`,
     library: LIB_ROOT,
-    budgets: { steps: BUDGET_STEPS, iterations: BUDGET_ITERATIONS },
+    budgets: { steps: C.budgetSteps, iterations: C.budgetIterations },
   }, "ZS MCP server started");
 });

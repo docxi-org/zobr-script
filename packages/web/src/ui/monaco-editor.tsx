@@ -6,9 +6,10 @@ import { Icon } from "./icon";
 
 self.MonacoEnvironment = {
   getWorker(_workerId: string, label: string) {
-    const w = new Worker(new URL("monaco-editor/esm/vs/editor/editor.worker.js", import.meta.url), { type: "module" });
-    void label;
-    return w;
+    if (label === "typescript" || label === "javascript") {
+      return new Worker(new URL("monaco-editor/esm/vs/language/typescript/ts.worker.js", import.meta.url), { type: "module" });
+    }
+    return new Worker(new URL("monaco-editor/esm/vs/editor/editor.worker.js", import.meta.url), { type: "module" });
   },
 };
 loader.config({ monaco: monacoAll });

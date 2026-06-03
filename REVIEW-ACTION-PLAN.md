@@ -102,11 +102,10 @@
   - Источник: B-5
   - Решение: abort + start покрывает сценарий. Старый trace полезен для диагностики.
 
-- [ ] **P3-11. Server: SQLite transactions для critical paths**
+- [x] **P3-11. Server: SQLite transactions для critical paths** ✅ 2026-06-03
   - Источник: G-27
-  - Проблема: Snapshot + trace save не атомарны
-  - Решение: `db.transaction()`
-  - Effort: 2h
+  - Решение: `db.transaction()` обёртка в Db interface. Conclude и abort атомарны: saveTrace + finishInvocation + deleteSnapshot в одной транзакции.
+  - Файлы: `db.ts`, `app.ts`
 
 - [ ] **P3-12. Architecture: Orphaned .srv.ts validation**
   - Источник: A-4

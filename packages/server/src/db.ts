@@ -63,6 +63,7 @@ export interface Db {
   collections(): { name: string; count: number }[];
   notes: Notes;
   infra: InfraStore;
+  transaction<T>(fn: () => T): T;
   readonly rawDb: DatabaseType;
   close(): void;
 }
@@ -390,6 +391,7 @@ export function createDb(path: string): Db {
     },
     notes,
     infra,
+    transaction<T>(fn: () => T): T { return db.transaction(fn)(); },
     close() { db.close(); },
   };
 }

@@ -154,17 +154,19 @@ export class ZsApp {
         const inst = this.registry.get(invId);
         const res = await this.service.conclude(parsed as ConcludeReq);
         this.agents.removeActiveInvocation(agentId!, invId);
-        this.#db?.infra.finishInvocation(invId, inst?.status ?? "done");
-        this.#deleteSnapshot(invId);
         if (this.#db !== undefined && inst !== undefined) {
-          this.#db.infra.saveTrace({
-            invocation_id: invId,
-            script_ref: inst.script_ref,
-            code_snapshot: inst.code_snapshot,
-            status: inst.status,
-            events: inst.trace.events,
-            coverage: inst.trace.coverage(),
-            result: (res as { ok: boolean }).ok ? (parsed as Record<string, unknown>)["result"] : undefined,
+          this.#db.transaction(() => {
+            this.#db!.infra.finishInvocation(invId, inst.status);
+            this.#db!.infra.deleteSnapshot(invId);
+            this.#db!.infra.saveTrace({
+              invocation_id: invId,
+              script_ref: inst.script_ref,
+              code_snapshot: inst.code_snapshot,
+              status: inst.status,
+              events: inst.trace.events,
+              coverage: inst.trace.coverage(),
+              result: (res as { ok: boolean }).ok ? (parsed as Record<string, unknown>)["result"] : undefined,
+            });
           });
         }
         return res;
@@ -388,17 +390,19 @@ export class ZsApp {
         inst.transition("aborted", "zs_abort");
       }
       if (this.#db !== undefined) {
-        this.#db.infra.saveTrace({
-          invocation_id: id,
-          script_ref: inst.script_ref,
-          code_snapshot: inst.code_snapshot,
-          status: inst.status,
-          events: inst.trace.events,
-          coverage: inst.trace.coverage(),
+        this.#db.transaction(() => {
+          this.#db!.infra.saveTrace({
+            invocation_id: id,
+            script_ref: inst.script_ref,
+            code_snapshot: inst.code_snapshot,
+            status: inst.status,
+            events: inst.trace.events,
+            coverage: inst.trace.coverage(),
+          });
+          this.#db!.infra.finishInvocation(id, inst.status);
+          this.#db!.infra.deleteSnapshot(id);
         });
-        this.#db.infra.finishInvocation(id, inst.status);
       }
-      this.#deleteSnapshot(id);
       const runtime = this.service.getRuntimeForInvocation(id);
       runtime?.destroy(id);
       this.agents.removeActiveInvocation(agentId, id);

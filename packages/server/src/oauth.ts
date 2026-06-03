@@ -171,6 +171,7 @@ export function createZsOAuth(config: ZsOAuthConfig): { auth: ZsAuth; seedAdmin:
 export function createOAuthRoutes(auth: ZsAuth, mcpUrl: string): Router {
   const router = Router();
   const handler = toNodeHandler(auth);
+  const publicBase = mcpUrl.replace(/\/mcp$/, "");
 
   router.options("/.well-known/oauth-authorization-server", cors());
   router.get("/.well-known/oauth-authorization-server", cors(), toNodeHandler(oAuthDiscoveryMetadata(auth as never)));
@@ -205,7 +206,7 @@ button{background:#333;color:#fff;border:none;cursor:pointer;font-weight:600}</s
       for (const cookie of signInResponse.headers.getSetCookie()) {
         res.append("Set-Cookie", cookie);
       }
-      const authorizeUrl = new URL("/oauth/ba/mcp/authorize", req.protocol + "://" + req.get("host"));
+      const authorizeUrl = new URL("/oauth/ba/mcp/authorize", publicBase);
       authorizeUrl.search = redirect;
       res.redirect(authorizeUrl.toString());
     } catch {

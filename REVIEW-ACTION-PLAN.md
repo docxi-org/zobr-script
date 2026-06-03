@@ -94,17 +94,13 @@
   - Источник: H-31
   - Решение: подробный дизайн с parent_seq, tree view, coverage по поддеревьям вынесен в ISSUES.md. Реализация при появлении сложных скриптов с ветвлениями.
 
-- [ ] **P3-9. Trust: @sandbox explicit verified events в трейсе**
+- [x] **P3-9. Trust: @sandbox explicit verified events в трейсе** ✅ 2026-06-03
   - Источник: C-9
-  - Проблема: Проверить видимость @sandbox events в UI
-  - Решение: Уже в dispatch.ts — проверить frontend rendering
-  - Effort: 1h
+  - Решение: Проверено: dispatch.ts записывает sandbox events с `realizer: "sandbox"`, `trust: "verified"`. Frontend рендерит через TrustBadge (green) + realizer text. Нет фильтрации — всё видно. Тестовых скриптов с sandbox нет (визуально не проверено).
 
-- [ ] **P3-10. MCP: Soft-reset invocation**
+- [x] **P3-10. MCP: Soft-reset invocation** — НЕ НУЖНО
   - Источник: B-5
-  - Проблема: Нет мягкого рестарта
-  - Решение: `zs_restart(invocation_id, inputs?)`
-  - Effort: 4h
+  - Решение: abort + start покрывает сценарий. Старый trace полезен для диагностики.
 
 - [ ] **P3-11. Server: SQLite transactions для critical paths**
   - Источник: G-27

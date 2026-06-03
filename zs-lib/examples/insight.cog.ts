@@ -46,10 +46,11 @@ export function reflect(context: string): Result {
   // 5. Verdict
   check(c, { pattern, antithesis, stress });
 
-  const state = assess();
-  const confidence = state.status === "converging" ? "high" as const
-    : state.status === "stuck" ? "low" as const
-    : "medium" as const;
+  // @sandbox: deterministic confidence score (verified event in trace)
+  const score = confidenceScore(mechanisms.length, [antithesis, stress].length);
+  const confidence = score >= 0.7 ? "high" as const
+    : score >= 0.4 ? "medium" as const
+    : "low" as const;
 
   checkpoint("reflection_done", { pattern, replaces: mechanisms, stress });
 

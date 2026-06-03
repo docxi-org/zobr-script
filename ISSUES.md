@@ -361,3 +361,39 @@ store collections, snapshots.
 
   **Когда делать:** перед первым реальным использованием системы с ценными
   данными. Для development/demo — не критично.
+
+---
+
+## Мобильная версия фронтенда
+
+SPA спроектирована исключительно для desktop: sidebar, split view в Trace Detail,
+Monaco Editor, DataTable с колонками, Command Palette. На мобильном устройстве
+всё сжимается без адаптации — нет ни одного `@media` запроса, breakpoints,
+responsive layout.
+
+- [ ] **Проработка мобильной адаптации SPA**
+
+  **Текущее состояние:**
+  - Sidebar: фиксированная ширина ~200px, не сворачивается
+  - Trace Detail: split view code/events — на narrow screen бесполезен
+  - Monaco Editor: не работает на touch-устройствах
+  - DataTable: колонки не скрываются, горизонтальный скролл
+  - Command Palette (Cmd+K): нет на мобильных
+
+  **Минимальный scope:**
+  1. Sidebar → hamburger menu на экранах < 768px
+  2. Trace Detail split → tabs (Code / Events) вместо side-by-side
+  3. DataTable → скрытие неосновных колонок, responsive card view
+  4. Monaco Editor → read-only mode на touch (editing на мобильном нереалистично)
+  5. Breakpoints: `sm` (< 640), `md` (< 768), `lg` (< 1024)
+
+  **Подход:**
+  - Tailwind responsive utilities (`sm:`, `md:`, `lg:`) уже доступны
+  - CSS custom properties для breakpoints в `index.css`
+  - `useMediaQuery` hook для conditional rendering
+  - Постепенная адаптация: sidebar → tables → trace detail → scripts
+
+  **Effort:** ~20-30h (полная адаптация), ~8h (только sidebar + tables).
+
+  **Когда делать:** при появлении мобильных пользователей. Для админов
+  и агентов-разработчиков desktop — основной сценарий.

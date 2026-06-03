@@ -1,7 +1,7 @@
 # ZS v0.2 — Review Action Plan (remaining)
 
-Ревью 2026-06-03. Закрыто 36/40. Осталось 4 (все deferred ⏸️).
-Бэкапы, callTool refactor, config.json per-folder — вынесены в ISSUES.md.
+Ревью 2026-06-03. Закрыто 37/40. Осталось 3 (все deferred ⏸️).
+Бэкапы, callTool refactor, config.json per-folder, мобильная адаптация — вынесены в ISSUES.md.
 
 ---
 
@@ -13,13 +13,6 @@
   - Решение: +5-8 паттернов в guide/08-patterns.md + debugging guide + performance playbook
   - Файлы: `packages/scaffold/guide/`
   - Effort: 8h
-
-- [ ] ⏸️ **P2-6. Frontend: Mobile tabs для Trace Detail**
-  - Источник: F-21, H-30
-  - Проблема: Split view code/events неудобен на narrow screens
-  - Решение: Conditional rendering: split на desktop, tabs на mobile (media query)
-  - Файлы: `pages/trace-detail.tsx`
-  - Effort: 4h
 
 ---
 

@@ -180,7 +180,6 @@ export class ZsOAuthProvider implements OAuthServerProvider {
   completeAuthorization(code: string): { redirectUri: string; state: string | null } | null {
     const row = this.#db.prepare("SELECT redirect_uri, state FROM oauth_codes WHERE code = ?").get(code) as { redirect_uri: string; state: string | null } | undefined;
     if (!row) return null;
-    this.#db.prepare("DELETE FROM oauth_codes WHERE code = ?").run(code);
     return { redirectUri: row.redirect_uri, state: row.state };
   }
 }

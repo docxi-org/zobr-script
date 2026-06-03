@@ -92,7 +92,7 @@
   --fs-code: 13px;
   --cell-py: 12px;
 }
-@media (max-width: 640px) {
+@media (max-width: 640px), (pointer: coarse) and (max-width: 860px) {
   :root, :root[data-density="comfortable"], :root[data-density="compact"] {
     --row-h: 44px;
     --pad: 16px;
@@ -318,14 +318,15 @@ button {
 }
 
 /* ============ Responsive: desktop → tablet ============ */
-@media (max-width: 1024px) {
+/* Touch devices get tablet layout at wider breakpoints (hi-res screens) */
+@media (max-width: 1024px), (pointer: coarse) and (max-width: 1366px) {
   .zs-sidebar-desktop { display: none; }
   .zs-hamburger { display: inline-flex !important; }
   .zs-stats { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
 /* ============ Responsive: tablet portrait → mobile ============ */
-@media (max-width: 860px) {
+@media (max-width: 860px), (pointer: coarse) and (max-width: 1200px) {
   .zs-split { flex-direction: column !important; }
   .zs-split-code, .zs-split-events { width: 100% !important; min-height: 300px; }
   .zs-divider { display: none !important; }
@@ -347,7 +348,7 @@ button {
 }
 
 /* ============ Responsive: phone landscape ============ */
-@media (max-width: 768px) {
+@media (max-width: 768px), (pointer: coarse) and (max-width: 1024px) {
   .zs-user-meta { display: none !important; }
   .zs-role-switch { display: none !important; }
   .zs-stats { grid-template-columns: 1fr 1fr !important; }
@@ -355,7 +356,7 @@ button {
 }
 
 /* ============ Responsive: phone portrait ============ */
-@media (max-width: 640px) {
+@media (max-width: 640px), (pointer: coarse) and (max-width: 860px) {
   .zs-breadcrumb { display: none !important; }
   .zs-page-title { display: block !important; }
   .zs-header-spacer { display: none !important; }

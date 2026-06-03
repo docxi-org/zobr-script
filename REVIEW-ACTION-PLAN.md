@@ -55,7 +55,7 @@
 
 ---
 
-## P3 — LOW (backlog / tech debt, 0/15)
+## P3 — LOW (backlog / tech debt, 3/15)
 
 - [x] **P3-1. Frontend: Router state persistence** ✅ 2026-06-03
   - Источник: F-21
@@ -67,17 +67,15 @@
   - Решение: Vitest + React Testing Library
   - Effort: 16h
 
-- [ ] **P3-3. Frontend: i18n плюрализация**
+- [x] **P3-3. Frontend: i18n плюрализация** ✅ 2026-06-03
   - Источник: F-23
-  - Проблема: Плюралы кодируются в компонентах
-  - Решение: `pluralize(key, count)` + правила per-locale
-  - Effort: 4h
+  - Решение: `usePlural` hook, `pluralIndex` (en 2 формы, ru 3 формы). Pipe-separated plural keys. Applied: Scripts, Agents, ValidationBar.
+  - Файлы: `i18n/context.tsx`, `en.ts`, `ru.ts`, `scripts.tsx`, `agents.tsx`, `script-detail.tsx`
 
-- [ ] **P3-4. Frontend: Monaco chunk splitting**
+- [x] **P3-4. Frontend: Monaco chunk splitting** ✅ 2026-06-03
   - Источник: F-22
-  - Проблема: ~1.5MB Monaco chunk
-  - Решение: React.lazy + `manualChunks`
-  - Effort: 2h
+  - Решение: `React.lazy` для ScriptDetailPage/NewScript + `Suspense`. `manualChunks` выделяет Monaco в отдельный chunk. Main bundle 300KB (было ~1.8MB).
+  - Файлы: `app.tsx`, `vite.config.ts`
 
 - [ ] **P3-5. Server: Type bypasses cleanup**
   - Источник: H-33
@@ -154,8 +152,8 @@
 | P0 CRITICAL | 5 | 5 | — |
 | P1 HIGH | 7 | 8 | ~4h |
 | P2 MEDIUM | 8 | 12 | ~20h (deferred) |
-| P3 LOW | 0 | 15 | ~71h |
-| **TOTAL** | **20** | **40** | **~95h** |
+| P3 LOW | 3 | 15 | ~61h |
+| **TOTAL** | **23** | **40** | **~85h** |
 
 Дополнительно реализовано за рамками плана:
 - SDK миграция 2.0-alpha.2 → 1.29.0 (per-session McpServer, StreamableHTTPServerTransport)

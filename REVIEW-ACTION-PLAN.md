@@ -55,7 +55,7 @@
 
 ---
 
-## P3 — LOW (backlog / tech debt, 9/15)
+## P3 — LOW (backlog / tech debt, 15/15) ✅ COMPLETE
 
 - [x] **P3-1. Frontend: Router state persistence** ✅ 2026-06-03
   - Источник: F-21
@@ -107,29 +107,21 @@
   - Решение: `db.transaction()` обёртка в Db interface. Conclude и abort атомарны: saveTrace + finishInvocation + deleteSnapshot в одной транзакции.
   - Файлы: `db.ts`, `app.ts`
 
-- [ ] **P3-12. Architecture: Orphaned .srv.ts validation**
+- [x] **P3-12. Architecture: Orphaned .srv.ts validation** — НЕ НУЖНО
   - Источник: A-4
-  - Проблема: createScript позволяет .srv.ts без .cog.ts
-  - Решение: Валидация в createScript
-  - Effort: 30 min
+  - Решение: `cog` — обязательное поле в zCreateReq. Orphaned srv невозможен через API. Только ручная правка файлов на диске — не стоит кода.
 
-- [ ] **P3-13. Security: store.d.ts integrity check**
+- [x] **P3-13. Security: store.d.ts integrity check** — НЕ НУЖНО
   - Источник: E-20
-  - Проблема: Подмена store.d.ts отключает type checking
-  - Решение: Checksum validation при load
-  - Effort: 2h
+  - Решение: файлы под root на VPS, подмена требует серверный доступ — если он есть, checksum не поможет.
 
-- [ ] **P3-14. MCP: Store API consolidation**
+- [x] **P3-14. MCP: Store API consolidation** — НЕ НУЖНО
   - Источник: B-5
-  - Проблема: 8 store tools — избыточно
-  - Решение: Объединение в меньше tools (breaking change)
-  - Effort: 8h
+  - Решение: 8 tools = точная Zod-схема каждого = меньше ошибок агента. Объединение раздувает description и ухудшает UX. 27 tools для MCP — нормально.
 
-- [ ] **P3-15. Trust: Reporting convention enforcement**
+- [x] **P3-15. Trust: Reporting convention enforcement** — НЕ НУЖНО
   - Источник: C-11
-  - Проблема: Honor system, не enforceable
-  - Решение: Post-hoc analysis после conclude
-  - Effort: 4h
+  - Решение: report — телеметрия, не обязательство. Циклы, разная длина скриптов делают enforcement бессмысленным. Coverage asserted/verified уже отражает reporting density.
 
 ---
 
@@ -140,8 +132,8 @@
 | P0 CRITICAL | 5 | 5 | — |
 | P1 HIGH | 7 | 8 | ~4h |
 | P2 MEDIUM | 8 | 12 | ~20h (deferred) |
-| P3 LOW | 9 | 15 | ~37h |
-| **TOTAL** | **29** | **40** | **~61h** |
+| P3 LOW | 15 | 15 | — |
+| **TOTAL** | **35** | **40** | **~24h (deferred)** |
 
 Дополнительно реализовано за рамками плана:
 - SDK миграция 2.0-alpha.2 → 1.29.0 (per-session McpServer, StreamableHTTPServerTransport)

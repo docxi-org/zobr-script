@@ -2,10 +2,11 @@
 // Follows the SDK's simpleStreamableHttp.ts pattern.
 // Returns { app, zsApp, mcpServer } so REST routes can be added later.
 import { randomUUID } from "node:crypto";
-import { createMcpExpressApp } from "@modelcontextprotocol/express";
-import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
-import { McpServer, isInitializeRequest } from "@modelcontextprotocol/server";
-import type { CallToolResult } from "@modelcontextprotocol/server";
+import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { ZsApp } from "./app";
@@ -79,7 +80,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
 
   const app = createMcpExpressApp({ host: "0.0.0.0" });
   app.set("trust proxy", 1);
-  const transports = new Map<string, NodeStreamableHTTPServerTransport>();
+  const transports = new Map<string, StreamableHTTPServerTransport>();
 
   if (config.oauth) {
     const { createOAuthRoutes, createProtectedResourceRouter, requireBearerAuth } = await import("./oauth");
@@ -103,7 +104,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
       }
 
       if (!sessionId && isInitializeRequest(req.body)) {
-        const transport = new NodeStreamableHTTPServerTransport({
+        const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
           onsessioninitialized: (sid) => {
             transports.set(sid, transport);
@@ -116,7 +117,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
             transports.delete(transport.sessionId);
           }
         };
-        await mcpServer.connect(transport);
+        await mcpServer.connect(transport as Parameters<typeof mcpServer.connect>[0]);
         await transport.handleRequest(req, res, req.body);
         return;
       }

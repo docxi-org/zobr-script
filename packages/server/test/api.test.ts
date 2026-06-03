@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { Router, json } from "express";
-import { createMcpExpressApp } from "@modelcontextprotocol/express";
+import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import request from "supertest";
 import { ZsApp } from "../src/app";
 import { FsScriptSourceReader } from "../src/reader";

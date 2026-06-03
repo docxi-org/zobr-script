@@ -48,7 +48,8 @@ export function Login({ onLogin, loading, error, returnTo }: LoginProps) {
           </div>
         </div>
 
-        <div
+        <form
+          onSubmit={(e) => { e.preventDefault(); submit(); }}
           className="rounded-[var(--r-lg)] border border-[var(--border)]"
           style={{ background: "var(--bg-1)", padding: 24 }}
         >
@@ -104,7 +105,7 @@ export function Login({ onLogin, loading, error, returnTo }: LoginProps) {
             )}
 
             <button
-              onClick={submit}
+              type="submit"
               disabled={loading}
               className="mt-1 w-full cursor-pointer rounded-[var(--r-md)] border-none"
               style={{
@@ -117,7 +118,7 @@ export function Login({ onLogin, loading, error, returnTo }: LoginProps) {
               {loading ? t("auth.signing_in") : t("auth.signin")}
             </button>
           </div>
-        </div>
+        </form>
 
         <p className="mt-4 text-center" style={{ fontSize: "var(--fs-xs)", color: "var(--text-3)" }}>
           {t("auth.no_registration")}

@@ -156,6 +156,12 @@ export class AuthService {
     }
   }
 
+  verifyCredentials(email: string, password: string): boolean {
+    const row = this.#db.prepare("SELECT password_hash, salt FROM zs_users WHERE email = ? AND active = 1").get(email) as { password_hash: string; salt: string } | undefined;
+    if (!row) return false;
+    return verifyPassword(password, row.salt, row.password_hash);
+  }
+
   get tokenTtlSec(): number { return this.#tokenTtl; }
   get refreshTtlSec(): number { return this.#refreshTtl; }
 

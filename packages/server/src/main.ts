@@ -16,24 +16,23 @@ log.info({ library: LIB_ROOT }, "materializing scaffold");
 await materializeScaffold(LIB_ROOT);
 
 let oauth: import("./http").OAuthConfig | undefined;
+let authServiceRef: import("./auth").AuthService | undefined;
 
 if (C.oauth) {
   const { ZsOAuthProvider } = await import("./oauth");
   const publicBase = C.publicUrl ?? `http://${C.host}:${PORT}`;
   const mcpUrl = `${publicBase}/mcp`;
   const oauthDbPath = STORE_PATH.replace(/\.sqlite$/, "-oauth.sqlite");
-  if (C.adminPassword === "admin") log.warn("ZS_ADMIN_PASSWORD not set — using default 'admin'. Change it immediately.");
   const provider = new ZsOAuthProvider({
     dbPath: oauthDbPath,
     issuerUrl: publicBase,
-    adminEmail: C.adminEmail,
-    adminPassword: C.adminPassword,
+    checkCredentials: (email, password) => authServiceRef?.verifyCredentials(email, password) ?? false,
   });
   oauth = { provider, issuerUrl: publicBase, mcpUrl };
   log.info({ mcpUrl, oauthDbPath }, "OAuth enabled");
 }
 
-const { app } = await createZsHttpApp({
+const { app, authService } = await createZsHttpApp({
   library: new FsScriptSourceReader(LIB_ROOT),
   dbPath: STORE_PATH,
   invocationTtlMs: C.invocationTtlMs,
@@ -43,6 +42,7 @@ const { app } = await createZsHttpApp({
   logger: log,
   oauth,
 });
+authServiceRef = authService;
 
 const SPA_DIR = join(import.meta.dirname, "../../web/dist");
 if (existsSync(SPA_DIR)) {

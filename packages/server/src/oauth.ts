@@ -1,4 +1,4 @@
-import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import Database from "better-sqlite3";
 import { config } from "./config";
 import type { Response } from "express";
@@ -12,19 +12,6 @@ type DB = ReturnType<typeof Database>;
 
 function generateToken(): string {
   return randomBytes(32).toString("hex");
-}
-
-function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
-}
-
-function verifyPassword(password: string, stored: string): boolean {
-  const [salt, hash] = stored.split(":");
-  if (!salt || !hash) return false;
-  const candidate = scryptSync(password, salt, 64);
-  return timingSafeEqual(candidate, Buffer.from(hash, "hex"));
 }
 
 function initSchema(db: DB): void {
@@ -56,10 +43,6 @@ function initSchema(db: DB): void {
       scopes TEXT NOT NULL,
       expires_at INTEGER NOT NULL,
       created_at INTEGER NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS oauth_users (
-      email TEXT PRIMARY KEY,
-      password TEXT NOT NULL
     );
   `);
 }
@@ -99,29 +82,22 @@ export class ZsOAuthClientsStore implements OAuthRegisteredClientsStore {
 export interface ZsOAuthProviderConfig {
   readonly dbPath: string;
   readonly issuerUrl: string;
-  readonly adminEmail: string;
-  readonly adminPassword: string;
+  readonly checkCredentials: (email: string, password: string) => boolean;
 }
 
 export class ZsOAuthProvider implements OAuthServerProvider {
   readonly #db: DB;
   readonly #clients: ZsOAuthClientsStore;
   readonly #issuerUrl: string;
+  readonly #checkCredentials: (email: string, password: string) => boolean;
 
   constructor(config: ZsOAuthProviderConfig) {
     this.#db = new Database(config.dbPath);
     this.#db.pragma("journal_mode = WAL");
     initSchema(this.#db);
     this.#clients = new ZsOAuthClientsStore(this.#db);
-    this.#seedAdmin(config.adminEmail, config.adminPassword);
     this.#issuerUrl = config.issuerUrl;
-  }
-
-  #seedAdmin(email: string, password: string): void {
-    const existing = this.#db.prepare("SELECT email FROM oauth_users WHERE email = ?").get(email);
-    if (!existing) {
-      this.#db.prepare("INSERT INTO oauth_users (email, password) VALUES (?, ?)").run(email, hashPassword(password));
-    }
+    this.#checkCredentials = config.checkCredentials;
   }
 
   get clientsStore(): OAuthRegisteredClientsStore {
@@ -198,9 +174,7 @@ export class ZsOAuthProvider implements OAuthServerProvider {
   }
 
   verifyCredentials(email: string, password: string): boolean {
-    const row = this.#db.prepare("SELECT password FROM oauth_users WHERE email = ?").get(email) as { password: string } | undefined;
-    if (!row) return false;
-    return verifyPassword(password, row.password);
+    return this.#checkCredentials(email, password);
   }
 
   completeAuthorization(code: string): { redirectUri: string; state: string | null } | null {

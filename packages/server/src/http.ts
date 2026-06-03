@@ -41,6 +41,7 @@ export interface ZsHttpConfig {
 export interface ZsHttpApp {
   readonly app: ReturnType<typeof createMcpExpressApp>;
   readonly zsApp: ZsApp;
+  readonly authService?: AuthService | undefined;
 }
 
 export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> {
@@ -186,11 +187,12 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
   app.get(mcpPath, mcpHandler);
   app.delete(mcpPath, mcpHandler);
 
+  let authService: AuthService | undefined;
   const db = zsApp.getDb();
   if (db) {
-    const authService = new AuthService(db.rawDb, { logger });
+    authService = new AuthService(db.rawDb, { logger });
     app.use("/api", createApiRouter(zsApp, authService, logger));
   }
 
-  return { app, zsApp };
+  return { app, zsApp, authService };
 }

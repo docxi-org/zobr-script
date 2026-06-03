@@ -283,48 +283,35 @@ Trace events — плоский массив, упорядоченный по se
 
 ---
 
-## MCP Guide: расширить паттерны
+## MCP Guide: расширить паттерны через примеры
 
 `packages/scaffold/guide/08-patterns.md` содержит 4 паттерна: hello, insight,
 gated checkpoint, multi-stage. Этого недостаточно для самостоятельной работы
 архитектора — нет примеров для распространённых сценариев.
 
-- [ ] **Добавить 5-8 паттернов + debugging guide**
+- [ ] **Добавить 5-8 скриптов-примеров в `zs-lib/examples/` + ссылки из guide**
 
-  **Недостающие паттерны:**
-  1. **Error handling** — try/catch в cog, `criteria_unmet`, fallback через
-     doubt + pivot, report ошибки, graceful degradation
-  2. **Human-in-the-loop (HITL)** — `ask_user` для подтверждений, checkpoint
-     с директивой `{ ask: "..." }`, ожидание ответа
-  3. **act + gated side effects** — act с reversible flag, checkpoint перед
-     необратимым действием, act_record с provenance
-  4. **Deep run (composition)** — скрипт вызывает другой через `run()`,
-     parent_invocation_id, depth, передача результата
-  5. **Long-running with checkpoints** — периодические checkpoint для
-     восстановления после eviction, TTL awareness
-  6. **Retrieve + grounded analysis** — retrieve из внешнего источника,
-     trust verified через provenance, ground vs retrieve
-  7. **Store persistence** — collections CRUD, notes key-value,
-     данные между запусками скрипта
-  8. **Multi-agent collaboration** — два агента работают с одним скриптом
-     (executor + reviewer), role gating
+  **Подход:** примеры — это реальные скрипты в библиотеке, не листинги в
+  документации. Guide содержит краткий каталог (название + строка описания +
+  `zs_read("examples/...")`), агент читает конкретный пример адресно когда
+  нужен, а не загружает весь guide целиком.
 
-  **Debugging guide:**
-  - Как читать trace events
-  - Coverage метрика: что значат числа
-  - Checkpoint directives: proceed/revise/halt
-  - Типичные ошибки: shape mismatch, budget exhausted, unknown_fn
+  **Недостающие примеры:**
+  1. **Error handling** — try/catch в cog, fallback через doubt + pivot
+  2. **Human-in-the-loop (HITL)** — `ask_user`, checkpoint с `{ ask }` директивой
+  3. **act + gated side effects** — checkpoint перед необратимым действием
+  4. **Deep run (composition)** — скрипт вызывает другой через `run()`
+  5. **Long-running with checkpoints** — TTL awareness, восстановление
+  6. **Retrieve + grounded analysis** — retrieve с provenance, ground vs retrieve
+  7. **Store persistence** — collections/notes между запусками
+  8. **Multi-agent collaboration** — executor + reviewer, role gating
 
-  **Performance playbook:**
-  - @budget для тяжёлых скриптов
-  - Checkpoint для восстановления
-  - Cold storage и resume
-  - Когда разбивать на несколько скриптов
-
-  **Файлы:** `packages/scaffold/guide/08-patterns.md` (расширить),
-  опционально `guide/11-debugging.md`, `guide/12-performance.md`
-
-  **Effort:** 8h
+  **Реализация:**
+  1. Каждый паттерн = `.cog.ts` (+ `.srv.ts` если нужен) в `zs-lib/examples/`
+  2. `guide/08-patterns.md` — каталог: одна строка на паттерн + ссылка
+     `→ zs_read("examples/pattern-name")` для полного кода
+  3. Опционально `guide/11-debugging.md`, `guide/12-performance.md` — текстовые,
+     не скрипты
 
   **Когда делать:** после появления реальных сценариев использования.
   Паттерны должны быть проверены практикой, а не написаны умозрительно.

@@ -187,6 +187,8 @@ export default {
   "common.diff": "Сравнить",
   "common.read_only": "только чтение",
   "common.unsaved": "не сохранено",
+  "common.saved": "Сохранено · без ошибок",
+  "common.no_errors": "Без ошибок",
 
   // status
   "status.running": "выполняется",
@@ -246,4 +248,12 @@ export default {
 
   // footer
   "footer.uptime": "работает",
+
+  // plurals (pipe-separated: ru = 1|2-4|5+)
+  "p.scripts": "скрипт|скрипта|скриптов",
+  "p.folders": "папка|папки|папок",
+  "p.agents": "агент|агента|агентов",
+  "p.errors": "ошибка|ошибки|ошибок",
+  "p.warnings": "предупреждение|предупреждения|предупреждений",
+  "p.runs": "запуск|запуска|запусков",
 } as const;

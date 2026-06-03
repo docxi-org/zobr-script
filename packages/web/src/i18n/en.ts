@@ -187,6 +187,8 @@ export default {
   "common.diff": "Diff",
   "common.read_only": "read-only",
   "common.unsaved": "unsaved",
+  "common.saved": "Saved · no errors",
+  "common.no_errors": "No errors",
 
   // status
   "status.running": "running",
@@ -246,4 +248,12 @@ export default {
 
   // footer
   "footer.uptime": "uptime",
+
+  // plurals (pipe-separated: en = singular|plural)
+  "p.scripts": "script|scripts",
+  "p.folders": "folder|folders",
+  "p.agents": "agent|agents",
+  "p.errors": "error|errors",
+  "p.warnings": "warning|warnings",
+  "p.runs": "run|runs",
 } as const;

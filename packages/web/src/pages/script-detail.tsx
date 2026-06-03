@@ -11,7 +11,7 @@ import { fmtDate } from "../ui/helpers";
 import { navigate, useQueryParam } from "../router";
 import { useApi } from "../api/hooks";
 import { api } from "../api/client";
-import { useT } from "../i18n/context";
+import { useT, usePlural } from "../i18n/context";
 import type { ScriptSource, TraceRow, Shape } from "../api/types";
 
 function ScriptCrumb({ scriptRef }: { scriptRef: string }) {
@@ -88,13 +88,17 @@ function DiffView({ oldText, newText, file, theme }: { oldText: string; newText:
 }
 
 function ValidationBar({ v }: { v: { ok: boolean; errors: { code: string; message: string; line: number }[]; warnings: { code: string; message: string; line: number }[]; savedMsg?: boolean } }) {
+  const t = useT();
+  const p = usePlural();
   const hasErr = v.errors.length > 0;
   const hasWarn = v.warnings.length > 0;
+  const errText = `${v.errors.length} ${p(v.errors.length, t("p.errors").split("|"))}`;
+  const warnText = `${v.warnings.length} ${p(v.warnings.length, t("p.warnings").split("|"))}`;
   return (
     <div className="mt-3 overflow-hidden rounded-[var(--r-md)] border border-[var(--border)]" style={{ background: "var(--bg-1)" }}>
       <div className="flex items-center" style={{ gap: 8, padding: "9px 14px", fontSize: "var(--fs-sm)", fontWeight: 600, color: hasErr ? "var(--trust-error)" : hasWarn ? "var(--st-halted)" : "var(--st-done)" }}>
         <Icon name={hasErr ? "x" : hasWarn ? "alert" : "check"} size={15} />
-        {v.savedMsg ? "Saved · validated, no errors" : hasErr ? `${v.errors.length} error(s)` : hasWarn ? `No errors · ${v.warnings.length} warning(s)` : "No errors"}
+        {v.savedMsg ? t("common.saved") : hasErr ? errText : hasWarn ? `${t("common.no_errors")} · ${warnText}` : t("common.no_errors")}
       </div>
       {(hasErr || hasWarn) && (
         <div style={{ borderTop: "1px solid var(--border)" }}>

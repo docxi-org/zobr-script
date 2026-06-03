@@ -57,15 +57,13 @@
 
 ## P3 — LOW (backlog / tech debt, 0/15)
 
-- [ ] **P3-1. Frontend: Router state persistence**
+- [x] **P3-1. Frontend: Router state persistence** ✅ 2026-06-03
   - Источник: F-21
-  - Проблема: Tab, filter state теряется при F5
-  - Решение: Query params в URL для tab/filter/status
-  - Effort: 4h
+  - Решение: `useQueryParam` hook. Script Detail tab, Traces фильтры, Scripts view mode — persist в URL query params.
+  - Файлы: `router.ts`, `script-detail.tsx`, `traces.tsx`, `scripts.tsx`
 
-- [ ] **P3-2. Frontend: Web тесты**
+- [ ] ⏸️ **P3-2. Frontend: Web тесты** — ОТЛОЖЕНО (16h, нужны mock для API/Monaco)
   - Источник: H-35
-  - Проблема: 0 тестов на frontend
   - Решение: Vitest + React Testing Library
   - Effort: 16h
 

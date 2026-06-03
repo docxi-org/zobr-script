@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQueryParam } from "../router";
+import { usePlural } from "../i18n/context";
 import { Icon } from "../ui/icon";
 import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
@@ -169,6 +170,7 @@ export function Scripts({ role }: { role: string }) {
   const canCreate = role === "architect" || role === "admin";
   const folders = useMemo(() => allFolders(scripts), [scripts]);
   const t = useT();
+  const p = usePlural();
 
   const columns = useMemo((): Column<ScriptEntry>[] => [
     { key: "name", label: t("col.path"), mono: true, sortable: true, sortVal: (r) => r.name, render: (r) => <PathLabel name={r.name} size="var(--fs-sm)" /> },
@@ -183,7 +185,7 @@ export function Scripts({ role }: { role: string }) {
       <div className="flex flex-wrap items-start justify-between" style={{ gap: 16, marginBottom: "var(--gap)" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("scripts.title")}</h1>
-          <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("scripts.subtitle", { count: scripts.length, folders: folders.length })}</p>
+          <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{`${scripts.length} ${p(scripts.length, t("p.scripts").split("|"))} · ${folders.length} ${p(folders.length, t("p.folders").split("|"))}`}</p>
         </div>
         <div className="flex items-center" style={{ gap: 8 }}>
           <Segmented value={view} onChange={(v) => { setView(v); setOffset(0); }} options={[{ value: "tree", label: t("scripts.tree") }, { value: "cards", label: t("scripts.cards") }, { value: "table", label: t("scripts.table") }]} />

@@ -9,7 +9,7 @@ import { timeAgo, fmtDate } from "../ui/helpers";
 import { navigate } from "../router";
 import { useApi } from "../api/hooks";
 import { api } from "../api/client";
-import { useT } from "../i18n/context";
+import { useT, usePlural } from "../i18n/context";
 import type { Agent, AgentDetail } from "../api/types";
 
 const NOW = Date.now();
@@ -76,6 +76,7 @@ export function AgentsList() {
   const { data, refetch } = useApi<{ agents: Agent[] }>("/agents");
   const agents = data?.agents ?? [];
   const t = useT();
+  const p = usePlural();
 
   const columns = useMemo((): Column<Agent>[] => [
     { key: "name", label: t("col.name"), sortable: true, sortVal: (r) => r.name, render: (r) => (
@@ -95,7 +96,7 @@ export function AgentsList() {
     <div>
       <div style={{ marginBottom: "var(--gap)" }}>
         <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em", color: "var(--text-0)" }}>{t("agents.title")}</h1>
-        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{t("agents.subtitle", { count: agents.length })}</p>
+        <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{`${agents.length} ${p(agents.length, t("p.agents").split("|"))}`}</p>
       </div>
       <DataTable rowKey={(r) => r.agent_id} onRowClick={(r) => navigate("/agents/" + r.agent_id)} columns={columns} rows={agents} />
     </div>

@@ -17,10 +17,23 @@ function loadLocale(): Locale {
   return nav === "ru" ? "ru" : "en";
 }
 
+function pluralIndex(locale: Locale, n: number): number {
+  if (locale === "ru") {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return 0;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 1;
+    return 2;
+  }
+  return n === 1 ? 0 : 1;
+}
+
+export type PluralForms = readonly string[];
+
 interface I18nContextValue {
   locale: Locale;
   setLocale: (l: Locale) => void;
   t: (key: Key, params?: Record<string, string | number>) => string;
+  plural: (n: number, forms: PluralForms) => string;
 }
 
 const I18nContext = createContext<I18nContextValue>(null!);
@@ -43,8 +56,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return msg;
   }, [locale]);
 
+  const plural = useCallback((n: number, forms: PluralForms): string => {
+    return forms[pluralIndex(locale, n)] ?? forms[forms.length - 1] ?? "";
+  }, [locale]);
+
   return (
-    <I18nContext.Provider value={{ locale, setLocale, t }}>
+    <I18nContext.Provider value={{ locale, setLocale, t, plural }}>
       {children}
     </I18nContext.Provider>
   );
@@ -53,6 +70,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 export function useT() {
   const ctx = useContext(I18nContext);
   return ctx.t;
+}
+
+export function usePlural() {
+  const ctx = useContext(I18nContext);
+  return ctx.plural;
 }
 
 export function useLocale() {

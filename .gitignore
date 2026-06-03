@@ -11,3 +11,4 @@ bash.exe.stackdump
 /zs-lib/*.d.ts
 /zs-lib/tsconfig*.json
 ~move/
+*.png

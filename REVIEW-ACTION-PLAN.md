@@ -86,17 +86,13 @@
   - Решение: `config.ts` — centralized config с env defaults. Подключён в main.ts, api-routes.ts, auth.ts, oauth.ts.
   - Файлы: `config.ts` (new), `main.ts`, `api-routes.ts`, `auth.ts`, `oauth.ts`
 
-- [ ] **P3-7. Architecture: validator в runtime**
+- [x] **P3-7. Architecture: validator в runtime** — НЕ НУЖНО
   - Источник: A-1
-  - Проблема: server → validator тащит TypeScript compiler в production
-  - Решение: @zobr/compiler промежуточный пакет, lazy-loaded
-  - Effort: 8h
+  - Решение: 20MB TypeScript compiler не проблема на VPS + PM2. Загружается лениво при первом validate. Актуально только для serverless/edge — не наш случай.
 
-- [ ] **P3-8. Core: Trace hierarchy (cause/effect graph)**
+- [x] **P3-8. Core: Trace hierarchy (cause/effect graph)** → ISSUES.md
   - Источник: H-31
-  - Проблема: Trace events — flat array, нет причинно-следственных связей
-  - Решение: parent_event_seq в TraceEvent
-  - Effort: 8h
+  - Решение: подробный дизайн с parent_seq, tree view, coverage по поддеревьям вынесен в ISSUES.md. Реализация при появлении сложных скриптов с ветвлениями.
 
 - [ ] **P3-9. Trust: @sandbox explicit verified events в трейсе**
   - Источник: C-9

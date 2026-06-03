@@ -228,3 +228,80 @@ check, (б) сказать «всё ок» когда не ок. Сервер н
   **Когда делать:** при появлении реального потребителя — третий-четвёртый
   скрипт в одной папке, или скрипт с внешними настройками (API ключ, модель).
   До тех пор `@budget` в JSDoc покрывает самый частый per-script override.
+
+---
+
+## Trace hierarchy (cause/effect graph)
+
+Trace events — плоский массив, упорядоченный по seq. Нет причинно-следственных
+связей между событиями. Когда скрипт делает `survey → doubt → synthesize`,
+все три события лежат рядом по времени, но нет явной связи "doubt оспаривал
+результат survey" или "synthesize объединял результаты doubt и survey".
+
+- [ ] **parent_event_seq — причинно-следственные связи в трейсе**
+
+  **Текущее состояние:**
+  ```
+  seq=1  op=start        trust=n/a
+  seq=2  op=survey       trust=asserted   inputs=[]
+  seq=3  op=doubt        trust=asserted   inputs=[]
+  seq=4  op=report       trust=asserted   inputs=[]
+  seq=5  op=synthesize   trust=asserted   inputs=[]
+  seq=6  op=checkpoint   trust=verified   inputs=[]
+  seq=7  op=conclude     trust=asserted   inputs=[]
+  ```
+  Все events на одном уровне. `inputs` содержит handle IDs, но это данные,
+  не причинность. Нельзя узнать что `doubt` (seq=3) был ответом на
+  `survey` (seq=2), или что `synthesize` (seq=5) объединял `survey` + `doubt`.
+
+  **Предлагаемое решение:**
+
+  1. `TraceEvent` — добавить `parent_seq?: number`:
+     ```typescript
+     export interface TraceEvent {
+       readonly seq: number;
+       readonly t: string;
+       readonly op: string;
+       readonly realizer: Realizer;
+       readonly trust: TrustClass;
+       readonly inputs: readonly string[];
+       readonly output?: string;
+       readonly preview?: string;
+       readonly meta?: Readonly<Record<string, unknown>>;
+       readonly parent_seq?: number;  // ← NEW: seq of the event this was caused by
+     }
+     ```
+
+  2. **Кто устанавливает parent_seq:**
+     - Агент передаёт `parent_seq` при вызове MCP tools (zs_report, zs_checkpoint и др.)
+     - Это необязательное поле — агенты без поддержки hierarchy продолжают
+       работать как раньше (flat trace)
+     - Сервер записывает parent_seq в трейс без валидации (trust = asserted
+       для причинности, как и для содержания)
+
+  3. **Скрипт как декларация:**
+     Скрипт описывает линейную последовательность, но agent может выполнять
+     операции в произвольном порядке, с ветвлениями. `parent_seq` позволяет
+     агенту сообщить о фактической структуре своего рассуждения.
+
+  4. **Frontend — дерево рассуждения:**
+     - Trace Detail: переключатель "Timeline / Tree" для event panel
+     - Tree view группирует события по parent_seq, показывает вложенность
+     - Корневые события (без parent_seq) — верхний уровень
+     - Дочерние — indented под родителями
+
+  5. **Coverage по поддеревьям:**
+     С parent_seq можно вычислять coverage для каждого поддерева —
+     какие ветки рассуждения обоснованы, какие нет. Но это расширение,
+     не первая итерация.
+
+  **Изменения:**
+  - `core/src/trace.ts` — `parent_seq` в `TraceEvent`, `NewEvent`
+  - `protocol/src/messages.ts` — `parent_seq` в zod-схемах report/checkpoint/sandbox
+  - `server/src/app.ts` — пробросить parent_seq из MCP args в trace append
+  - `web/src/api/types.ts` — `parent_seq` в TraceEvent type
+  - `web/src/pages/trace-detail.tsx` — Tree view (toggle Timeline/Tree)
+
+  **Когда делать:** при появлении сложных скриптов с ветвлениями (3+ уровней
+  вложенности операций), или при работе с агентами которые поддерживают
+  structured reasoning. Для линейных скриптов (hello, insight) — не нужно.

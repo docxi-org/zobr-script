@@ -4,7 +4,7 @@
 import { parentPort, workerData } from "node:worker_threads";
 import * as vm from "node:vm";
 import { randomUUID } from "node:crypto";
-import BetterSqlite3 from "better-sqlite3";
+import { createRequire } from "node:module";
 
 // ── Types (stripped at transpile) ──
 
@@ -12,7 +12,12 @@ interface WorkerData {
   moduleSource: string;
   dbPath: string;
   safeGlobals: string[];
+  resolveBase?: string;
 }
+
+const wd = workerData as WorkerData;
+const workerRequire = wd.resolveBase ? createRequire(wd.resolveBase) : require;
+const BetterSqlite3 = workerRequire("better-sqlite3") as typeof import("better-sqlite3");
 
 interface Msg {
   type: string;

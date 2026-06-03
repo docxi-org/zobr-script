@@ -66,6 +66,7 @@ export class SrvRuntime {
         moduleSource: config.moduleSource,
         dbPath: config.dbPath,
         safeGlobals: [...SANDBOX_GLOBALS],
+        resolveBase: fileURLToPath(import.meta.url),
       },
     });
 

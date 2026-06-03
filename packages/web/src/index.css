@@ -318,7 +318,8 @@ button {
 }
 
 /* ============ Responsive: desktop → tablet ============ */
-/* Touch devices get tablet layout at wider breakpoints (hi-res screens) */
+/* Touch devices (pointer:coarse) get mobile layouts at wider breakpoints
+   because hi-res phone screens can report 1080px+ logical viewport. */
 @media (max-width: 1024px), (pointer: coarse) and (max-width: 1366px) {
   .zs-sidebar-desktop { display: none; }
   .zs-hamburger { display: inline-flex !important; }

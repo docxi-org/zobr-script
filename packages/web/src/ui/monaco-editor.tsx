@@ -4,6 +4,13 @@ import * as monacoAll from "monaco-editor";
 import type { editor } from "monaco-editor";
 import { Icon } from "./icon";
 
+self.MonacoEnvironment = {
+  getWorker(_workerId: string, label: string) {
+    const w = new Worker(new URL("monaco-editor/esm/vs/editor/editor.worker.js", import.meta.url), { type: "module" });
+    void label;
+    return w;
+  },
+};
 loader.config({ monaco: monacoAll });
 
 const ZS_OPS = [

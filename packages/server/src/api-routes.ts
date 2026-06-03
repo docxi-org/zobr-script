@@ -83,7 +83,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
 
   router.post("/auth/refresh", refreshLimiter, async (req, res) => {
     const refreshToken = parseCookieValue(req.headers.cookie, "zs_refresh")
-      ?? (req.body as { refreshToken?: string }).refreshToken;
+      ?? (req.body as { refreshToken?: string } | undefined)?.refreshToken;
     if (!refreshToken) {
       res.status(400).json({ error: { code: "BAD_REQUEST", message: "refresh token required" } });
       return;

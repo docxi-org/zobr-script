@@ -53,7 +53,7 @@ Browser                              REST API (/api/*)
 - Unified guide: `zs_guide({ topic? })` — 11 topics covering operations, trust, patterns
 - Standalone store operations (collections + notes)
 - Script discovery / CRUD (gated by agent role, not global flag)
-- OAuth 2.1 (`ZS_OAUTH=true`) — better-auth + MCP plugin, Bearer auth on /mcp
+- OAuth 2.1 (`ZS_OAUTH=true`) — SDK OAuthServerProvider, Bearer auth on /mcp
 
 ### Script Runtime
 - **File-based model** — script = `ref.cog.ts` + optional `ref.srv.ts`, not a folder
@@ -77,6 +77,7 @@ Browser                              REST API (/api/*)
 - **Tree view** — collapsible script library with folder counts, breadcrumb navigation
 - **Error boundary** — page errors show fallback, navigation still works
 - **Sortable DataTables** — click column headers to sort
+- **Responsive** — 4 breakpoints + `pointer:coarse` touch detection; sidebar→drawer, table→cards, split→tabs, tweaks→bottom sheet
 
 ## Quick Start
 
@@ -84,7 +85,7 @@ Browser                              REST API (/api/*)
 # Install
 pnpm install
 
-# Run tests (228 tests)
+# Run tests (242 tests)
 pnpm test
 
 # Type check all packages
@@ -111,9 +112,11 @@ ZS_BUDGET_ITERATIONS=100
 ZS_INVOCATION_TTL=3600          # seconds
 ZS_AWAITING_TTL=86400           # seconds
 ZS_MAX_ACTIVE_INVOCATIONS=100
+ZS_MAX_RUN_DEPTH=10             # max nested run() depth
 ZS_JWT_SECRET=...               # random if not set (tokens lost on restart)
 ZS_ADMIN_PASSWORD=admin         # seed admin password
 ZS_OAUTH=true                   # enable MCP OAuth 2.1 (opt-in, default off)
+ZS_PUBLIC_URL=https://example.com  # public base URL for OAuth discovery
 LOG_LEVEL=info
 ```
 
@@ -183,7 +186,7 @@ export default class InsightScript extends ZsScript {
 - Node.js 22 LTS, pnpm, ESM
 - TypeScript 6, Vitest, supertest
 - Zod 4 (MCP SDK requirement)
-- `@modelcontextprotocol/server` 2.0.0-alpha.2 (Streamable HTTP)
+- `@modelcontextprotocol/sdk` 1.29.0 (Streamable HTTP, OAuth)
 - `better-sqlite3` (WAL mode), `jose` (JWT), `pino` (logging)
 
 **Frontend:**

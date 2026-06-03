@@ -5,14 +5,7 @@
 
 ---
 
-## Общие (frontend)
+## Шаблон 
 
-- [x] ~~Шрифты через Google Fonts CDN~~ → self-hosted variable woff2 в public/fonts/ (Inter 352KB + JetBrains Mono 307KB).
-- [ ] Mobile: нет tabs переключателя code/events в Trace Detail (split → tabs на узком экране).
-- [x] ~~localStorage для JWT токенов~~ → httpOnly cookies (zs_token + zs_refresh). Fallback на Authorization header сохранён.
+- [ ] Компромис: расшифровка компромиса
 
-## Monaco Editor
-
-- [x] ~~Monaco с CDN (unpkg)~~ → бандлится Vite из node_modules через loader.config({ monaco }). Нет CDN-запросов.
-- [ ] Hex цвета в Monaco темах — ограничение Monaco API, не привязаны к CSS vars.
-- [x] ~~Diff view — наивный LCS O(n·m)~~ → Monaco DiffEditor (side-by-side, встроенный в @monaco-editor/react).

@@ -134,6 +134,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
           onsessioninitialized: async (sid) => {
             transports.set(sid, transport);
             const mcpServer = createMcpServerInstance();
+            // SDK type mismatch: StreamableHTTPServerTransport.onclose is optional, Transport.onclose is not
             await mcpServer.connect(transport as Parameters<typeof mcpServer.connect>[0]);
             logger.info({ sessionId: sid }, "session initialized");
           },

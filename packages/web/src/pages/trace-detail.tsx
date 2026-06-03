@@ -223,7 +223,7 @@ export function TraceDetail({ id }: { id: string }) {
                   {[{ label: t("trace.verified"), count: vCount, c: "var(--trust-verified)" }, { label: t("trace.asserted"), count: aCount, c: "var(--trust-asserted)" }].map((r) => (
                     <div key={r.label} className="flex items-center" style={{ gap: 8, fontSize: "var(--fs-sm)" }}>
                       <span style={{ width: 10, height: 10, borderRadius: 3, background: r.c }} />
-                      <span style={{ width: 64, color: "var(--text-1)", fontWeight: 600 }}>{r.label}</span>
+                      <span style={{ color: "var(--text-1)", fontWeight: 600, whiteSpace: "nowrap" }}>{r.label}</span>
                       <span className="mono" style={{ color: "var(--text-0)" }}>{r.count}</span>
                     </div>
                   ))}

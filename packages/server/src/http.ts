@@ -96,16 +96,17 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
       resourceServerUrl: new URL(mcpUrl),
     }));
 
-    // OAuth callback: user submits login form → verify credentials → redirect with auth code
     const { urlencoded } = await import("express");
+    const { renderLoginError } = await import("./oauth");
     app.post("/oauth/callback", urlencoded({ extended: false }), (req: Request, res: Response) => {
       const { email, password, code } = req.body as { email: string; password: string; code: string };
+      if (!code) { res.status(400).send(renderLoginError("", "Invalid request")); return; }
       if (!provider.verifyCredentials(email, password)) {
-        res.status(401).send("Invalid credentials. <a href='javascript:history.back()'>Try again</a>");
+        res.status(401).send(renderLoginError(code, "Invalid email or password"));
         return;
       }
       const pending = provider.completeAuthorization(code);
-      if (!pending) { res.status(400).send("Invalid authorization code"); return; }
+      if (!pending) { res.status(400).send(renderLoginError("", "Authorization code expired. Please try again.")); return; }
       const redirectUrl = new URL(pending.redirectUri);
       redirectUrl.searchParams.set("code", code);
       if (pending.state) redirectUrl.searchParams.set("state", pending.state);

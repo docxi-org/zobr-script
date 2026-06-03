@@ -121,19 +121,7 @@ export class ZsOAuthProvider implements OAuthServerProvider {
     );
 
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    res.send(`<!DOCTYPE html>
-<html><head><title>ZS — Sign in</title>
-<style>body{font-family:system-ui;max-width:400px;margin:80px auto;padding:0 20px}
-input,button{width:100%;padding:10px;margin:6px 0;box-sizing:border-box;border-radius:6px;border:1px solid #ccc}
-button{background:#333;color:#fff;border:none;cursor:pointer;font-weight:600}
-.error{color:#e53e3e;font-size:14px;margin-top:8px}</style></head>
-<body><h2>ZS — Sign in</h2>
-<form method="POST" action="/oauth/callback">
-<input type="hidden" name="code" value="${esc(code)}">
-<input name="email" type="email" placeholder="Email" required>
-<input name="password" type="password" placeholder="Password" required>
-<button type="submit">Sign in</button>
-</form></body></html>`);
+    res.send(renderLoginPage({ code: esc(code) }));
   }
 
   async challengeForAuthorizationCode(_client: OAuthClientInformationFull, authorizationCode: string): Promise<string> {
@@ -197,4 +185,78 @@ button{background:#333;color:#fff;border:none;cursor:pointer;font-weight:600}
     if (!row) return null;
     return { redirectUri: row.redirect_uri, state: row.state };
   }
+}
+
+const LOGIN_CSS = `
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:grid;place-items:center;
+  background:#262830;color:#f3f3f5;padding:24px}
+.wrap{width:100%;max-width:380px}
+.logo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:28px}
+.logo-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:12px;
+  background:#5b6abf;color:#f6f7ff;font-weight:800;font-size:20px;letter-spacing:-0.02em}
+.logo-title{font-weight:700;font-size:17px}
+.logo-sub{font-size:12.5px;color:#8c8fa0}
+.card{border:1px solid #3d3f4d;border-radius:12px;background:#2f3140;padding:24px}
+.field{margin-bottom:14px}
+.field:last-of-type{margin-bottom:0}
+label{display:block;margin-bottom:6px;font-size:11.5px;color:#8c8fa0;font-weight:600}
+input{width:100%;height:34px;padding:0 12px;border-radius:8px;border:1px solid #3d3f4d;
+  background:#353847;color:#f3f3f5;font-size:12.5px;font-family:inherit;outline:none;transition:border-color .15s}
+input:focus{border-color:#5b6abf}
+input[type="password"]{padding-right:36px}
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:0;top:0;width:34px;height:34px;display:grid;place-items:center;
+  background:none;border:none;color:#6b6e80;cursor:pointer;font-size:14px}
+.error{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#e06060;margin-bottom:10px}
+.error svg{flex-shrink:0}
+.btn{width:100%;height:40px;border:none;border-radius:8px;background:#5b6abf;color:#f6f7ff;
+  font-size:12.5px;font-weight:600;cursor:pointer;margin-top:14px;transition:opacity .15s}
+.btn:hover{opacity:0.9}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.footer{margin-top:16px;text-align:center;font-size:11.5px;color:#5c5e6e}
+`;
+
+const ERROR_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
+function renderLoginPage(opts: { code: string; error?: string }): string {
+  const errorHtml = opts.error
+    ? `<div class="error">${ERROR_ICON} ${opts.error}</div>`
+    : "";
+  return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZS — Sign in</title><style>${LOGIN_CSS}</style></head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <div class="logo-icon">ZS</div>
+    <div style="text-align:center">
+      <div class="logo-title">Zobr Script</div>
+      <div class="logo-sub">Sign in to connect MCP</div>
+    </div>
+  </div>
+  <div class="card">
+    ${errorHtml}
+    <form method="POST" action="/oauth/callback">
+      <input type="hidden" name="code" value="${opts.code}">
+      <div class="field">
+        <label>Email</label>
+        <input name="email" type="email" placeholder="you@example.com" required autofocus>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="pw-wrap">
+          <input name="password" type="password" placeholder="••••••••" required>
+        </div>
+      </div>
+      <button type="submit" class="btn">Sign in</button>
+    </form>
+  </div>
+  <p class="footer">Authentication required by MCP server</p>
+</div>
+</body></html>`;
+}
+
+export function renderLoginError(code: string, error: string): string {
+  return renderLoginPage({ code, error });
 }

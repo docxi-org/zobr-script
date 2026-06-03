@@ -105,11 +105,21 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
     const { getOAuthProtectedResourceMetadataUrl } = await import("@modelcontextprotocol/sdk/server/auth/router.js");
     const { provider, issuerUrl, mcpUrl } = config.oauth;
 
-    app.use(mcpAuthRouter({
+    const authR = mcpAuthRouter({
       provider,
       issuerUrl: new URL(issuerUrl),
       resourceServerUrl: new URL(mcpUrl),
-    }));
+    });
+    app.use(authR);
+    // SDK only mounts /.well-known/oauth-authorization-server (no path suffix),
+    // but clients may request it with the resource path appended per RFC 8414.
+    const rsPath = new URL(mcpUrl).pathname;
+    if (rsPath !== "/") {
+      app.get(`/.well-known/oauth-authorization-server${rsPath}`, (req, res, next) => {
+        req.url = "/.well-known/oauth-authorization-server";
+        authR(req, res, next);
+      });
+    }
 
     const { urlencoded } = await import("express");
     const { renderLoginError, renderLoginSuccess } = await import("./oauth");

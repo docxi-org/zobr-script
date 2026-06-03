@@ -78,6 +78,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
   logger.info({ tools: MCP_TOOLS.map((t) => t.name) }, "registered MCP tools");
 
   const app = createMcpExpressApp({ host: "0.0.0.0" });
+  app.set("trust proxy", 1);
   const transports = new Map<string, NodeStreamableHTTPServerTransport>();
 
   if (config.oauth) {

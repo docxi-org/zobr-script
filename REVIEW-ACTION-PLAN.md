@@ -55,7 +55,7 @@
 
 ---
 
-## P3 — LOW (backlog / tech debt, 5/15)
+## P3 — LOW (backlog / tech debt, 9/15)
 
 - [x] **P3-1. Frontend: Router state persistence** ✅ 2026-06-03
   - Источник: F-21
@@ -141,8 +141,8 @@
 | P0 CRITICAL | 5 | 5 | — |
 | P1 HIGH | 7 | 8 | ~4h |
 | P2 MEDIUM | 8 | 12 | ~20h (deferred) |
-| P3 LOW | 5 | 15 | ~53h |
-| **TOTAL** | **25** | **40** | **~77h** |
+| P3 LOW | 9 | 15 | ~37h |
+| **TOTAL** | **29** | **40** | **~61h** |
 
 Дополнительно реализовано за рамками плана:
 - SDK миграция 2.0-alpha.2 → 1.29.0 (per-session McpServer, StreamableHTTPServerTransport)

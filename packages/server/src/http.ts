@@ -18,10 +18,11 @@ import { log as defaultLog } from "./logger";
 import { EXECUTOR_INSTRUCTION, START_PREAMBLE } from "./instructions";
 import { createApiRouter } from "./api-routes";
 import { AuthService } from "./auth";
-import type { ZsAuth } from "./oauth";
+import type { ZsOAuthProvider } from "./oauth";
 
 export interface OAuthConfig {
-  readonly auth: ZsAuth;
+  readonly provider: ZsOAuthProvider;
+  readonly issuerUrl: string;
   readonly mcpUrl: string;
 }
 
@@ -84,12 +85,35 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
   const transports = new Map<string, StreamableHTTPServerTransport>();
 
   if (config.oauth) {
-    const { createOAuthRoutes, createProtectedResourceRouter, requireBearerAuth } = await import("./oauth");
-    const { auth, mcpUrl } = config.oauth;
-    const resourceMetadataUrl = `${mcpUrl.replace(/\/mcp$/, "")}/.well-known/oauth-protected-resource${mcpPath}`;
-    app.use(createOAuthRoutes(auth, mcpUrl));
-    app.use(createProtectedResourceRouter(auth, mcpPath));
-    const bearerMiddleware = requireBearerAuth(auth, resourceMetadataUrl);
+    const { mcpAuthRouter } = await import("@modelcontextprotocol/sdk/server/auth/router.js");
+    const { requireBearerAuth } = await import("@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js");
+    const { getOAuthProtectedResourceMetadataUrl } = await import("@modelcontextprotocol/sdk/server/auth/router.js");
+    const { provider, issuerUrl, mcpUrl } = config.oauth;
+
+    app.use(mcpAuthRouter({
+      provider,
+      issuerUrl: new URL(issuerUrl),
+      resourceServerUrl: new URL(mcpUrl),
+    }));
+
+    // OAuth callback: user submits login form → verify credentials → redirect with auth code
+    const { urlencoded } = await import("express");
+    app.post("/oauth/callback", urlencoded({ extended: false }), (req: Request, res: Response) => {
+      const { email, password, code } = req.body as { email: string; password: string; code: string };
+      if (!provider.verifyCredentials(email, password)) {
+        res.status(401).send("Invalid credentials. <a href='javascript:history.back()'>Try again</a>");
+        return;
+      }
+      const pending = provider.completeAuthorization(code);
+      if (!pending) { res.status(400).send("Invalid authorization code"); return; }
+      const redirectUrl = new URL(pending.redirectUri);
+      redirectUrl.searchParams.set("code", code);
+      if (pending.state) redirectUrl.searchParams.set("state", pending.state);
+      res.redirect(redirectUrl.toString());
+    });
+
+    const resourceMetadataUrl = getOAuthProtectedResourceMetadataUrl(new URL(mcpUrl));
+    const bearerMiddleware = requireBearerAuth({ verifier: provider, resourceMetadataUrl });
     app.post(mcpPath, bearerMiddleware);
     app.get(mcpPath, bearerMiddleware);
     app.delete(mcpPath, bearerMiddleware);

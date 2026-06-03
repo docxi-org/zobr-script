@@ -26,21 +26,19 @@ const OAUTH_ENABLED = process.env["ZS_OAUTH"] === "true";
 let oauth: import("./http").OAuthConfig | undefined;
 
 if (OAUTH_ENABLED) {
-  const { createZsOAuth } = await import("./oauth");
+  const { ZsOAuthProvider } = await import("./oauth");
   const publicBase = process.env["ZS_PUBLIC_URL"] ?? `http://${process.env["ZS_HOST"] ?? "127.0.0.1"}:${PORT}`;
   const mcpUrl = `${publicBase}/mcp`;
-  const authUrl = publicBase;
   const oauthDbPath = STORE_PATH.replace(/\.sqlite$/, "-oauth.sqlite");
-  const { auth, seedAdmin } = createZsOAuth({
+  const adminPassword = process.env["ZS_ADMIN_PASSWORD"] ?? "admin";
+  if (adminPassword === "admin") log.warn("ZS_ADMIN_PASSWORD not set — using default 'admin'. Change it immediately.");
+  const provider = new ZsOAuthProvider({
     dbPath: oauthDbPath,
-    mcpUrl,
-    authUrl,
+    issuerUrl: publicBase,
     adminEmail: "admin@docxi.org",
-    adminPassword: process.env["ZS_ADMIN_PASSWORD"] ?? "admin",
-    logger: log,
+    adminPassword,
   });
-  await seedAdmin();
-  oauth = { auth, mcpUrl };
+  oauth = { provider, issuerUrl: publicBase, mcpUrl };
   log.info({ mcpUrl, oauthDbPath }, "OAuth enabled");
 }
 

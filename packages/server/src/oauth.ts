@@ -1,268 +1,201 @@
-import { betterAuth } from "better-auth";
-import { mcp } from "better-auth/plugins";
-import { toNodeHandler } from "better-auth/node";
-import { oAuthDiscoveryMetadata, oAuthProtectedResourceMetadata } from "better-auth/plugins";
+import { randomUUID, randomBytes } from "node:crypto";
 import Database from "better-sqlite3";
-import { Router, urlencoded } from "express";
-import cors from "cors";
-import type { Request, Response, NextFunction } from "express";
-import type { Logger } from "./logger";
+import type { Response } from "express";
+import type { OAuthServerProvider, AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
+import type { OAuthRegisteredClientsStore } from "@modelcontextprotocol/sdk/server/auth/clients.js";
+import type { OAuthClientInformationFull, OAuthTokenRevocationRequest, OAuthTokens } from "@modelcontextprotocol/sdk/shared/auth.js";
+import type { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import { InvalidTokenError } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 
-export interface ZsOAuthConfig {
-  readonly dbPath: string;
-  readonly mcpUrl: string;
-  readonly authUrl: string;
-  readonly adminEmail: string;
-  readonly adminPassword: string;
-  readonly logger?: Logger;
+type DB = ReturnType<typeof Database>;
+
+function generateToken(): string {
+  return randomBytes(32).toString("hex");
 }
 
-function initSchema(db: InstanceType<typeof Database>): void {
+function initSchema(db: DB): void {
   db.exec(`
-    CREATE TABLE IF NOT EXISTS user (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      emailVerified INTEGER NOT NULL DEFAULT 0,
-      image TEXT,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
+    CREATE TABLE IF NOT EXISTS oauth_clients (
+      client_id TEXT PRIMARY KEY,
+      client_secret TEXT,
+      client_secret_expires_at INTEGER,
+      redirect_uris TEXT NOT NULL,
+      grant_types TEXT NOT NULL,
+      response_types TEXT NOT NULL,
+      client_name TEXT,
+      token_endpoint_auth_method TEXT,
+      client_id_issued_at INTEGER NOT NULL,
+      data TEXT NOT NULL
     );
-    CREATE TABLE IF NOT EXISTS session (
-      id TEXT PRIMARY KEY,
-      token TEXT NOT NULL UNIQUE,
-      expiresAt TEXT NOT NULL,
-      ipAddress TEXT,
-      userAgent TEXT,
-      userId TEXT NOT NULL REFERENCES user(id),
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
+    CREATE TABLE IF NOT EXISTS oauth_codes (
+      code TEXT PRIMARY KEY,
+      client_id TEXT NOT NULL,
+      redirect_uri TEXT NOT NULL,
+      code_challenge TEXT NOT NULL,
+      state TEXT,
+      created_at INTEGER NOT NULL
     );
-    CREATE TABLE IF NOT EXISTS account (
-      id TEXT PRIMARY KEY,
-      accountId TEXT NOT NULL,
-      providerId TEXT NOT NULL,
-      userId TEXT NOT NULL REFERENCES user(id),
-      accessToken TEXT,
-      refreshToken TEXT,
-      idToken TEXT,
-      accessTokenExpiresAt TEXT,
-      refreshTokenExpiresAt TEXT,
-      scope TEXT,
-      password TEXT,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS verification (
-      id TEXT PRIMARY KEY,
-      identifier TEXT NOT NULL,
-      value TEXT NOT NULL,
-      expiresAt TEXT NOT NULL,
-      createdAt TEXT,
-      updatedAt TEXT
-    );
-    CREATE TABLE IF NOT EXISTS oauthApplication (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      icon TEXT,
-      metadata TEXT,
-      clientId TEXT NOT NULL UNIQUE,
-      clientSecret TEXT,
-      redirectUrls TEXT NOT NULL,
-      type TEXT NOT NULL,
-      disabled INTEGER NOT NULL DEFAULT 0,
-      userId TEXT,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS oauthAccessToken (
-      id TEXT PRIMARY KEY,
-      accessToken TEXT NOT NULL UNIQUE,
-      refreshToken TEXT UNIQUE,
-      accessTokenExpiresAt TEXT NOT NULL,
-      refreshTokenExpiresAt TEXT,
-      clientId TEXT NOT NULL,
-      userId TEXT,
+    CREATE TABLE IF NOT EXISTS oauth_tokens (
+      access_token TEXT PRIMARY KEY,
+      refresh_token TEXT,
+      client_id TEXT NOT NULL,
       scopes TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL
     );
-    CREATE TABLE IF NOT EXISTS oauthRefreshToken (
-      id TEXT PRIMARY KEY,
-      refreshToken TEXT NOT NULL UNIQUE,
-      accessTokenId TEXT NOT NULL,
-      expiresAt TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS oauthAuthorizationCode (
-      id TEXT PRIMARY KEY,
-      code TEXT NOT NULL UNIQUE,
-      clientId TEXT NOT NULL,
-      userId TEXT,
-      scopes TEXT NOT NULL,
-      redirectURI TEXT NOT NULL,
-      codeChallenge TEXT,
-      codeChallengeMethod TEXT,
-      expiresAt TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS oauthConsent (
-      id TEXT PRIMARY KEY,
-      clientId TEXT NOT NULL,
-      userId TEXT NOT NULL,
-      scopes TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL,
-      consentGiven INTEGER NOT NULL DEFAULT 0
+    CREATE TABLE IF NOT EXISTS oauth_users (
+      email TEXT PRIMARY KEY,
+      password TEXT NOT NULL
     );
   `);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ZsAuth = ReturnType<typeof betterAuth>;
+export class ZsOAuthClientsStore implements OAuthRegisteredClientsStore {
+  constructor(private db: DB) {}
 
-export function createZsOAuth(config: ZsOAuthConfig): { auth: ZsAuth; seedAdmin: () => Promise<void> } {
-  const db = new Database(config.dbPath);
-  db.pragma("journal_mode = WAL");
-  initSchema(db);
+  getClient(clientId: string): OAuthClientInformationFull | undefined {
+    const row = this.db.prepare("SELECT data FROM oauth_clients WHERE client_id = ?").get(clientId) as { data: string } | undefined;
+    if (!row) return undefined;
+    return JSON.parse(row.data) as OAuthClientInformationFull;
+  }
 
-  const auth = betterAuth({
-    basePath: "/oauth/ba",
-    baseURL: config.authUrl,
-    database: db as never,
-    trustedOrigins: [config.authUrl, config.mcpUrl],
-    emailAndPassword: {
-      enabled: true,
-      requireEmailVerification: false,
-    },
-    plugins: [
-      mcp({
-        loginPage: "/oauth/sign-in",
-        resource: config.mcpUrl,
-        oidcConfig: {
-          loginPage: "/oauth/sign-in",
-          accessTokenExpiresIn: 3600,
-          refreshTokenExpiresIn: 604_800,
-          defaultScope: "openid",
-          scopes: ["openid", "profile", "email", "offline_access"],
-          allowDynamicClientRegistration: true,
-        },
-      }),
-    ],
-  });
-
-  const seedAdmin = async () => {
-    const count = (db.prepare("SELECT COUNT(*) as c FROM user").get() as { c: number }).c;
-    if (count > 0) return;
-    if (config.adminPassword === "admin") {
-      config.logger?.warn("ZS_ADMIN_PASSWORD not set — seeding admin with default password 'admin'. Change it immediately.");
-    }
-    await (auth.api as Record<string, Function>)["signUpEmail"]!({
-      body: { email: config.adminEmail, password: config.adminPassword, name: "Admin" },
-    });
-    config.logger?.warn("Seeded admin user: %s", config.adminEmail);
-  };
-
-  return { auth: auth as unknown as ZsAuth, seedAdmin };
+  registerClient(client: Omit<OAuthClientInformationFull, "client_id" | "client_id_issued_at">): OAuthClientInformationFull {
+    const clientId = randomBytes(16).toString("hex");
+    const now = Math.floor(Date.now() / 1000);
+    const full: OAuthClientInformationFull = {
+      ...client,
+      client_id: clientId,
+      client_id_issued_at: now,
+    } as OAuthClientInformationFull;
+    this.db.prepare("INSERT INTO oauth_clients (client_id, client_secret, redirect_uris, grant_types, response_types, client_name, token_endpoint_auth_method, client_id_issued_at, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
+      clientId,
+      full.client_secret ?? null,
+      JSON.stringify(full.redirect_uris),
+      JSON.stringify(full.grant_types ?? []),
+      JSON.stringify(full.response_types ?? []),
+      full.client_name ?? null,
+      full.token_endpoint_auth_method ?? "none",
+      now,
+      JSON.stringify(full),
+    );
+    return full;
+  }
 }
 
-export function createOAuthRoutes(auth: ZsAuth, mcpUrl: string): Router {
-  const router = Router();
-  const handler = toNodeHandler(auth);
-  const publicBase = mcpUrl.replace(/\/mcp$/, "");
+export interface ZsOAuthProviderConfig {
+  readonly dbPath: string;
+  readonly issuerUrl: string;
+  readonly adminEmail: string;
+  readonly adminPassword: string;
+}
 
-  router.options("/.well-known/oauth-authorization-server", cors());
-  router.get("/.well-known/oauth-authorization-server", cors(), toNodeHandler(oAuthDiscoveryMetadata(auth as never)));
+export class ZsOAuthProvider implements OAuthServerProvider {
+  readonly #db: DB;
+  readonly #clients: ZsOAuthClientsStore;
+  readonly #issuerUrl: string;
 
-  router.all("/oauth/ba/{*splat}", (req, res) => handler(req, res));
+  constructor(config: ZsOAuthProviderConfig) {
+    this.#db = new Database(config.dbPath);
+    this.#db.pragma("journal_mode = WAL");
+    initSchema(this.#db);
+    this.#clients = new ZsOAuthClientsStore(this.#db);
+    this.#seedAdmin(config.adminEmail, config.adminPassword);
+    this.#issuerUrl = config.issuerUrl;
+  }
 
-  router.get("/oauth/sign-in", (req: Request, res: Response) => {
-    const q = new URLSearchParams(req.query as Record<string, string>);
+  #seedAdmin(email: string, password: string): void {
+    const existing = this.#db.prepare("SELECT email FROM oauth_users WHERE email = ?").get(email);
+    if (!existing) {
+      this.#db.prepare("INSERT INTO oauth_users (email, password) VALUES (?, ?)").run(email, password);
+    }
+  }
+
+  get clientsStore(): OAuthRegisteredClientsStore {
+    return this.#clients;
+  }
+
+  async authorize(client: OAuthClientInformationFull, params: AuthorizationParams, res: Response): Promise<void> {
+    const code = generateToken();
+    this.#db.prepare("INSERT INTO oauth_codes (code, client_id, redirect_uri, code_challenge, state, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
+      code, client.client_id, params.redirectUri, params.codeChallenge, params.state ?? null, Date.now(),
+    );
+
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    res.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'");
     res.send(`<!DOCTYPE html>
-<html><head><title>ZS OAuth Login</title>
+<html><head><title>ZS — Sign in</title>
 <style>body{font-family:system-ui;max-width:400px;margin:80px auto;padding:0 20px}
 input,button{width:100%;padding:10px;margin:6px 0;box-sizing:border-box;border-radius:6px;border:1px solid #ccc}
-button{background:#333;color:#fff;border:none;cursor:pointer;font-weight:600}</style></head>
+button{background:#333;color:#fff;border:none;cursor:pointer;font-weight:600}
+.error{color:#e53e3e;font-size:14px;margin-top:8px}</style></head>
 <body><h2>ZS — Sign in</h2>
-<form method="POST" action="/oauth/sign-in">
-<input type="hidden" name="redirect" value="${esc(q.toString())}">
+<form method="POST" action="/oauth/callback">
+<input type="hidden" name="code" value="${esc(code)}">
 <input name="email" type="email" placeholder="Email" required>
 <input name="password" type="password" placeholder="Password" required>
 <button type="submit">Sign in</button>
 </form></body></html>`);
-  });
+  }
 
-  router.post("/oauth/sign-in", urlencoded({ extended: false }), async (req: Request, res: Response) => {
-    const { email, password, redirect } = req.body as { email: string; password: string; redirect: string };
-    try {
-      const api = auth.api as Record<string, Function>;
-      const signInResponse = await api["signInEmail"]!({
-        body: { email, password },
-        asResponse: true,
-      }) as globalThis.Response;
-      for (const cookie of signInResponse.headers.getSetCookie()) {
-        res.append("Set-Cookie", cookie);
-      }
-      const authorizeUrl = new URL("/oauth/ba/mcp/authorize", publicBase);
-      authorizeUrl.search = redirect;
-      res.redirect(authorizeUrl.toString());
-    } catch {
-      res.status(401).send("Invalid credentials. <a href='javascript:history.back()'>Try again</a>");
+  async challengeForAuthorizationCode(_client: OAuthClientInformationFull, authorizationCode: string): Promise<string> {
+    const row = this.#db.prepare("SELECT code_challenge FROM oauth_codes WHERE code = ?").get(authorizationCode) as { code_challenge: string } | undefined;
+    if (!row) throw new Error("Authorization code not found");
+    return row.code_challenge;
+  }
+
+  async exchangeAuthorizationCode(client: OAuthClientInformationFull, authorizationCode: string): Promise<OAuthTokens> {
+    const row = this.#db.prepare("SELECT * FROM oauth_codes WHERE code = ?").get(authorizationCode) as { code: string; client_id: string; redirect_uri: string; state: string | null } | undefined;
+    if (!row) throw new Error("Invalid authorization code");
+    if (row.client_id !== client.client_id) throw new Error("Client mismatch");
+    this.#db.prepare("DELETE FROM oauth_codes WHERE code = ?").run(authorizationCode);
+
+    const accessToken = generateToken();
+    const refreshToken = generateToken();
+    const expiresIn = 3600;
+    const now = Math.floor(Date.now() / 1000);
+    this.#db.prepare("INSERT INTO oauth_tokens (access_token, refresh_token, client_id, scopes, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
+      accessToken, refreshToken, client.client_id, "openid", now + expiresIn, now,
+    );
+    return { access_token: accessToken, refresh_token: refreshToken, token_type: "Bearer", expires_in: expiresIn };
+  }
+
+  async exchangeRefreshToken(client: OAuthClientInformationFull, refreshToken: string): Promise<OAuthTokens> {
+    const row = this.#db.prepare("SELECT * FROM oauth_tokens WHERE refresh_token = ? AND client_id = ?").get(refreshToken, client.client_id) as { access_token: string } | undefined;
+    if (!row) throw new Error("Invalid refresh token");
+    this.#db.prepare("DELETE FROM oauth_tokens WHERE access_token = ?").run(row.access_token);
+
+    const newAccessToken = generateToken();
+    const newRefreshToken = generateToken();
+    const expiresIn = 3600;
+    const now = Math.floor(Date.now() / 1000);
+    this.#db.prepare("INSERT INTO oauth_tokens (access_token, refresh_token, client_id, scopes, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)").run(
+      newAccessToken, newRefreshToken, client.client_id, "openid", now + expiresIn, now,
+    );
+    return { access_token: newAccessToken, refresh_token: newRefreshToken, token_type: "Bearer", expires_in: expiresIn };
+  }
+
+  async verifyAccessToken(token: string): Promise<AuthInfo> {
+    const row = this.#db.prepare("SELECT * FROM oauth_tokens WHERE access_token = ?").get(token) as { access_token: string; client_id: string; scopes: string; expires_at: number } | undefined;
+    if (!row) throw new InvalidTokenError("Unknown access token");
+    if (row.expires_at < Math.floor(Date.now() / 1000)) {
+      this.#db.prepare("DELETE FROM oauth_tokens WHERE access_token = ?").run(token);
+      throw new InvalidTokenError("Token expired");
     }
-  });
+    return { token, clientId: row.client_id, scopes: row.scopes.split(" "), expiresAt: row.expires_at };
+  }
 
-  return router;
-}
+  async revokeToken(_client: OAuthClientInformationFull, request: OAuthTokenRevocationRequest): Promise<void> {
+    this.#db.prepare("DELETE FROM oauth_tokens WHERE access_token = ? OR refresh_token = ?").run(request.token, request.token);
+  }
 
-export function createProtectedResourceRouter(auth: ZsAuth, resourcePath = "/mcp"): Router {
-  const router = Router();
-  const metadataPath = `/.well-known/oauth-protected-resource${resourcePath}`;
-  router.options(metadataPath, cors());
-  router.get(metadataPath, cors(), toNodeHandler(oAuthProtectedResourceMetadata(auth as never)));
-  return router;
-}
+  verifyCredentials(email: string, password: string): boolean {
+    const row = this.#db.prepare("SELECT password FROM oauth_users WHERE email = ?").get(email) as { password: string } | undefined;
+    return row !== undefined && row.password === password;
+  }
 
-export interface OAuthUserInfo {
-  userId: string;
-  email: string;
-  clientId: string;
-  scopes: string[];
-}
-
-export function requireBearerAuth(auth: ZsAuth, resourceMetadataUrl: string) {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const header = req.headers.authorization;
-    if (!header?.startsWith("Bearer ")) {
-      res.set("WWW-Authenticate", `Bearer error="invalid_token", error_description="Missing Authorization header", resource_metadata="${resourceMetadataUrl}"`);
-      res.status(401).json({ error: "invalid_token", error_description: "Missing Authorization header" });
-      return;
-    }
-    const token = header.slice(7);
-    try {
-      const headers = new Headers();
-      headers.set("Authorization", `Bearer ${token}`);
-      const api = auth.api as Record<string, Function>;
-      const session = await api["getMcpSession"]!({ headers }) as { userId?: string; clientId?: string; scopes?: string } | null;
-      if (!session) throw new Error("Invalid token");
-      let email = "";
-      if (session.userId) {
-        const user = await api["getUser"]?.({ query: { id: session.userId } }) as { email?: string } | null;
-        email = user?.email ?? "";
-      }
-      const info: OAuthUserInfo = {
-        userId: session.userId ?? "",
-        email,
-        clientId: session.clientId ?? "",
-        scopes: typeof session.scopes === "string" ? session.scopes.split(" ") : [],
-      };
-      (req as Request & { oauthUser?: OAuthUserInfo }).oauthUser = info;
-      next();
-    } catch {
-      res.set("WWW-Authenticate", `Bearer error="invalid_token", error_description="Invalid or expired token", resource_metadata="${resourceMetadataUrl}"`);
-      res.status(401).json({ error: "invalid_token", error_description: "Invalid or expired token" });
-    }
-  };
+  completeAuthorization(code: string): { redirectUri: string; state: string | null } | null {
+    const row = this.#db.prepare("SELECT redirect_uri, state FROM oauth_codes WHERE code = ?").get(code) as { redirect_uri: string; state: string | null } | undefined;
+    if (!row) return null;
+    return { redirectUri: row.redirect_uri, state: row.state };
+  }
 }

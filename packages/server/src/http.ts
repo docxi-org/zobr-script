@@ -97,7 +97,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
     }));
 
     const { urlencoded } = await import("express");
-    const { renderLoginError } = await import("./oauth");
+    const { renderLoginError, renderLoginSuccess } = await import("./oauth");
     app.post("/oauth/callback", urlencoded({ extended: false }), (req: Request, res: Response) => {
       const { email, password, code } = req.body as { email: string; password: string; code: string };
       if (!code) { res.status(400).send(renderLoginError("", "Invalid request")); return; }
@@ -110,7 +110,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
       const redirectUrl = new URL(pending.redirectUri);
       redirectUrl.searchParams.set("code", code);
       if (pending.state) redirectUrl.searchParams.set("state", pending.state);
-      res.redirect(redirectUrl.toString());
+      res.send(renderLoginSuccess(redirectUrl.toString()));
     });
 
     const resourceMetadataUrl = getOAuthProtectedResourceMetadataUrl(new URL(mcpUrl));

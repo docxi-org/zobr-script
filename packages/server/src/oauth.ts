@@ -274,3 +274,35 @@ ${PW_TOGGLE_SCRIPT}
 export function renderLoginError(code: string, error: string): string {
   return renderLoginPage({ code, error });
 }
+
+const CHECK_ICON = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+
+export function renderLoginSuccess(redirectUrl: string): string {
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZS — Connected</title>
+<meta http-equiv="refresh" content="0;url=${esc(redirectUrl)}">
+<style>${LOGIN_CSS}
+.success-icon{animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(0.5);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.success-text{font-weight:700;font-size:20px;margin-top:16px}
+.success-sub{font-size:12.5px;color:#8c8e9e;margin-top:8px}
+.dots{display:inline-block;width:20px;text-align:left}
+.dots::after{content:'...';animation:dots 1.5s steps(4,end) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+</style></head>
+<body>
+<div class="wrap" style="text-align:center">
+  <div class="logo">
+    <div class="logo-icon">ZS</div>
+  </div>
+  <div class="card" style="padding:40px 24px">
+    <div class="success-icon">${CHECK_ICON}</div>
+    <div class="success-text">Connected</div>
+    <div class="success-sub">Redirecting back<span class="dots"></span></div>
+  </div>
+  <p class="footer" style="margin-top:20px">You can close this window if it doesn't redirect automatically.</p>
+</div>
+</body></html>`;
+}

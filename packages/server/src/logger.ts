@@ -1,13 +1,14 @@
 import pino from "pino";
+import { config } from "./config";
 
 export type Logger = pino.Logger;
 
 const VALID_LEVELS = new Set(["fatal", "error", "warn", "info", "debug", "trace", "silent"]);
 
 export function createLogger(opts?: { level?: string; pretty?: boolean }): Logger {
-  const raw = opts?.level ?? process.env["LOG_LEVEL"] ?? "info";
+  const raw = opts?.level ?? config.logLevel;
   const level = VALID_LEVELS.has(raw) ? raw : "info";
-  const pretty = opts?.pretty ?? process.env["NODE_ENV"] !== "production";
+  const pretty = opts?.pretty ?? !config.production;
 
   return pino({
     level,

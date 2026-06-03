@@ -56,27 +56,26 @@ jobs:
             STAGING=/opt/zobr-script-staging
             OLD=/opt/zobr-script-old
 
+            # Stop server before copying data (WAL safety)
+            pm2 stop zobr-script || true
+
             # Carry over persistent state to staging
             [ -f "$LIVE/.env" ] && cp "$LIVE/.env" "$STAGING/.env"
             [ -d "$LIVE/data" ] && cp -a "$LIVE/data" "$STAGING/data"
-            [ -d "$LIVE/node_modules" ] && mv "$LIVE/node_modules" "$STAGING/node_modules"
+            [ -d "$LIVE/node_modules" ] && cp -a "$LIVE/node_modules" "$STAGING/node_modules"
 
             # Install deps in staging
             cd "$STAGING"
             pnpm install --frozen-lockfile
 
-            # Atomic swap: live → old, staging → live
-            pm2 stop zobr-script || true
+            # Swap: live → old, staging → live
             rm -rf "$OLD"
-            mv "$LIVE" "$OLD"
+            [ -d "$LIVE" ] && mv "$LIVE" "$OLD"
             mv "$STAGING" "$LIVE"
 
             cd "$LIVE"
             pm2 startOrReload ecosystem.config.cjs --update-env
             pm2 save
-
-            # Cleanup old release
-            rm -rf "$OLD"
 
       - name: Init .env on first deploy
         uses: appleboy/ssh-action@v1.2.2
@@ -129,13 +128,22 @@ jobs:
 
       - name: Health check
         run: |
-          for i in 1 2 3 4 5; do
+          for i in 1 2 3 4 5 6 7 8; do
             sleep 5
             if curl -sf https://zs.docxi.org/health > /dev/null; then
               echo "Health check passed"
               exit 0
             fi
-            echo "Attempt $i/5 failed, retrying..."
+            echo "Attempt $i/8 failed, retrying..."
           done
           echo "Health check failed"
           exit 1
+
+      - name: Cleanup old release
+        if: success()
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: 80.74.31.205
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: rm -rf /opt/zobr-script-old

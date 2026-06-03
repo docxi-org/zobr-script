@@ -1,5 +1,9 @@
 const env = (key: string, fallback: string) => process.env[key] ?? fallback;
-const num = (key: string, fallback: number) => Number(process.env[key] ?? fallback);
+const num = (key: string, fallback: number) => {
+  const v = Number(process.env[key] ?? fallback);
+  if (Number.isNaN(v)) throw new Error(`Config ${key} must be a number, got: "${process.env[key]}"`);
+  return v;
+};
 
 export const config = {
   host: env("ZS_HOST", "127.0.0.1"),
@@ -33,4 +37,7 @@ export const config = {
 
   tracesDefaultLimit: 20,
   tracesMaxLimit: 100,
+
+  production: process.env.NODE_ENV === "production",
+  logLevel: env("LOG_LEVEL", "info"),
 } as const;

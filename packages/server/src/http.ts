@@ -82,7 +82,21 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
 
   const app = createMcpExpressApp({ host: "0.0.0.0" });
   app.set("trust proxy", 1);
-  const transports = new Map<string, StreamableHTTPServerTransport>();
+  const sessions = new Map<string, { transport: StreamableHTTPServerTransport; server: McpServer; lastActivity: number }>();
+
+  const SESSION_TTL_MS = 30 * 60 * 1000;
+  const sweepInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [sid, s] of sessions) {
+      if (now - s.lastActivity > SESSION_TTL_MS) {
+        s.server.close();
+        s.transport.close();
+        sessions.delete(sid);
+        logger.info({ sessionId: sid }, "session expired (idle)");
+      }
+    }
+  }, 5 * 60 * 1000);
+  sweepInterval.unref();
 
   if (config.oauth) {
     const { mcpAuthRouter } = await import("@modelcontextprotocol/sdk/server/auth/router.js");
@@ -98,7 +112,9 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
 
     const { urlencoded } = await import("express");
     const { renderLoginError, renderLoginSuccess } = await import("./oauth");
-    app.post("/oauth/callback", urlencoded({ extended: false }), (req: Request, res: Response) => {
+    const { rateLimit } = await import("./api-routes");
+    const callbackLimiter = rateLimit(60_000, 10);
+    app.post("/oauth/callback", urlencoded({ extended: false }), callbackLimiter, (req: Request, res: Response) => {
       const { email, password, code } = req.body as { email: string; password: string; code: string };
       if (!code) { res.status(400).send(renderLoginError("", "Invalid request")); return; }
       if (!provider.verifyCredentials(email, password)) {
@@ -124,23 +140,30 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
   const mcpHandler = async (req: Request, res: Response) => {
     const sessionId = req.headers["mcp-session-id"] as string | undefined;
     try {
-      if (sessionId && transports.has(sessionId)) {
-        await transports.get(sessionId)!.handleRequest(req, res, req.body);
+      if (sessionId && sessions.has(sessionId)) {
+        const s = sessions.get(sessionId)!;
+        s.lastActivity = Date.now();
+        await s.transport.handleRequest(req, res, req.body);
         return;
       }
       if (!sessionId && isInitializeRequest(req.body)) {
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
           onsessioninitialized: async (sid) => {
-            transports.set(sid, transport);
-            const mcpServer = createMcpServerInstance();
-            // SDK type mismatch: StreamableHTTPServerTransport.onclose is optional, Transport.onclose is not
-            await mcpServer.connect(transport as Parameters<typeof mcpServer.connect>[0]);
-            logger.info({ sessionId: sid }, "session initialized");
+            try {
+              const mcpServer = createMcpServerInstance();
+              await mcpServer.connect(transport as Parameters<typeof mcpServer.connect>[0]);
+              sessions.set(sid, { transport, server: mcpServer, lastActivity: Date.now() });
+              logger.info({ sessionId: sid }, "session initialized");
+            } catch (err) {
+              logger.error({ err, sessionId: sid }, "session init failed");
+              transport.close();
+            }
           },
           onsessionclosed: (sid) => {
+            const s = sessions.get(sid);
+            if (s) { s.server.close(); sessions.delete(sid); }
             logger.info({ sessionId: sid }, "session closed");
-            transports.delete(sid);
           },
         });
         await transport.handleRequest(req, res, req.body);

@@ -5,7 +5,7 @@ import type { Logger } from "./logger";
 import { AuthService, type Role, type UserRecord } from "./auth";
 import { config } from "./config";
 
-function rateLimit(windowMs: number, max: number) {
+export function rateLimit(windowMs: number, max: number) {
   const hits = new Map<string, { count: number; resetAt: number }>();
   const cleanup = setInterval(() => {
     const now = Date.now();
@@ -33,7 +33,7 @@ interface AuthedRequest extends Request {
   user: UserRecord;
 }
 
-const SECURE_SUFFIX = process.env.NODE_ENV === "production" ? "; Secure" : "";
+const SECURE_SUFFIX = config.production ? "; Secure" : "";
 
 function setTokenCookies(res: Response, token: string, refreshToken: string, tokenTtl: number, refreshTtl: number): void {
   res.setHeader("Set-Cookie", [

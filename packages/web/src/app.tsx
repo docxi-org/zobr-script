@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useRoute, match, navigate } from "./router";
 import { useAuth } from "./auth";
 import { ErrorBoundary } from "./ui/error-boundary";
@@ -10,8 +10,8 @@ import { Dashboard } from "./pages/dashboard";
 import { Traces } from "./pages/traces";
 import { TraceDetail } from "./pages/trace-detail";
 import { Scripts } from "./pages/scripts";
-import { ScriptDetailPage } from "./pages/script-detail";
-import { NewScript } from "./pages/new-script";
+const ScriptDetailPage = lazy(() => import("./pages/script-detail").then((m) => ({ default: m.ScriptDetailPage })));
+const NewScript = lazy(() => import("./pages/new-script").then((m) => ({ default: m.NewScript })));
 import { Store } from "./pages/store";
 import { AgentsList, AgentDetailPage } from "./pages/agents";
 import { Settings, Users } from "./pages/settings";
@@ -19,7 +19,6 @@ import { Help, CommandPalette } from "./pages/help";
 import { Icon } from "./ui/icon";
 import { TweaksPanel, useTweaks } from "./ui/tweaks-panel";
 import { useT } from "./i18n/context";
-import { preloadMonaco } from "./ui/monaco-editor";
 
 function isTallPage(p: string) {
   return p.startsWith("/scripts/");
@@ -102,7 +101,7 @@ export function App() {
   useEffect(() => {
     if (authed) {
       fetchMe();
-      preloadMonaco();
+      import("./ui/monaco-editor").then((m) => m.preloadMonaco());
     }
   }, [authed, fetchMe]);
 
@@ -150,7 +149,9 @@ export function App() {
           }}>
             <div style={{ flex: isTallPage(route.path) ? 1 : "none", minHeight: 0, display: isTallPage(route.path) ? "flex" : "block", flexDirection: "column" }}>
               <ErrorBoundary resetKey={route.path}>
-                <Routed path={route.path} role={role} theme={theme} />
+                <Suspense fallback={<div style={{ padding: "56px 24px", textAlign: "center", color: "var(--text-2)" }}>Loading...</div>}>
+                  <Routed path={route.path} role={role} theme={theme} />
+                </Suspense>
               </ErrorBoundary>
             </div>
           </div>

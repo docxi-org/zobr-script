@@ -8,7 +8,7 @@ import { Button } from "../ui/button";
 import { Select } from "../ui/select";
 import { Input } from "../ui/input";
 import { fmtDuration, fmtDate } from "../ui/helpers";
-import { navigate } from "../router";
+import { navigate, useQueryParam } from "../router";
 import { useApi } from "../api/hooks";
 import { useT } from "../i18n/context";
 import type { TraceRow, ScriptEntry } from "../api/types";
@@ -16,8 +16,8 @@ import type { TraceRow, ScriptEntry } from "../api/types";
 // columns moved inside component for i18n access
 
 export function Traces() {
-  const [scriptF, setScriptF] = useState("");
-  const [statusF, setStatusF] = useState("");
+  const [scriptF, setScriptF] = useQueryParam("script", "");
+  const [statusF, setStatusF] = useQueryParam("status", "");
   const [q, setQ] = useState("");
   const [offset, setOffset] = useState(0);
   const limit = 20;

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useQueryParam } from "../router";
 import { Icon } from "../ui/icon";
 import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
@@ -157,7 +158,7 @@ function TreeView({ scripts, t }: { scripts: ScriptEntry[]; t: (k: string) => st
 // ── Main Scripts page ──
 
 export function Scripts({ role }: { role: string }) {
-  const [view, setView] = useState("tree");
+  const [view, setView] = useQueryParam("view", "tree");
   const [q, setQ] = useState("");
   const [offset, setOffset] = useState(0);
   const { data } = useApi<{ scripts: ScriptEntry[] }>("/scripts");

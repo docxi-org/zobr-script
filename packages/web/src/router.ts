@@ -29,6 +29,24 @@ export function useRoute(): Route {
   return route;
 }
 
+export function useQueryParam(key: string, fallback = ""): [string, (v: string) => void] {
+  const [val, setVal] = useState(() => parseHash().query.get(key) ?? fallback);
+  useEffect(() => {
+    const handler = () => setVal(parseHash().query.get(key) ?? fallback);
+    window.addEventListener("hashchange", handler);
+    return () => window.removeEventListener("hashchange", handler);
+  }, [key, fallback]);
+  const setValue = (v: string) => {
+    const cur = parseHash();
+    const q = new URLSearchParams(cur.query);
+    if (v && v !== fallback) q.set(key, v);
+    else q.delete(key);
+    const qs = q.toString();
+    window.location.hash = cur.path + (qs ? "?" + qs : "");
+  };
+  return [val, setValue];
+}
+
 export function match(
   pattern: string,
   path: string,

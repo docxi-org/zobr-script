@@ -8,7 +8,7 @@ import { DataTable, type Column } from "../ui/data-table";
 import { DiffEditor } from "@monaco-editor/react";
 import { ZsMonacoEditor, type EditorMarker } from "../ui/monaco-editor";
 import { fmtDate } from "../ui/helpers";
-import { navigate } from "../router";
+import { navigate, useQueryParam } from "../router";
 import { useApi } from "../api/hooks";
 import { api } from "../api/client";
 import { useT } from "../i18n/context";
@@ -118,7 +118,7 @@ function ValidationBar({ v }: { v: { ok: boolean; errors: { code: string; messag
 export function ScriptDetailPage({ scriptRef, role, theme }: { scriptRef: string; role: string; theme: "dark" | "light" }) {
   const { data: script, loading } = useApi<ScriptSource>(`/scripts/${scriptRef}`, [scriptRef]);
   const { data: runsData } = useApi<{ traces: TraceRow[] }>(`/traces?script_ref=${scriptRef}&limit=40`, [scriptRef]);
-  const [tab, setTab] = useState("cognitive");
+  const [tab, setTab] = useQueryParam("tab", "cognitive");
   const [cog, setCog] = useState("");
   const [srv, setSrv] = useState("");
   const [inited, setInited] = useState(false);

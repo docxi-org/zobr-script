@@ -121,7 +121,6 @@ export class ZsOAuthProvider implements OAuthServerProvider {
     );
 
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    res.setHeader("Content-Security-Policy", "default-src 'self'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'");
     res.send(`<!DOCTYPE html>
 <html><head><title>ZS — Sign in</title>
 <style>body{font-family:system-ui;max-width:400px;margin:80px auto;padding:0 20px}

@@ -105,20 +105,47 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
     const { getOAuthProtectedResourceMetadataUrl } = await import("@modelcontextprotocol/sdk/server/auth/router.js");
     const { provider, issuerUrl, mcpUrl } = config.oauth;
 
-    const authR = mcpAuthRouter({
-      provider,
-      issuerUrl: new URL(issuerUrl),
-      resourceServerUrl: new URL(mcpUrl),
+    const issuer = new URL(issuerUrl);
+    const resourceServer = new URL(mcpUrl);
+    const oauthLog = logger.child({ module: "oauth" });
+
+    // Log every request to OAuth-related paths
+    app.use((req, _res, next) => {
+      const p = req.path;
+      if (p.includes(".well-known") || p.startsWith("/authorize") || p.startsWith("/token") || p.startsWith("/register") || p.startsWith("/revoke") || p.startsWith("/oauth")) {
+        oauthLog.info({ method: req.method, path: p, query: req.query, headers: { origin: req.headers.origin, host: req.headers.host, "content-type": req.headers["content-type"] } }, "OAuth request");
+      }
+      next();
     });
-    app.use(authR);
-    // SDK only mounts /.well-known/oauth-authorization-server (no path suffix),
-    // but clients may request it with the resource path appended per RFC 8414.
-    const rsPath = new URL(mcpUrl).pathname;
+
+    const authRouter = mcpAuthRouter({
+      provider,
+      issuerUrl: issuer,
+      resourceServerUrl: resourceServer,
+    });
+    app.use(authRouter);
+
+    // SDK mounts /.well-known/oauth-authorization-server without path suffix,
+    // but claude.ai requests /.well-known/oauth-authorization-server/mcp per RFC 8414.
+    const rsPath = resourceServer.pathname;
     if (rsPath !== "/") {
-      app.get(`/.well-known/oauth-authorization-server${rsPath}`, (req, res, next) => {
-        req.url = "/.well-known/oauth-authorization-server";
-        authR(req, res, next);
+      const pathSuffixedUrl = `/.well-known/oauth-authorization-server${rsPath}`;
+      app.get(pathSuffixedUrl, (_req, res) => {
+        oauthLog.info({ path: pathSuffixedUrl }, "serving path-suffixed OAuth metadata (RFC 8414)");
+        res.json({
+          issuer: issuer.href,
+          authorization_endpoint: `${issuer.href}authorize`,
+          token_endpoint: `${issuer.href}token`,
+          registration_endpoint: `${issuer.href}register`,
+          revocation_endpoint: `${issuer.href}revoke`,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+          token_endpoint_auth_methods_supported: ["client_secret_post", "none"],
+          grant_types_supported: ["authorization_code", "refresh_token"],
+          revocation_endpoint_auth_methods_supported: ["client_secret_post"],
+        });
       });
+      oauthLog.info({ pathSuffixedUrl }, "registered RFC 8414 path-suffixed metadata endpoint");
     }
 
     const { urlencoded } = await import("express");
@@ -127,25 +154,35 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
     const callbackLimiter = rateLimit(60_000, 10);
     app.post("/oauth/callback", urlencoded({ extended: false }), callbackLimiter, (req: Request, res: Response) => {
       const { email, password, code } = req.body as { email: string; password: string; code: string };
-      if (!code) { res.status(400).send(renderLoginError("", "Invalid request")); return; }
+      oauthLog.info({ email, hasCode: !!code }, "OAuth callback attempt");
+      if (!code) { oauthLog.warn("OAuth callback: missing code"); res.status(400).send(renderLoginError("", "Invalid request")); return; }
       if (!provider.verifyCredentials(email, password)) {
+        oauthLog.warn({ email }, "OAuth callback: invalid credentials");
         res.status(401).send(renderLoginError(code, "Invalid email or password"));
         return;
       }
       const pending = provider.completeAuthorization(code);
-      if (!pending) { res.status(400).send(renderLoginError("", "Authorization code expired. Please try again.")); return; }
+      if (!pending) { oauthLog.warn({ code }, "OAuth callback: code expired or not found"); res.status(400).send(renderLoginError("", "Authorization code expired. Please try again.")); return; }
       const redirectUrl = new URL(pending.redirectUri);
       redirectUrl.searchParams.set("code", code);
       if (pending.state) redirectUrl.searchParams.set("state", pending.state);
+      oauthLog.info({ email, redirectUri: pending.redirectUri }, "OAuth callback: success, redirecting");
       res.send(renderLoginSuccess(redirectUrl.toString()));
     });
 
     const resourceMetadataUrl = getOAuthProtectedResourceMetadataUrl(new URL(mcpUrl));
     const bearerMiddleware = requireBearerAuth({ verifier: provider, resourceMetadataUrl });
-    app.post(mcpPath, bearerMiddleware);
+    app.post(mcpPath, (req, res, next) => {
+      const hasAuth = !!req.headers.authorization;
+      oauthLog.info({ method: "POST", hasAuth, sessionId: req.headers["mcp-session-id"] }, "MCP request (pre-auth)");
+      bearerMiddleware(req, res, (err?: unknown) => {
+        if (err) oauthLog.error({ err }, "Bearer auth failed");
+        else next();
+      });
+    });
     app.get(mcpPath, bearerMiddleware);
     app.delete(mcpPath, bearerMiddleware);
-    logger.info({ mcpUrl }, "OAuth enabled for MCP");
+    oauthLog.info({ mcpUrl, issuerUrl, resourceMetadataUrl }, "OAuth enabled for MCP");
   }
 
   const mcpHandler = async (req: Request, res: Response) => {

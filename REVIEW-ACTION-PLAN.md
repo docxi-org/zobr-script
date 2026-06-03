@@ -1,17 +1,7 @@
 # ZS v0.2 — Review Action Plan (remaining)
 
-Ревью 2026-06-03. Закрыто 35/40. Осталось 5 (1 open + 4 deferred).
-
----
-
-## P1 — HIGH
-
-- [ ] **P1-4. Deployment: Бэкапы SQLite**
-  - Источник: G-28
-  - Проблема: Нет бэкапов. Потеря VPS = потеря всех данных (traces, agents, users, OAuth)
-  - Решение: cron-бэкап на VPS (ежедневно) → sync в S3 или remote storage
-  - Файлы: deploy.yml или отдельный cron на VPS
-  - Effort: 4h
+Ревью 2026-06-03. Закрыто 36/40. Осталось 4 (все deferred ⏸️).
+Бэкапы, callTool refactor, config.json per-folder — вынесены в ISSUES.md.
 
 ---
 
@@ -31,10 +21,9 @@
   - Файлы: `pages/trace-detail.tsx`
   - Effort: 4h
 
-
 ---
 
-## P3 — LOW
+## P3 — LOW (deferred ⏸️)
 
 - [ ] ⏸️ **P3-2. Frontend: Web тесты**
   - Источник: H-35

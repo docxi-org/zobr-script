@@ -305,3 +305,59 @@ Trace events — плоский массив, упорядоченный по se
   **Когда делать:** при появлении сложных скриптов с ветвлениями (3+ уровней
   вложенности операций), или при работе с агентами которые поддерживают
   structured reasoning. Для линейных скриптов (hello, insight) — не нужно.
+
+---
+
+## Бэкапы SQLite
+
+Нет бэкапов. Потеря VPS = потеря всех данных: traces, agents, users, OAuth tokens,
+store collections, snapshots.
+
+- [ ] **Ежедневные бэкапы SQLite на VPS**
+
+  **Файлы базы:**
+  - `data/store.sqlite` — основная БД (traces, agents, invocations, store, users)
+  - `data/store-oauth.sqlite` — OAuth клиенты и токены
+
+  **Стратегия:**
+
+  1. **SQLite online backup** — использовать `.backup` команду или `VACUUM INTO`
+     для создания консистентного бэкапа без остановки сервера. WAL mode
+     позволяет читать пока сервер пишет.
+     ```bash
+     sqlite3 /opt/zobr-script/data/store.sqlite ".backup /opt/backups/zs/store-$(date +%F).sqlite"
+     sqlite3 /opt/zobr-script/data/store-oauth.sqlite ".backup /opt/backups/zs/oauth-$(date +%F).sqlite"
+     ```
+
+  2. **Cron job** на VPS — ежедневно в 03:00:
+     ```bash
+     # /etc/cron.d/zs-backup
+     0 3 * * * root /opt/zobr-script/scripts/backup.sh
+     ```
+
+  3. **Ротация** — хранить последние 7 дней локально:
+     ```bash
+     find /opt/backups/zs/ -name "*.sqlite" -mtime +7 -delete
+     ```
+
+  4. **Remote sync (опционально)** — rsync/rclone в S3 или другое удалённое
+     хранилище для защиты от потери VPS целиком.
+
+  **Скрипт `scripts/backup.sh`:**
+  ```bash
+  #!/bin/bash
+  set -e
+  BACKUP_DIR="/opt/backups/zs"
+  mkdir -p "$BACKUP_DIR"
+  DATE=$(date +%F)
+  sqlite3 /opt/zobr-script/data/store.sqlite ".backup $BACKUP_DIR/store-$DATE.sqlite"
+  sqlite3 /opt/zobr-script/data/store-oauth.sqlite ".backup $BACKUP_DIR/oauth-$DATE.sqlite"
+  find "$BACKUP_DIR" -name "*.sqlite" -mtime +7 -delete
+  echo "Backup completed: $DATE"
+  ```
+
+  **Мониторинг:** добавить healthcheck endpoint `/api/backup-status` или
+  записывать последний бэкап в notes store и проверять через admin UI.
+
+  **Когда делать:** перед первым реальным использованием системы с ценными
+  данными. Для development/demo — не критично.

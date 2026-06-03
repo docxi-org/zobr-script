@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import Database from "better-sqlite3";
 import { config } from "./config";
 import type { Response } from "express";
@@ -12,6 +12,19 @@ type DB = ReturnType<typeof Database>;
 
 function generateToken(): string {
   return randomBytes(32).toString("hex");
+}
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password: string, stored: string): boolean {
+  const [salt, hash] = stored.split(":");
+  if (!salt || !hash) return false;
+  const candidate = scryptSync(password, salt, 64);
+  return timingSafeEqual(candidate, Buffer.from(hash, "hex"));
 }
 
 function initSchema(db: DB): void {
@@ -107,7 +120,7 @@ export class ZsOAuthProvider implements OAuthServerProvider {
   #seedAdmin(email: string, password: string): void {
     const existing = this.#db.prepare("SELECT email FROM oauth_users WHERE email = ?").get(email);
     if (!existing) {
-      this.#db.prepare("INSERT INTO oauth_users (email, password) VALUES (?, ?)").run(email, password);
+      this.#db.prepare("INSERT INTO oauth_users (email, password) VALUES (?, ?)").run(email, hashPassword(password));
     }
   }
 
@@ -126,14 +139,22 @@ export class ZsOAuthProvider implements OAuthServerProvider {
   }
 
   async challengeForAuthorizationCode(_client: OAuthClientInformationFull, authorizationCode: string): Promise<string> {
-    const row = this.#db.prepare("SELECT code_challenge FROM oauth_codes WHERE code = ?").get(authorizationCode) as { code_challenge: string } | undefined;
+    const row = this.#db.prepare("SELECT code_challenge, created_at FROM oauth_codes WHERE code = ?").get(authorizationCode) as { code_challenge: string; created_at: number } | undefined;
     if (!row) throw new Error("Authorization code not found");
+    if (Date.now() - row.created_at > 600_000) {
+      this.#db.prepare("DELETE FROM oauth_codes WHERE code = ?").run(authorizationCode);
+      throw new Error("Authorization code expired");
+    }
     return row.code_challenge;
   }
 
   async exchangeAuthorizationCode(client: OAuthClientInformationFull, authorizationCode: string): Promise<OAuthTokens> {
-    const row = this.#db.prepare("SELECT * FROM oauth_codes WHERE code = ?").get(authorizationCode) as { code: string; client_id: string; redirect_uri: string; state: string | null } | undefined;
+    const row = this.#db.prepare("SELECT * FROM oauth_codes WHERE code = ?").get(authorizationCode) as { code: string; client_id: string; redirect_uri: string; state: string | null; created_at: number } | undefined;
     if (!row) throw new Error("Invalid authorization code");
+    if (Date.now() - row.created_at > 600_000) {
+      this.#db.prepare("DELETE FROM oauth_codes WHERE code = ?").run(authorizationCode);
+      throw new Error("Authorization code expired");
+    }
     if (row.client_id !== client.client_id) throw new Error("Client mismatch");
     this.#db.prepare("DELETE FROM oauth_codes WHERE code = ?").run(authorizationCode);
 
@@ -178,12 +199,14 @@ export class ZsOAuthProvider implements OAuthServerProvider {
 
   verifyCredentials(email: string, password: string): boolean {
     const row = this.#db.prepare("SELECT password FROM oauth_users WHERE email = ?").get(email) as { password: string } | undefined;
-    return row !== undefined && row.password === password;
+    if (!row) return false;
+    return verifyPassword(password, row.password);
   }
 
   completeAuthorization(code: string): { redirectUri: string; state: string | null } | null {
     const row = this.#db.prepare("SELECT redirect_uri, state FROM oauth_codes WHERE code = ?").get(code) as { redirect_uri: string; state: string | null } | undefined;
     if (!row) return null;
+    this.#db.prepare("DELETE FROM oauth_codes WHERE code = ?").run(code);
     return { redirectUri: row.redirect_uri, state: row.state };
   }
 }
@@ -232,9 +255,11 @@ document.querySelector('.pw-toggle').addEventListener('click',function(){
 });
 <\/script>`;
 
+const escHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 function renderLoginPage(opts: { code: string; error?: string }): string {
   const errorHtml = opts.error
-    ? `<div class="error">${ERROR_ICON} ${opts.error}</div>`
+    ? `<div class="error">${ERROR_ICON} ${escHtml(opts.error)}</div>`
     : "";
   return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">

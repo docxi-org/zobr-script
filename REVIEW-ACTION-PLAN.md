@@ -7,7 +7,7 @@
 
 ## P0 — CRITICAL
 
-- [ ] **P0-1. Security: Plaintext passwords in OAuth**
+- [x] **P0-1. Security: Plaintext passwords in OAuth** ✅ 2026-06-03
   - Источник: OAUTH-001
   - Проблема: `oauth_users` хранит пароли без хеширования, `verifyCredentials()` сравнивает `===`
   - Решение: scrypt hash (из `node:crypto`, 0 deps) на insert, verify через `scryptSync` + `timingSafeEqual`
@@ -18,14 +18,14 @@
 
 ## P1 — HIGH
 
-- [ ] **P1-1. OAuth: Auth code not consumed in completeAuthorization()**
+- [x] **P1-1. OAuth: Auth code not consumed in completeAuthorization()** ✅ 2026-06-03
   - Источник: OAUTH-002
   - Проблема: код не удаляется при callback — replay возможен
   - Решение: DELETE code в `completeAuthorization()` после чтения
   - Файлы: `oauth.ts`
   - Effort: 15 min
 
-- [ ] **P1-2. OAuth: Auth codes without TTL**
+- [x] **P1-2. OAuth: Auth codes without TTL** ✅ 2026-06-03
   - Источник: OAUTH-003
   - Проблема: `created_at` не проверяется, коды живут вечно
   - Решение: TTL 10 min, проверка в `challengeForAuthorizationCode()` + `completeAuthorization()`
@@ -71,7 +71,7 @@
   - Файлы: `http.ts`
   - Effort: 15 min
 
-- [ ] **P2-4. OAuth: XSS in renderLoginError**
+- [x] **P2-4. OAuth: XSS in renderLoginError** ✅ 2026-06-03
   - Источник: OAUTH-005
   - Проблема: error message не экранируется
   - Решение: `esc()` на `opts.error`

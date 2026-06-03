@@ -15,11 +15,13 @@ related: [how-scripts-work, checkpoints, store]
 
 ```ts
 export default class InsightScript extends ZsScript {
+  // Хук жизненного цикла — вызывается на каждой контрольной точке
   onCheckpoint(label: string, data: unknown): Directive {
     this.db.collection("analyses").insertOne(data);
     return "proceed";
   }
 
+  // Серверная функция — вызывается из когнитивного кода
   async fetchFeed(topic: string) {
     return await this.http.get(`/feeds/${topic}`);
   }
@@ -47,7 +49,9 @@ export default class InsightScript extends ZsScript {
 
 ## Серверные функции
 
-Публичные методы класса (не хуки жизненного цикла) становятся **серверными функциями** — вызываемыми из когнитивного кода. Их результаты несут доверие [authority](trust-classes), поскольку выполняются за пределами модели.
+Публичные методы класса (не хуки жизненного цикла) становятся **серверными функциями** — вызываемыми из когнитивного кода через `invoke`. Их результаты несут доверие [verified](trust-classes), поскольку это детерминированные серверные вычисления.
+
+Серверные функции отображаются на вкладке **Contract** в деталях скрипта и в [трассировке](trace) как события с именем функции в поле `op`.
 
 ## Когда использовать
 

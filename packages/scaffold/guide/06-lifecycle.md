@@ -20,9 +20,11 @@ Every script invocation moves through a state machine:
 | Status | Meaning | Terminal? |
 |--------|---------|-----------|
 | `running` | Active, accepting MCP calls | No |
-| `suspended` | Awaiting human input (`{ ask }` directive) | No |
+| `awaiting_user` | Waiting for human input (`{ ask }` directive) | No |
+| `suspended` | Evicted to cold storage (LRU/TTL) | No |
 | `done` | Completed via `zs_conclude` | Yes |
 | `halted` | Stopped by a `halt` directive | Yes |
+| `halted_budget` | Budget (steps or iterations) exhausted | Yes |
 | `aborted` | Stopped by `zs_abort` | Yes |
 | `errored` | Unrecoverable error | Yes |
 | `expired` | TTL exceeded while in non-terminal state | Yes |
@@ -68,9 +70,9 @@ Each invocation has resource budgets:
 | `steps` | 1000 | Maximum number of MCP tool calls |
 | `iterations` | 100 | Maximum loop iterations (prevent runaway) |
 
-Exceeding a budget transitions the invocation to `errored`. The architect should
-design scripts that complete well within budget, using `checkpoint` to persist
-partial results in case of budget exhaustion.
+Exceeding a budget transitions the invocation to `halted_budget`. The architect
+should design scripts that complete well within budget, using `checkpoint` to
+persist partial results in case of budget exhaustion.
 
 ## Abort
 

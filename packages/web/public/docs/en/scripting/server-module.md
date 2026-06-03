@@ -49,7 +49,7 @@ Hooks are optional. Without a server module, checkpoints default to `proceed` an
 
 ## Server functions
 
-Public methods on the class (not lifecycle hooks) become **server functions** — callable from the cognitive code via `invoke`. Their results carry [authority](trust-classes) trust because they execute outside the model.
+Public methods on the class (not lifecycle hooks) become **server functions** — callable from the cognitive code via `invoke`. Their results carry [verified](trust-classes) trust because they are deterministic server-side computation.
 
 Server functions appear on the **Contract** tab in Script Detail, and in the [trace](trace) as events with the function name as `op`.
 

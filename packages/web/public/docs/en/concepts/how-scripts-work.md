@@ -58,7 +58,7 @@ Each field of the result is explicitly mapped to a variable from a prior step. T
 | `retrieve` | Fetch data from an external source (agent uses own tools) | verified* |
 | `checkpoint` | Server-adjudicated gate → [directive](checkpoints) | verified |
 | `conclude` | Final result, validated against type `T` | verified |
-| `report` | Log an intermediate observation to the [trace](trace) | verified |
+| `report` | Log an intermediate observation to the [trace](trace) | asserted |
 
 \* `retrieve` is `verified` when the agent provides provenance (tool name, source URL), `asserted` otherwise.
 
@@ -77,7 +77,7 @@ export default class extends ZsScript {
 }
 ```
 
-The server module runs on the server (not in the model), so its results carry [authority](trust-classes) or [verified](trust-classes) trust.
+The server module runs on the server (not in the model), so its results carry [verified](trust-classes) trust.
 
 ## Types and shapes
 

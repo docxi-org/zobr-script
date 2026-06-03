@@ -25,14 +25,16 @@ Every step is recorded in the [trace](trace). The agent carries the `invocation_
 | Status | Terminal? | How it happens |
 |---|---|---|
 | `running` | no | Created by `zs_start` — actively executing |
+| `awaiting_user` | no | Waiting for human input (`ask` directive) |
+| `suspended` | no | Evicted to cold storage (LRU/TTL pressure) |
 | `done` | yes | `zs_conclude` succeeded |
 | `halted` | yes | A [checkpoint](checkpoints) returned `halt` |
-| `aborted` | yes | Budget exceeded, TTL elapsed, or `zs_abort` called |
+| `halted_budget` | yes | Budget (steps or iterations) exhausted |
+| `aborted` | yes | `zs_abort` called |
 | `errored` | yes | Unrecoverable failure |
 | `expired` | yes | Awaiting input too long (awaiting TTL) |
-| `suspended` | no | Parked, waiting for external answer (`ask` directive) |
 
-The typical flow is `running → done`. A checkpoint returning `halt` leads to `halted`. Running out of budget leads to `aborted`.
+The typical flow is `running → done`. A checkpoint returning `halt` leads to `halted`. Running out of budget leads to `halted_budget`.
 
 ## Budgets and TTLs
 
@@ -54,7 +56,7 @@ A script can spawn sub-invocations. Children carry a `parent_invocation_id` and 
 A typical invocation produces these events in its [trace](trace):
 
 1. `start` — invocation created (verified)
-2. `report` — intermediate observations from the agent (verified)
+2. `report` — intermediate observations from the agent (asserted)
 3. `checkpoint` — server decision gate (verified), with a [directive](checkpoints)
 4. `conclude` — result validated (verified)
 5. `status_transition` — final status change to `done` (verified)

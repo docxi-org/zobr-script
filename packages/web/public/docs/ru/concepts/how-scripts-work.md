@@ -58,7 +58,7 @@ export function reflect(context: string): Result {
 | `retrieve` | Получить данные из внешнего источника (агент использует свои инструменты) | verified* |
 | `checkpoint` | Серверный шлюз → [директива](checkpoints) | verified |
 | `conclude` | Финальный результат, валидируется по типу `T` | verified |
-| `report` | Записать промежуточное наблюдение в [трассировку](trace) | verified |
+| `report` | Записать промежуточное наблюдение в [трассировку](trace) | asserted |
 
 \* `retrieve` — `verified` когда агент указал provenance (имя инструмента, URL источника), `asserted` без provenance.
 
@@ -77,7 +77,7 @@ export default class extends ZsScript {
 }
 ```
 
-Серверный модуль выполняется на сервере (не в модели), поэтому его результаты имеют доверие [authority](trust-classes) или [verified](trust-classes).
+Серверный модуль выполняется на сервере (не в модели), поэтому его результаты имеют доверие [verified](trust-classes).
 
 ## Типы и формы
 

@@ -22,13 +22,14 @@ if (gate.directive === "halt") {
 }
 ```
 
-## The three directives
+## The four directives
 
 | Directive | Effect |
 |---|---|
 | `proceed` | Continue execution past the checkpoint. |
+| `warn` | Continue, but flag the checkpoint as a warning in the trace. |
 | `halt` | Stop now. The run ends with status `halted`. |
-| `ask` | Suspend and request input. The run parks as `suspended`. |
+| `ask` | Suspend and request input. The run parks as `awaiting_user`. |
 
 ## How the server decides
 
@@ -62,6 +63,7 @@ Shapes are extracted from the cognitive code's TypeScript types at load time. Yo
 
 Checkpoint events appear in the [event timeline](trace) with the directive shown as a colored badge:
 - `proceed` — green
+- `warn` — yellow
 - `halt` — orange
 - `ask` — blue
 

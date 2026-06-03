@@ -19,7 +19,7 @@ The trace is the **primary product** of a ZS invocation — not the final answer
   t: "2026-06-01T19:29:05Z",      // ISO timestamp
   op: "report",                    // operation type
   realizer: "server",             // who produced it
-  trust: "verified",              // trust class
+  trust: "asserted",              // trust class
   inputs: [],                     // input handle IDs
   output: "h_abc123",            // output handle ID
   preview: "{ pattern, description, replaces }",
@@ -34,7 +34,7 @@ Each event has a one-line **preview**. Clicking it in the Trace Detail view expa
 | op | When | Trust | Description |
 |---|---|---|---|
 | `start` | Invocation created | verified | First event in every trace. Records script_ref and parent link. |
-| `report` | Agent sends telemetry | verified | Intermediate observation — survey result, doubt output, etc. |
+| `report` | Agent sends telemetry | asserted | Intermediate observation — survey result, doubt output, etc. |
 | `checkpoint` | Server decision gate | verified | Returns a [directive](checkpoints): proceed, halt, or ask. |
 | `conclude` | Result finalized | verified | Result validated against the declared shape. |
 | `status_transition` | Status changes | verified | Records `from → to` with reason. |

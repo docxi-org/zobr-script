@@ -3,7 +3,7 @@ import { mcp } from "better-auth/plugins";
 import { toNodeHandler } from "better-auth/node";
 import { oAuthDiscoveryMetadata, oAuthProtectedResourceMetadata } from "better-auth/plugins";
 import Database from "better-sqlite3";
-import { Router } from "express";
+import { Router, urlencoded } from "express";
 import cors from "cors";
 import type { Request, Response, NextFunction } from "express";
 import type { Logger } from "./logger";
@@ -194,7 +194,7 @@ button{background:#333;color:#fff;border:none;cursor:pointer;font-weight:600}</s
 </form></body></html>`);
   });
 
-  router.post("/oauth/sign-in", async (req: Request, res: Response) => {
+  router.post("/oauth/sign-in", urlencoded({ extended: false }), async (req: Request, res: Response) => {
     const { email, password, redirect } = req.body as { email: string; password: string; redirect: string };
     try {
       const api = auth.api as Record<string, Function>;

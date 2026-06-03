@@ -140,8 +140,8 @@ export function App() {
           role={role}
           onLogout={handleLogout}
         />
-        <main className="min-h-0 flex-1" style={{ overflow: isTallPage(route.path) ? "hidden" : "auto" }}>
-          <div style={{
+        <main className="zs-main min-h-0 flex-1" style={{ overflow: isTallPage(route.path) ? "hidden" : "auto" }}>
+          <div className="zs-main-inner" style={{
             maxWidth: "var(--content-max)", margin: "0 auto", padding: "var(--pad)",
             height: isTallPage(route.path) ? "100%" : "auto",
             display: isTallPage(route.path) ? "flex" : "block",

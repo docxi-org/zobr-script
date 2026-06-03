@@ -78,12 +78,12 @@ export function Header({
           padding: 4,
         }}
       >
-        <Icon name="hamburger" size={20} />
+        <Icon name="hamburger" size={22} />
       </button>
 
-      {/* breadcrumb */}
+      {/* breadcrumb (desktop) */}
       <div
-        className="flex min-w-0 items-center"
+        className="zs-breadcrumb flex min-w-0 items-center"
         style={{ gap: 7, fontSize: "var(--fs-sm)" }}
       >
         {crumbs.map((c, i) => (
@@ -108,7 +108,12 @@ export function Header({
         ))}
       </div>
 
-      <div className="flex-1" />
+      {/* page title (mobile — shown via CSS at ≤640px) */}
+      <div className="zs-page-title hidden" style={{ fontWeight: 700, fontSize: "var(--fs-sm)", color: "var(--text-0)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {crumbs[crumbs.length - 1]}
+      </div>
+
+      <div className="zs-header-spacer flex-1" />
 
       {/* theme toggle + tweaks */}
       <button

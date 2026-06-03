@@ -120,6 +120,7 @@ export function TraceDetail({ id }: { id: string }) {
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [split, setSplit] = useState(50);
   const [covOpen, setCovOpen] = useState(true);
+  const [mobileTab, setMobileTab] = useState<"code" | "events" | "coverage">("code");
   const dragging = useRef(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -151,8 +152,14 @@ export function TraceDetail({ id }: { id: string }) {
   const aCount = evs.filter((e) => e.trust === "asserted").length;
   const cov = trace.coverage ?? { verified: 0, asserted: 0, authority_gates: 0, grounded_claims: 0, asserted_claims: 0 };
 
+  const MOBILE_TABS: { key: typeof mobileTab; label: string }[] = [
+    { key: "code", label: t("trace.code_snapshot") },
+    { key: "events", label: t("trace.events") },
+    { key: "coverage", label: t("trace.coverage_summary") },
+  ];
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="zs-tdetail flex h-full flex-col" data-mtab={mobileTab}>
       <div className="shrink-0">
         <a href="#/traces" className="mb-3 inline-flex items-center" style={{ gap: 6, fontSize: "var(--fs-sm)", color: "var(--text-2)", fontWeight: 600 }}>
           <Icon name="arrowLeft" size={14} /> {t("trace.back")}
@@ -169,16 +176,37 @@ export function TraceDetail({ id }: { id: string }) {
               <span className="mono">{fmtDate(trace.created_at ?? 0)}</span>
             </div>
           </div>
-          <div style={{ minWidth: 200 }}>
+          <div className="zs-hide-narrow" style={{ minWidth: 200 }}>
             <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Coverage</div>
             <CoverageBar coverage={cov} width={200} />
           </div>
         </div>
       </div>
 
-      <div ref={wrapRef} className="mt-4 flex overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]"
-        style={{ height: "min(60vh, 500px)", background: "var(--bg-1)" }}>
-        <div className="flex min-w-0 flex-col" style={{ width: split + "%" }}>
+      {/* mobile tabs — shown via CSS at ≤860px */}
+      <div className="zs-mobile-tabs mt-3 hidden">
+        <div className="inline-flex rounded-[var(--r-md)] border border-[var(--border)]" style={{ padding: 2, gap: 2, background: "var(--bg-2)" }}>
+          {MOBILE_TABS.map((tab) => {
+            const on = mobileTab === tab.key;
+            return (
+              <button key={tab.key} onClick={() => setMobileTab(tab.key)}
+                className="cursor-pointer rounded-[6px] border-none"
+                style={{
+                  padding: "5px 12px", fontSize: "var(--fs-xs)", fontWeight: 600,
+                  background: on ? "var(--bg-0)" : "transparent", color: on ? "var(--text-0)" : "var(--text-2)",
+                  border: on ? "1px solid var(--border)" : "1px solid transparent",
+                  boxShadow: on ? "var(--shadow)" : "none", transition: "all .14s var(--ease)",
+                }}>
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div ref={wrapRef} className="zs-split mt-4 flex overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]"
+        data-mobile-tab={mobileTab} style={{ height: "min(60vh, 500px)", background: "var(--bg-1)" }}>
+        <div className="zs-split-code flex min-w-0 flex-col" style={{ width: split + "%" }}>
           <PanelHead icon="filecode" title={t("trace.code_snapshot")} sub={`${trace.script_ref}.cog.ts`} />
           <div className="flex-1 overflow-hidden">
             <CodeBlock code={trace.code_snapshot ?? ""} highlightLine={activeLine} />
@@ -189,7 +217,7 @@ export function TraceDetail({ id }: { id: string }) {
           style={{ width: 6, cursor: "col-resize", background: "var(--border)" }}>
           <div style={{ position: "absolute", inset: "0 -3px" }} />
         </div>
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="zs-split-events flex min-w-0 flex-1 flex-col">
           <PanelHead icon="activity" title={t("trace.events")} sub={t("trace.steps", { count: evs.length })}
             action={<button onClick={() => setExpanded(Object.fromEntries(evs.map((e) => [e.seq, !Object.values(expanded).some(Boolean)])))}
               style={{ background: "transparent", border: "none", color: "var(--text-2)", fontSize: "var(--fs-xs)", cursor: "pointer", fontWeight: 600 }}>
@@ -207,7 +235,7 @@ export function TraceDetail({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="mt-4 shrink-0 overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-1)" }}>
+      <div className="zs-cov-panel mt-4 shrink-0 overflow-hidden rounded-[var(--r-lg)] border border-[var(--border)]" style={{ background: "var(--bg-1)" }}>
         <button onClick={() => setCovOpen((o) => !o)} className="flex w-full items-center border-none" style={{ gap: 9, padding: "11px 16px", background: "transparent", cursor: "pointer", color: "var(--text-0)" }}>
           <Icon name="pulse" size={15} style={{ color: "var(--text-2)" }} />
           <span style={{ fontWeight: 700, fontSize: 14 }}>{t("trace.coverage_summary")}</span>

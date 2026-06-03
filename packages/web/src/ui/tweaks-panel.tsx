@@ -107,7 +107,7 @@ export function TweaksPanel({ tweaks, setTweak, open, onClose }: TweaksPanelProp
 
   return (
     <div
-      className="fixed z-50 flex flex-col overflow-hidden rounded-[var(--r-lg)] border border-[var(--border-2)]"
+      className="twk-panel fixed z-50 flex flex-col overflow-hidden rounded-[var(--r-lg)] border border-[var(--border-2)]"
       style={{ right: 16, top: 56, width: 260, maxHeight: "calc(100vh - 80px)", background: "var(--bg-1)", boxShadow: "var(--shadow)" }}
     >
       <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)]" style={{ padding: "10px 14px" }}>

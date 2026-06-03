@@ -43,75 +43,60 @@ Desktop layout (lg) не изменён — все изменения additive.
 
 ### 14.1. CSS tokens — mobile density
 
-- [ ] **14.1.1** `packages/web/src/index.css` — добавить `[data-density="mobile"]` блок из `ui2/app/tokens.css` (строки 50-76): все 10 переменных.
-- [ ] **14.1.2** `packages/web/src/index.css` — добавить `@media (max-width: 640px)` блок: auto-apply mobile density на sm, override comfortable/compact.
+- [x] **14.1.1** `packages/web/src/index.css` — добавить `[data-density="mobile"]` блок из `ui2/app/tokens.css` (строки 50-76): все 10 переменных.
+- [x] **14.1.2** `packages/web/src/index.css` — добавить `@media (max-width: 640px)` блок: auto-apply mobile density на sm, override comfortable/compact.
 
 ### 14.2. Responsive media queries
 
-- [ ] **14.2.1** `packages/web/src/index.css` — добавить все responsive media queries из `ui2/ZS Frontend.html`:
+- [x] **14.2.1** `packages/web/src/index.css` — добавить все responsive media queries из `ui2/ZS Frontend.html`:
   - `@media (max-width: 1024px)`: `.zs-sidebar-desktop { display:none }`, `.zs-hamburger { display:inline-flex }`, split → full-width, help tree → accordion, trace detail height auto, tall pages scroll
   - `@media (max-width: 768px)`: `.zs-role-switch { display:none }`, content-max 100%
   - `@media (max-width: 640px)`: breadcrumb/page-title/header-spacer switching, table→cards, sort/pagination mobile variants, tweaks bottom sheet, coverage tab switching
-- [ ] **14.2.2** Проверить что все CSS-классы (zs-sidebar-desktop, zs-hamburger, zs-breadcrumb, zs-page-title, zs-header-spacer, zs-role-switch, zs-dt-table, zs-dt-cards, zs-dt-sort, zs-page-nums, zs-page-compact, zs-tdetail, zs-cov-panel, zs-split, zs-split-code, zs-split-events, zs-help-tree, zs-help-acc, zs-main, zs-main-inner, twk-panel) существуют в компонентах. Добавить отсутствующие.
+- [x] **14.2.2** Проверить что все CSS-классы (zs-sidebar-desktop, zs-hamburger, zs-breadcrumb, zs-page-title, zs-header-spacer, zs-role-switch, zs-dt-table, zs-dt-cards, zs-dt-sort, zs-page-nums, zs-page-compact, zs-tdetail, zs-cov-panel, zs-split, zs-split-code, zs-split-events, zs-help-tree, zs-help-acc, zs-main, zs-main-inner, twk-panel) существуют в компонентах. Добавить отсутствующие.
 
 ### 14.3. Layout — sidebar + header
 
-- [ ] **14.3.1** `packages/web/src/layout/sidebar.tsx` — добавить `className="zs-sidebar-desktop"` на корневой div sidebar'а.
-- [ ] **14.3.2** `packages/web/src/layout/header.tsx` (или `app.tsx` где header рендерится):
-  - Hamburger button: добавить `className="zs-hamburger"` (уже есть кнопка, проверить hidden по умолчанию).
-  - Breadcrumb: добавить `className="zs-breadcrumb"`.
-  - Page title: добавить новый `div.zs-page-title` (display:none, текст = последний сегмент пути). Показывается на sm через CSS.
-  - Header spacer: заменить `<div className="flex-1" />` на `<div className="zs-header-spacer flex-1" />`.
-  - Tweaks button: добавить кнопку settings (gear icon, 32x32) рядом с user avatar.
-- [ ] **14.3.3** `packages/web/src/app.tsx` — sidebar overlay для mobile:
-  - State `sidebarOpen` (false по умолчанию).
-  - Hamburger onClick → `setSidebarOpen(true)`.
-  - Sidebar: на mobile рендерить как fixed overlay + backdrop.
-  - Клик по backdrop или навигация → `setSidebarOpen(false)`.
-  - CSS: sidebar overlay = position fixed, z-index 50, backdrop = semi-transparent.
-- [ ] **14.3.4** `packages/web/src/app.tsx` — добавить `className="zs-main"` на `<main>` и `className="zs-main-inner"` на внутренний контейнер, чтобы media queries из 14.2.1 работали.
+- [x] **14.3.1** `packages/web/src/layout/sidebar.tsx` — `className="zs-sidebar-desktop"` уже есть на обёртке в app.tsx.
+- [x] **14.3.2** `packages/web/src/layout/header.tsx`:
+  - Hamburger button: `className="zs-hamburger"` уже есть, hidden по умолчанию ✓
+  - Breadcrumb: добавлен `className="zs-breadcrumb"` ✓
+  - Page title: добавлен `div.zs-page-title` (hidden, текст = последний crumb) ✓
+  - Header spacer: `className="zs-header-spacer"` ✓
+  - Tweaks button: уже есть (gear icon, 32x32) ✓
+  - Hamburger icon 20 → 22 ✓
+- [x] **14.3.3** `packages/web/src/app.tsx` — sidebar overlay для mobile уже реализован (drawer state + fixed overlay + backdrop + onNavigate close).
+- [x] **14.3.4** `packages/web/src/app.tsx` — добавлены `className="zs-main"` и `className="zs-main-inner"`.
 
 ### 14.4. DataTable — card layout
 
-- [ ] **14.4.1** `packages/web/src/ui/data-table.tsx` — добавить `cardRole` prop в `Column<T>` interface: `cardRole?: "title" | "badge" | "hide"`.
-- [ ] **14.4.2** `packages/web/src/ui/data-table.tsx` — auto-detect titleCol/badgeCol:
-  ```
-  const titleCol = columns.find(c => c.cardRole === "title") || columns[0];
-  const badgeCol = columns.find(c => c.cardRole === "badge") || columns.find(c => c.key === "status");
-  const metaCols = columns.filter(c => c !== titleCol && c !== badgeCol && c.cardRole !== "hide");
-  ```
-- [ ] **14.4.3** `packages/web/src/ui/data-table.tsx` — desktop table: обернуть существующую `<table>` в `<div className="zs-dt-table">`.
-- [ ] **14.4.4** `packages/web/src/ui/data-table.tsx` — mobile cards: добавить `<div className="zs-dt-cards">` (display:none по умолчанию) с карточками по паттерну из `ui2/app/table.jsx`:
-  - Карточка: border + border-radius + bg-1, padding 14px
-  - Верх: title (flex:1, fontWeight:600) + badge (flexShrink:0)
-  - Низ: grid 2 колонки, каждая meta: label (xs, text-3, uppercase) + value (sm)
-- [ ] **14.4.5** `packages/web/src/ui/data-table.tsx` — mobile sort control: `<div className="zs-dt-sort">` (display:none по умолчанию):
-  - Select dropdown с sortable колонками
-  - Toggle direction button (chevronDown, rotate на asc)
-  - onSort API: если второй аргумент "keep" — только сменить ключ; "flip" — перевернуть направление
-- [ ] **14.4.6** `packages/web/src/ui/data-table.tsx` — pagination: обернуть номера страниц в `<span className="zs-page-nums">`, добавить `<span className="zs-page-compact">` с "N / M" (display:none по умолчанию).
-- [ ] **14.4.7** Все страницы с DataTable (Dashboard, Traces, Scripts table, Agents, Script Detail runs) — добавить `cardRole` к колонкам где нужно. Минимум: `key="status"` → `cardRole: "badge"`. Первая колонка auto-detected как title.
+- [x] **14.4.1** `packages/web/src/ui/data-table.tsx` — `cardRole` prop в Column<T>: `"title" | "badge" | "hide"`.
+- [x] **14.4.2** Auto-detect titleCol/badgeCol/metaCols.
+- [x] **14.4.3** Desktop table: обёрнут в `<div className="zs-dt-table">`.
+- [x] **14.4.4** Mobile cards: `<div className="zs-dt-cards">` (hidden по умолчанию) — карточки с title+badge+meta grid.
+- [x] **14.4.5** Mobile sort control: `<div className="zs-dt-sort">` с Select + direction toggle. handleSort с mode "keep"/"flip".
+- [x] **14.4.6** Pagination: `<span className="zs-page-nums">` (desktop), `<span className="zs-page-compact">` (mobile). page/pageCount/onPage props.
+- [x] **14.4.7** Dashboard: `cardRole: "hide"` на coverage, events. Остальные таблицы — auto-detect (first col = title, status = badge).
 
 ### 14.5. Trace Detail — tabs + coverage
 
-- [ ] **14.5.1** `packages/web/src/pages/trace-detail.tsx` — wrapper: добавить `className="zs-tdetail"` и `data-mtab={mobileTab}` (или аналог через state) на корневой div trace detail.
-- [ ] **14.5.2** `packages/web/src/pages/trace-detail.tsx` — mobile tabs: добавить третий tab "Coverage" к Segmented control (было Code/Events). На desktop Coverage Summary всегда видна под split — на mobile показывается только когда tab = "coverage".
-- [ ] **14.5.3** `packages/web/src/pages/trace-detail.tsx` — coverage panel: добавить `className="zs-cov-panel"` на div Coverage Summary. CSS из 14.2.1 скроет его когда tab != "coverage" на mobile.
-- [ ] **14.5.4** Split panels: добавить `className="zs-split"` на контейнер split, `className="zs-split-code"` и `className="zs-split-events"` на панели. CSS из 14.2.1 переключит на full-width + показ/скрытие по tab.
+- [x] **14.5.1** Wrapper: `className="zs-tdetail"` + `data-mtab={mobileTab}` на корневом div.
+- [x] **14.5.2** Mobile tabs: segmented control Code/Events/Coverage (hidden, shown via CSS at ≤860px).
+- [x] **14.5.3** Coverage panel: `className="zs-cov-panel"`.
+- [x] **14.5.4** Split panels: `zs-split` + `data-mobile-tab`, `zs-split-code`, `zs-split-events`. Coverage bar area: `zs-hide-narrow`.
 
 ### 14.6. Help — accordion на mobile
 
-- [ ] **14.6.1** `packages/web/src/pages/help.tsx` — sidebar категорий: добавить `className="zs-help-tree"`.
-- [ ] **14.6.2** `packages/web/src/pages/help.tsx` — добавить accordion-версию категорий (`className="zs-help-acc"`, display:none по умолчанию). На mobile (через CSS) tree скрыт, accordion показан. Accordion: collapsible секции по категориям, tap раскрывает список статей.
+- [x] **14.6.1** `zs-help-tree` уже был на nav.
+- [x] **14.6.2** `HelpAccordion` компонент: `className="zs-help-acc"` (hidden по умолчанию). Collapsible секции по категориям.
 
 ### 14.7. Tweaks Panel — bottom sheet
 
-- [ ] **14.7.1** `packages/web/src/ui/tweaks-panel.tsx` — добавить `className="twk-panel"` на корневой div панели. CSS из 14.2.1 превратит его в bottom sheet на sm (full-width, border-radius top, max-height 80vh).
+- [x] **14.7.1** `className="twk-panel"` на корневом div. CSS из 14.2.1 превращает в bottom sheet на ≤640px.
 
 ### 14.8. Тестирование и финализация
 
-- [ ] **14.8.1** Визуальная проверка в Chrome DevTools: 375px (iPhone SE), 390px (iPhone 14), 768px (iPad), 1024px (iPad landscape). Все страницы.
-- [ ] **14.8.2** Проверить что desktop layout (>1024px) не изменился — regression check.
-- [ ] **14.8.3** Typecheck clean.
-- [ ] **14.8.4** Тестировать touch: sidebar swipe (если реализован), card tap → navigate, sort dropdown.
-- [ ] **14.8.5** Обновить CLAUDE.md — добавить responsive breakpoints в описание frontend.
+- [x] **14.8.1** Визуальная проверка через Playwright: 375px (iPhone SE), 768px (iPad), 1024px (tablet). Dashboard, Traces, Trace Detail, Help — все breakpoints проверены.
+- [x] **14.8.2** Desktop layout (1440px) не изменился — regression check OK.
+- [x] **14.8.3** Typecheck clean.
+- [x] **14.8.4** Card tap → navigate работает (Traces cards). Sidebar drawer: hamburger → open → nav link → close. Sort dropdown работает. Mobile tabs (code/events/coverage) переключаются.
+- [x] **14.8.5** CLAUDE.md обновлён — responsive breakpoints, density modes, срез 14 завершён.

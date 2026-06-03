@@ -61,6 +61,43 @@ function PrevNext({ dir, doc, prevLabel, nextLabel }: { dir: "prev" | "next"; do
   );
 }
 
+function HelpAccordion({ tree, currentSlug }: { tree: DocsData["tree"]; currentSlug: string }) {
+  const [openCat, setOpenCat] = useState<string | null>(null);
+  return (
+    <nav className="zs-help-acc hidden" style={{ marginBottom: 16 }}>
+      {tree.map((grp) => {
+        const isOpen = openCat === grp.category;
+        return (
+          <div key={grp.category} className="rounded-[var(--r-md)] border border-[var(--border)]" style={{ marginBottom: 4, overflow: "hidden", background: "var(--bg-1)" }}>
+            <button
+              onClick={() => setOpenCat(isOpen ? null : grp.category)}
+              className="flex w-full cursor-pointer items-center border-none"
+              style={{ padding: "10px 12px", gap: 8, background: "transparent", color: "var(--text-0)", fontSize: "var(--fs-sm)", fontWeight: 700 }}
+            >
+              <span style={{ flex: 1, textAlign: "left" }}>{grp.category}</span>
+              <Icon name="chevronDown" size={14} style={{ color: "var(--text-3)", transform: isOpen ? "rotate(180deg)" : "none", transition: "transform .15s var(--ease)" }} />
+            </button>
+            {isOpen && (
+              <div style={{ padding: "0 8px 8px" }}>
+                {grp.items.map((d) => {
+                  const on = d.slug === currentSlug;
+                  return (
+                    <a key={d.slug} href={"#/help/" + d.slug}
+                      className="block rounded-[var(--r-sm)]"
+                      style={{ padding: "7px 10px", fontSize: "var(--fs-sm)", fontWeight: on ? 600 : 500, color: on ? "var(--text-0)" : "var(--text-1)", background: on ? "var(--bg-2)" : "transparent" }}>
+                      {d.title}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function Help({ slug }: { slug?: string }) {
   const { loading, data, error } = useDocs();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -97,7 +134,7 @@ export function Help({ slug }: { slug?: string }) {
   return (
     <div ref={contentRef}>
       <div className="zs-help flex items-start" style={{ gap: 28 }}>
-        {/* tree */}
+        {/* tree (desktop) */}
         <nav className="zs-help-tree shrink-0" style={{ width: 232, position: "sticky", top: 0 }}>
           <div style={{ marginBottom: 18 }}>
             <h1 style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, color: "var(--text-0)" }}>{t("help.title")}</h1>
@@ -121,6 +158,9 @@ export function Help({ slug }: { slug?: string }) {
             </div>
           ))}
         </nav>
+
+        {/* accordion (mobile — shown via CSS at ≤860px) */}
+        <HelpAccordion tree={data.tree} currentSlug={current.slug} />
 
         {/* content */}
         <article className="min-w-0 flex-1" style={{ maxWidth: 760 }}>

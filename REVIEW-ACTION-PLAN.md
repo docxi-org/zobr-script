@@ -17,13 +17,6 @@
 
 ## P2 — MEDIUM (deferred ⏸️)
 
-- [ ] ⏸️ **P2-1. Architecture: callTool refactor**
-  - Источник: A-2, H-32
-  - Проблема: God-method с 24 case ветками, store methods дублируются
-  - Решение: Extract auth/eviction в отдельные функции, store methods в StoreHandler class
-  - Файлы: `app.ts`
-  - Effort: 4h
-
 - [ ] ⏸️ **P2-2. MCP Guide: расширить паттерны**
   - Источник: B-6
   - Проблема: Только 2 примера (hello, insight). Нет: error handling, HITL, act, deep run, long-running

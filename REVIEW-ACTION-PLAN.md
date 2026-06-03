@@ -31,12 +31,6 @@
   - Файлы: `pages/trace-detail.tsx`
   - Effort: 4h
 
-- [ ] ⏸️ **P2-11. Architecture: config.json per-folder** → ISSUES.md
-  - Источник: A-4
-  - Проблема: Заявлена в спеке, не реализована. Reader не читает, runtime не передаёт
-  - Решение пересмотрено: config.json per-folder (пакет скриптов), не per-script. Подробное описание в ISSUES.md
-  - Файлы: `server/src/reader.ts`, `server/src/srv-runtime.ts`
-  - Effort: 4h
 
 ---
 

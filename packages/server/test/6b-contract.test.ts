@@ -110,7 +110,10 @@ describe("6b Express + MCP Streamable HTTP transport", () => {
 
   async function mcpPost(body: unknown, sessionId?: string): Promise<{ status: number; body: McpResponse; headers: Headers }> {
     const headers: Record<string, string> = { "Content-Type": "application/json", "Accept": "application/json, text/event-stream" };
-    if (sessionId) headers["mcp-session-id"] = sessionId;
+    if (sessionId) {
+      headers["mcp-session-id"] = sessionId;
+      headers["mcp-protocol-version"] = MCP_PROTOCOL_VERSION;
+    }
     const res = await fetch(`${baseUrl}/mcp`, { method: "POST", headers, body: JSON.stringify(body) });
     const ct = res.headers.get("content-type") ?? "";
     const text = await res.text();
@@ -159,6 +162,7 @@ describe("6b Express + MCP Streamable HTTP transport", () => {
     const sid = await initSession();
     await mcpPost({ jsonrpc: "2.0", method: "notifications/initialized" }, sid);
     const res = await mcpPost({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }, sid);
+    console.log("DIAG sid:", JSON.stringify(sid), "tools status:", res.status, "body:", JSON.stringify(res.body).substring(0, 300));
     const tools = (res.body.result?.tools ?? []).map((t) => t.name);
     for (const t of MCP_TOOLS) {
       expect(tools).toContain(t.name);

@@ -1,6 +1,6 @@
 // HTTP layer: Express app with MCP Streamable HTTP endpoint.
 // Follows the SDK's simpleStreamableHttp.ts pattern.
-// Returns { app, zsApp, mcpServer } so REST routes can be added later.
+// Returns { app, zsApp } so REST routes can be added later.
 import { randomUUID } from "node:crypto";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -40,7 +40,6 @@ export interface ZsHttpConfig {
 export interface ZsHttpApp {
   readonly app: ReturnType<typeof createMcpExpressApp>;
   readonly zsApp: ZsApp;
-  readonly mcpServer: McpServer;
 }
 
 export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> {
@@ -57,24 +56,26 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
     logger: parentLog ?? defaultLog,
   });
 
-  const mcpServer = new McpServer(
-    { name: "zobr-script", version: "0.2.0" },
-    { capabilities: { logging: {} }, instructions: EXECUTOR_INSTRUCTION },
-  );
-
-  for (const tool of MCP_TOOLS) {
-    const inputSchema = tool.name === "zs_register"
-      ? tool.input
-      : (tool.input as z.ZodObject<z.ZodRawShape>).extend({ agent_id: z.string() });
-    mcpServer.registerTool(
-      tool.name,
-      { description: tool.description, inputSchema },
-      async (args): Promise<CallToolResult> => {
-        logger.debug({ tool: tool.name }, "tool call");
-        const result = await zsApp.callTool(tool.name, args);
-        return { content: [{ type: "text", text: JSON.stringify(result) }] };
-      },
+  function createMcpServerInstance(): McpServer {
+    const srv = new McpServer(
+      { name: "zobr-script", version: "0.2.0" },
+      { capabilities: { logging: {} }, instructions: EXECUTOR_INSTRUCTION },
     );
+    for (const tool of MCP_TOOLS) {
+      const inputSchema = tool.name === "zs_register"
+        ? tool.input
+        : (tool.input as z.ZodObject<z.ZodRawShape>).extend({ agent_id: z.string() });
+      srv.registerTool(
+        tool.name,
+        { description: tool.description, inputSchema },
+        async (args): Promise<CallToolResult> => {
+          logger.debug({ tool: tool.name }, "tool call");
+          const result = await zsApp.callTool(tool.name, args);
+          return { content: [{ type: "text", text: JSON.stringify(result) }] };
+        },
+      );
+    }
+    return srv;
   }
   logger.info({ tools: MCP_TOOLS.map((t) => t.name) }, "registered MCP tools");
 
@@ -95,75 +96,46 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
     logger.info({ mcpUrl }, "OAuth enabled for MCP");
   }
 
-  app.post(mcpPath, async (req: Request, res: Response) => {
+  const mcpHandler = async (req: Request, res: Response) => {
     const sessionId = req.headers["mcp-session-id"] as string | undefined;
     try {
       if (sessionId && transports.has(sessionId)) {
         await transports.get(sessionId)!.handleRequest(req, res, req.body);
         return;
       }
-
       if (!sessionId && isInitializeRequest(req.body)) {
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
-          onsessioninitialized: (sid) => {
+          onsessioninitialized: async (sid) => {
             transports.set(sid, transport);
+            const mcpServer = createMcpServerInstance();
+            await mcpServer.connect(transport as Parameters<typeof mcpServer.connect>[0]);
             logger.info({ sessionId: sid }, "session initialized");
           },
+          onsessionclosed: (sid) => {
+            logger.info({ sessionId: sid }, "session closed");
+            transports.delete(sid);
+          },
         });
-        transport.onclose = () => {
-          if (transport.sessionId) {
-            logger.info({ sessionId: transport.sessionId }, "session closed");
-            transports.delete(transport.sessionId);
-          }
-        };
-        await mcpServer.connect(transport as Parameters<typeof mcpServer.connect>[0]);
         await transport.handleRequest(req, res, req.body);
         return;
       }
-
-      logger.warn({ sessionId, method: req.method }, "bad MCP request");
       res.status(sessionId ? 404 : 400).json({
         jsonrpc: "2.0",
         error: { code: sessionId ? -32001 : -32000, message: sessionId ? "Session not found" : "Bad Request" },
         id: null,
       });
     } catch (error) {
-      logger.error({ err: error }, "MCP POST error");
+      logger.error({ err: error }, "MCP request error");
       if (!res.headersSent) {
         res.status(500).json({ jsonrpc: "2.0", error: { code: -32603, message: "Internal server error" }, id: null });
       }
     }
-  });
+  };
 
-  app.get(mcpPath, async (req: Request, res: Response) => {
-    const sessionId = req.headers["mcp-session-id"] as string | undefined;
-    if (!sessionId || !transports.has(sessionId)) {
-      res.status(sessionId ? 404 : 400).send(sessionId ? "Session not found" : "Missing session ID");
-      return;
-    }
-    try {
-      await transports.get(sessionId)!.handleRequest(req, res);
-    } catch (error) {
-      logger.error({ err: error }, "MCP GET error");
-      if (!res.headersSent) res.status(500).send("Internal server error");
-    }
-  });
-
-  app.delete(mcpPath, async (req: Request, res: Response) => {
-    const sessionId = req.headers["mcp-session-id"] as string | undefined;
-    if (!sessionId || !transports.has(sessionId)) {
-      res.status(sessionId ? 404 : 400).send(sessionId ? "Session not found" : "Missing session ID");
-      return;
-    }
-    try {
-      logger.info({ sessionId }, "session DELETE request");
-      await transports.get(sessionId)!.handleRequest(req, res);
-    } catch (error) {
-      logger.error({ err: error }, "MCP DELETE error");
-      if (!res.headersSent) res.status(500).send("Internal server error");
-    }
-  });
+  app.post(mcpPath, mcpHandler);
+  app.get(mcpPath, mcpHandler);
+  app.delete(mcpPath, mcpHandler);
 
   const db = zsApp.getDb();
   if (db) {
@@ -171,5 +143,5 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
     app.use("/api", createApiRouter(zsApp, authService, logger));
   }
 
-  return { app, zsApp, mcpServer };
+  return { app, zsApp };
 }

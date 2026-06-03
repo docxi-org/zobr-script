@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useRoute, match, navigate } from "./router";
 import { useAuth } from "./auth";
 import { ErrorBoundary } from "./ui/error-boundary";
@@ -108,9 +108,20 @@ export function App() {
   const theme = tweaks["theme"] as "dark" | "light";
   const toggleTheme = () => setTweak("theme", theme === "dark" ? "light" : "dark");
 
-  const handleLogout = () => { logout(); navigate("/"); };
+  const handleLogout = () => { logout(); navigate("/login"); };
 
-  if (!authed) return <Login onLogin={login} loading={loading} error={error} />;
+  const returnTo = useRef("/");
+  useEffect(() => {
+    if (!authed && route.path !== "/login") {
+      returnTo.current = route.path;
+      navigate("/login");
+    }
+    if (authed && route.path === "/login") {
+      navigate(returnTo.current);
+    }
+  }, [authed, route.path]);
+
+  if (!authed) return <Login onLogin={login} loading={loading} error={error} returnTo={returnTo.current} />;
 
   const role = user.role;
 

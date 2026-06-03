@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Icon } from "../ui/icon";
 import { useT } from "../i18n/context";
+import { navigate } from "../router";
 
 interface LoginProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
   loading: boolean;
   error: string;
+  returnTo?: string;
 }
 
-export function Login({ onLogin, loading, error }: LoginProps) {
+export function Login({ onLogin, loading, error, returnTo }: LoginProps) {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -17,7 +19,8 @@ export function Login({ onLogin, loading, error }: LoginProps) {
   const submit = async () => {
     if (!email) return;
     if (!pw) return;
-    await onLogin(email, pw);
+    const ok = await onLogin(email, pw);
+    if (ok) navigate(returnTo || "/");
   };
 
   return (

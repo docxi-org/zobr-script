@@ -129,6 +129,7 @@ export function createZsOAuth(config: ZsOAuthConfig): { auth: ZsAuth; seedAdmin:
   initSchema(db);
 
   const auth = betterAuth({
+    basePath: "/oauth/ba",
     baseURL: config.authUrl,
     database: db as never,
     trustedOrigins: [config.authUrl, config.mcpUrl],
@@ -174,7 +175,7 @@ export function createOAuthRoutes(auth: ZsAuth, mcpUrl: string): Router {
   router.options("/.well-known/oauth-authorization-server", cors());
   router.get("/.well-known/oauth-authorization-server", cors(), toNodeHandler(oAuthDiscoveryMetadata(auth as never)));
 
-  router.all("/api/auth/{*splat}", (req, res) => handler(req, res));
+  router.all("/oauth/ba/{*splat}", (req, res) => handler(req, res));
 
   router.get("/oauth/sign-in", (req: Request, res: Response) => {
     const q = new URLSearchParams(req.query as Record<string, string>);
@@ -204,7 +205,7 @@ button{background:#333;color:#fff;border:none;cursor:pointer;font-weight:600}</s
       for (const cookie of signInResponse.headers.getSetCookie()) {
         res.append("Set-Cookie", cookie);
       }
-      const authorizeUrl = new URL("/api/auth/mcp/authorize", req.protocol + "://" + req.get("host"));
+      const authorizeUrl = new URL("/oauth/ba/mcp/authorize", req.protocol + "://" + req.get("host"));
       authorizeUrl.search = redirect;
       res.redirect(authorizeUrl.toString());
     } catch {

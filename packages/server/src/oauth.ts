@@ -190,34 +190,46 @@ export class ZsOAuthProvider implements OAuthServerProvider {
 const LOGIN_CSS = `
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:grid;place-items:center;
-  background:#262830;color:#f3f3f5;padding:24px}
+  background:#1c1d25;color:#f3f3f5;padding:24px}
 .wrap{width:100%;max-width:380px}
 .logo{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:28px}
 .logo-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:12px;
   background:#5b6abf;color:#f6f7ff;font-weight:800;font-size:20px;letter-spacing:-0.02em}
 .logo-title{font-weight:700;font-size:17px}
-.logo-sub{font-size:12.5px;color:#8c8fa0}
-.card{border:1px solid #3d3f4d;border-radius:12px;background:#2f3140;padding:24px}
+.logo-sub{font-size:12.5px;color:#8c8e9e}
+.card{border:1px solid #3b3c47;border-radius:12px;background:#262730;padding:24px}
 .field{margin-bottom:14px}
 .field:last-of-type{margin-bottom:0}
-label{display:block;margin-bottom:6px;font-size:11.5px;color:#8c8fa0;font-weight:600}
-input{width:100%;height:34px;padding:0 12px;border-radius:8px;border:1px solid #3d3f4d;
-  background:#353847;color:#f3f3f5;font-size:12.5px;font-family:inherit;outline:none;transition:border-color .15s}
+label{display:block;margin-bottom:6px;font-size:11.5px;color:#8c8e9e;font-weight:600}
+input{width:100%;height:34px;padding:0 12px;border-radius:8px;border:1px solid #3b3c47;
+  background:#30313b;color:#f3f3f5;font-size:12.5px;font-family:inherit;outline:none;transition:border-color .15s}
 input:focus{border-color:#5b6abf}
-input[type="password"]{padding-right:36px}
 .pw-wrap{position:relative}
+.pw-wrap input{padding-right:36px}
 .pw-toggle{position:absolute;right:0;top:0;width:34px;height:34px;display:grid;place-items:center;
-  background:none;border:none;color:#6b6e80;cursor:pointer;font-size:14px}
-.error{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#e06060;margin-bottom:10px}
+  background:none;border:none;color:#6b6d7e;cursor:pointer}
+.pw-toggle:hover{color:#8c8e9e}
+.error{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#d05050;margin-bottom:10px}
 .error svg{flex-shrink:0}
 .btn{width:100%;height:40px;border:none;border-radius:8px;background:#5b6abf;color:#f6f7ff;
   font-size:12.5px;font-weight:600;cursor:pointer;margin-top:14px;transition:opacity .15s}
 .btn:hover{opacity:0.9}
 .btn:disabled{opacity:0.5;cursor:not-allowed}
-.footer{margin-top:16px;text-align:center;font-size:11.5px;color:#5c5e6e}
+.footer{margin-top:16px;text-align:center;font-size:11.5px;color:#6b6d7e}
 `;
 
 const ERROR_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+const EYE_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+const PW_TOGGLE_SCRIPT = `<script>
+document.querySelector('.pw-toggle').addEventListener('click',function(){
+  var i=document.getElementById('pw');
+  var show=i.type==='password';
+  i.type=show?'text':'password';
+  this.innerHTML=show?'${EYE_OFF_ICON.replace(/'/g, "\\'")}':'${EYE_ICON.replace(/'/g, "\\'")}';
+});
+<\/script>`;
 
 function renderLoginPage(opts: { code: string; error?: string }): string {
   const errorHtml = opts.error
@@ -246,7 +258,8 @@ function renderLoginPage(opts: { code: string; error?: string }): string {
       <div class="field">
         <label>Password</label>
         <div class="pw-wrap">
-          <input name="password" type="password" placeholder="••••••••" required>
+          <input id="pw" name="password" type="password" placeholder="••••••••" required>
+          <button type="button" class="pw-toggle">${EYE_ICON}</button>
         </div>
       </div>
       <button type="submit" class="btn">Sign in</button>
@@ -254,6 +267,7 @@ function renderLoginPage(opts: { code: string; error?: string }): string {
   </div>
   <p class="footer">Authentication required by MCP server</p>
 </div>
+${PW_TOGGLE_SCRIPT}
 </body></html>`;
 }
 

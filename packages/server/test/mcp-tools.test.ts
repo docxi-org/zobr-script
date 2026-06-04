@@ -46,29 +46,21 @@ describe("MCP tool registry", () => {
     await expect(a.callTool("zs_nope", { agent_id })).rejects.toThrow(/unknown MCP tool/);
   });
 
-  it("zs_guide returns table of contents without topic", async () => {
+  it("zs_guide returns full guide for executor", async () => {
     const a = app();
     const agent_id = await registered(a);
-    const res = (await a.callTool("zs_guide", { agent_id })) as { type: string; content: string };
-    expect(res.type).toBe("toc");
-    expect(res.content).toContain("overview");
-    expect(res.content).toContain("operations");
-    expect(res.content).toContain("trust");
+    const res = (await a.callTool("zs_guide", { agent_id })) as { guide: string };
+    expect(res.guide).toContain("Executor Guide");
+    expect(res.guide).toContain("survey");
+    expect(res.guide).toContain("Trust Model");
   });
 
-  it("zs_guide returns article for a specific topic", async () => {
+  it("zs_register includes guide in response", async () => {
     const a = app();
-    const agent_id = await registered(a);
-    const res = (await a.callTool("zs_guide", { agent_id, topic: "overview" })) as { type: string; content: string };
-    expect(res.type).toBe("article");
-    expect(res.content).toContain("ZS");
-  });
-
-  it("zs_guide returns error for unknown topic", async () => {
-    const a = app();
-    const agent_id = await registered(a);
-    const res = (await a.callTool("zs_guide", { agent_id, topic: "nonexistent" })) as { type: string; content: string };
-    expect(res.content).toContain("Unknown topic");
+    const res = (await a.callTool("zs_register", { name: "tester" })) as { agent_id: string; role: string; guide: string };
+    expect(res.guide).toContain("Executor Guide");
+    expect(typeof res.guide).toBe("string");
+    expect(res.guide.length).toBeGreaterThan(100);
   });
 
   it("zs_read returns script source (requires library)", async () => {

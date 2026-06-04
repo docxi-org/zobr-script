@@ -48,7 +48,7 @@ export const MCP_TOOLS: readonly McpTool[] = [
   tool({ name: "zs_delete", description: "Delete a script from the library. Architect only.", input: zDeleteReq, role: "architect", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_retrieve", description: "Record data you retrieved from an external source using your own tools. Provide the query, the data obtained, and provenance (tool name, source URL, or method). Trust is 'verified' when provenance is provided, 'asserted' otherwise.", input: zRetrieveReq, role: "executor", handle: (s, a) => s.retrieve(a) }),
   tool({ name: "zs_resume", description: "Resume a suspended or awaiting_user instance.", input: zResumeReq, role: "executor", handle: (s, a) => s.resume(a) }),
-  tool({ name: "zs_register", description: "Register as an agent. Requires a name — ask the user what name to use for this session. Returns agent_id, role, and system reference hint.", input: zRegisterReq, role: "executor", handle: () => "dispatched_by_app" }),
+  tool({ name: "zs_register", description: "Register as an agent. Requires a name — ask the user what name to use for this session. Returns agent_id, role, and full system guide.", input: zRegisterReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_insert", description: "Insert a document into a typed collection. Blocked during active invocation.", input: zStoreInsertReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_find", description: "Find documents in a typed collection by equality filter.", input: zStoreFindReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_update", description: "Update documents in a typed collection. Blocked during active invocation.", input: zStoreUpdateReq, role: "executor", handle: () => "dispatched_by_app" }),
@@ -58,7 +58,7 @@ export const MCP_TOOLS: readonly McpTool[] = [
   tool({ name: "zs_store_put", description: "Put a note (key-value). Blocked during active invocation.", input: zStorePutReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_get", description: "Get a note by key.", input: zStoreGetReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_list", description: "List notes, optionally filtered by type.", input: zStoreListReq, role: "executor", handle: () => "dispatched_by_app" }),
-  tool({ name: "zs_guide", description: "System reference. No args → table of contents. With topic → full article.", input: zGuideReq, role: "executor", handle: () => "dispatched_by_app" }),
+  tool({ name: "zs_guide", description: "Re-read the full system guide for your current role. Use after role change or to refresh.", input: zGuideReq, role: "executor", handle: () => "dispatched_by_app" }),
 ] as const;
 
 /** Parse + dispatch one tool call by name (used by the Nest adapter and tests). */

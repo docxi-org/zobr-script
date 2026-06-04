@@ -82,11 +82,8 @@ export const zOperationsReq = z.object({});
 export const zOperationsRes = z.object({ reference: z.string() });
 
 // --- zs_guide ---
-export const zGuideReq = z.object({ topic: z.string().optional() });
-export const zGuideRes = z.object({
-  type: z.enum(["toc", "article"]),
-  content: z.string(),
-});
+export const zGuideReq = z.object({});
+export const zGuideRes = z.object({ guide: z.string() });
 
 // --- zs_list ---
 export const zListReq = z.object({ path: z.string().optional() });

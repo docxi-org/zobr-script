@@ -12,7 +12,7 @@ import { createDb } from "./db";
 import type { Db } from "./db";
 import { checkShape, Instance, isTerminal } from "@zobr/core";
 import type { Shape, InstanceSnapshot } from "@zobr/core";
-import { cognitiveAmbient, serverAmbient, guideTopics } from "@zobr/scaffold";
+import { cognitiveAmbient, serverAmbient, guideExecutor, guideArchitectExtra } from "@zobr/scaffold";
 import { validateScript, extractStoreSchema, extractCogShapes, extractClassInfo } from "@zobr/validator";
 import type { ListRes, ReadRes, ValidateReq, ValidateRes, CreateReq, CreateRes, DeleteRes, RegisterRes, StartReq, ConcludeReq, ResumeReq } from "@zobr/protocol";
 import { log as defaultLog } from "./logger";
@@ -114,7 +114,7 @@ export class ZsApp {
     }
 
     switch (name) {
-      case "zs_guide": return this.guide(parsed["topic"] as string | undefined);
+      case "zs_guide": return this.guide(agentId!);
       case "zs_list": return this.list();
       case "zs_read": return this.read(parsed["script_ref"] as string);
       case "zs_validate": return this.validate(parsed as unknown as ValidateReq);
@@ -413,63 +413,23 @@ export class ZsApp {
     return { ok: true, aborted };
   }
 
-  register(name: string): { agent_id: string; role: string; active_invocations: string[]; hint: string } {
+  #guideForRole(role: string): string {
+    return role === "architect"
+      ? guideExecutor + "\n\n---\n\n" + guideArchitectExtra
+      : guideExecutor;
+  }
+
+  register(name: string): { agent_id: string; role: string; active_invocations: string[]; guide: string } {
     const agent_id = this.agents.register(name);
     const entry = this.agents.get(agent_id)!;
     const active_invocations = [...entry.activeInvocations];
-    const hint = entry.role === "architect"
-      ? "Call zs_guide() for the full system reference. Your role is architect — you can create, update, and delete scripts in addition to running them."
-      : "Call zs_guide() for the full system reference. Your role is executor — you can run scripts but cannot create or modify them. To get architect privileges, ask the user to switch your role on the Agents page in the admin panel.";
-    return { agent_id, role: entry.role, active_invocations, hint };
+    return { agent_id, role: entry.role, active_invocations, guide: this.#guideForRole(entry.role) };
   }
 
-  guide(topic?: string): { type: "toc" | "article"; content: string } {
-    if (topic === undefined) {
-      const lines = guideTopics.map((t) => `- **${t.topic}** [${t.audience}] — ${t.title}`);
-      return { type: "toc", content: "# ZS Guide — Table of Contents\n\n" + lines.join("\n") };
-    }
-    const entry = guideTopics.find((t) => t.topic === topic);
-    if (!entry) {
-      const available = guideTopics.map((t) => t.topic).join(", ");
-      return { type: "article", content: `Unknown topic: "${topic}". Available: ${available}` };
-    }
-    if (topic === "ambients") {
-      let storeSchema = "// No store.d.ts found in library";
-      if (this.#library) {
-        try {
-          storeSchema = readFileSync(join(this.#library.libraryRoot, "store.d.ts"), "utf8");
-        } catch {}
-      }
-      const content = [
-        "# Ambient Declarations",
-        "",
-        "Full TypeScript signatures available to scripts. These are loaded dynamically from the running server.",
-        "",
-        "## Cognitive Ambient (`zs.cognitive.d.ts`)",
-        "",
-        "Available in `.cog.ts` files.",
-        "",
-        "```ts",
-        cognitiveAmbient,
-        "```",
-        "",
-        "## Server Ambient (`zs.server.d.ts`)",
-        "",
-        "Available in `.srv.ts` files.",
-        "",
-        "```ts",
-        serverAmbient,
-        "```",
-        "",
-        "## Store Schema (`store.d.ts`)",
-        "",
-        "```ts",
-        storeSchema,
-        "```",
-      ].join("\n");
-      return { type: "article", content };
-    }
-    return { type: "article", content: entry.content };
+  guide(agentId: string): { guide: string } {
+    const entry = this.agents.get(agentId);
+    const role = entry?.role ?? "executor";
+    return { guide: this.#guideForRole(role) };
   }
 
   async list(): Promise<ListRes> {

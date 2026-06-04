@@ -18,7 +18,7 @@ export function useApi<T>(path: string, deps: unknown[] = []): UseApiResult<T> {
 
   useEffect(() => {
     let alive = true;
-    setLoading(true);
+    if (data === null) setLoading(true);
     setError(null);
     api.get<T>(path)
       .then((d) => { if (alive) { setData(d); setLoading(false); } })

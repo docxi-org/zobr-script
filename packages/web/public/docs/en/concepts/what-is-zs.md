@@ -38,7 +38,7 @@ ZS distinguishes between **agent roles** (for the LLM executing scripts) and **u
 | Role | What the user can do |
 |---|---|
 | **Admin** | Full access: manage users, change agent roles, server configuration, monitoring. |
-| **Architect** | View and manage scripts, traces, store. Cannot manage users. |
+| **Architect** | View and manage scripts, traces, store. Can change agent roles. Cannot manage users. |
 | **Executor** | View traces, scripts, store. Cannot modify scripts or manage users. |
 
 An agent's role can be changed by a user on the [Agents](agents) page.

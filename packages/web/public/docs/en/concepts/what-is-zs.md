@@ -22,13 +22,26 @@ Without structure, an LLM produces a plausible-sounding answer with no way to te
 
 This separation means you can run the same script on different topics and get comparable traces. You can audit a trace without re-running the script. You can tell at a glance whether a conclusion rests on checked facts or on assertion alone.
 
-## The three roles
+## Roles
 
-| Role | What they do |
+ZS distinguishes between **agent roles** (for the LLM executing scripts) and **user roles** (for humans managing the system).
+
+**Agent roles** — assigned to each registered [agent](agents):
+
+| Role | What the agent can do |
 |---|---|
-| **Architect** | Designs scripts — defines operations, shapes, checkpoints. Has write access to the [library](library). |
-| **Executor** | Runs scripts — fills the structure with content via MCP tools. Read-only library access. |
-| **Admin** | Manages users, server configuration, monitoring. |
+| **Executor** | Runs scripts — fills the structure with content via MCP tools. Read-only library access. Default role on registration. |
+| **Architect** | Everything an executor can do, plus: create, update, and delete scripts in the [library](library). |
+
+**User roles** — assigned to humans who log in to the SPA:
+
+| Role | What the user can do |
+|---|---|
+| **Admin** | Full access: manage users, change agent roles, server configuration, monitoring. |
+| **Architect** | View and manage scripts, traces, store. Cannot manage users. |
+| **Executor** | View traces, scripts, store. Cannot modify scripts or manage users. |
+
+An agent's role can be changed by a user on the [Agents](agents) page.
 
 ## Core concepts at a glance
 

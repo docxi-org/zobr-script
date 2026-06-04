@@ -21,6 +21,17 @@ Registration is **idempotent by name**: the same name always returns the same `a
 
 The `agent_id` is required on every subsequent MCP call (except `zs_register` itself). The server rejects calls with an unknown `agent_id`.
 
+## Roles
+
+Every agent has a role that determines which MCP tools it can use:
+
+| Role | Tools | Assigned how |
+|---|---|---|
+| **Executor** | Run scripts, report, checkpoint, conclude, store reads | Default on registration |
+| **Architect** | Everything executor can do, plus: `zs_create`, `zs_update`, `zs_delete`, `zs_validate` | User switches on the Agents page |
+
+Role gating happens at the tool call level — the agent sees all tools in the MCP schema, but architect-only calls return an error if the agent's role is `executor`.
+
 ## What agents own
 
 - **Active invocations** — currently running scripts started by this agent

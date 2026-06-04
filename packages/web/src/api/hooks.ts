@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "./client";
 
 interface UseApiResult<T> {
@@ -16,12 +16,19 @@ export function useApi<T>(path: string, deps: unknown[] = []): UseApiResult<T> {
 
   const refetch = useCallback(() => setTick((t) => t + 1), []);
 
+  const jsonRef = useRef("");
+
   useEffect(() => {
     let alive = true;
     if (data === null) setLoading(true);
     setError(null);
     api.get<T>(path)
-      .then((d) => { if (alive) { setData(d); setLoading(false); } })
+      .then((d) => {
+        if (!alive) return;
+        const json = JSON.stringify(d);
+        if (json !== jsonRef.current) { jsonRef.current = json; setData(d); }
+        setLoading(false);
+      })
       .catch((e: unknown) => { if (alive) { setError((e as Error).message); setLoading(false); } });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps

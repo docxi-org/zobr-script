@@ -47,12 +47,14 @@ Browser                              REST API (/api/*)
 
 ## Features
 
-### MCP Server (27 tools)
+### MCP Server (29 tools)
 - Full lifecycle: start / sandbox / checkpoint / report / conclude / resume / abort
+- Commit/check discipline: `zs_commit` / `zs_check` — structured pre-commitment recorded in trace
 - Agent registration with per-agent roles (executor / architect)
-- Unified guide: `zs_guide({ topic? })` — 11 topics covering operations, trust, patterns
+- Monolithic guide delivered at `zs_register` — executor or architect version by role. `zs_guide()` for re-reading
 - Standalone store operations (collections + notes)
 - Script discovery / CRUD (gated by agent role, not global flag)
+- `zs_start` supports `skip_code: true` — omits script code if agent already read it via `zs_read`
 - OAuth 2.1 (`ZS_OAUTH=true`) — SDK OAuthServerProvider, Bearer auth on /mcp
 
 ### Script Runtime
@@ -73,7 +75,7 @@ Browser                              REST API (/api/*)
 ### Frontend SPA
 - **13 pages** — Login, Dashboard, Traces, Trace Detail, Scripts (Tree/Cards/Table), Script Detail (Monaco Editor), New Script, Store, Agents, Settings, Users, Help
 - **Monaco Editor** — ZS autocomplete, ambient `.d.ts` from server, inline validation markers
-- **i18n** — English + Russian, ~180 UI strings, 12 Help articles per locale
+- **i18n** — English + Russian, ~180 UI strings, 13 Help articles per locale
 - **Tree view** — collapsible script library with folder counts, breadcrumb navigation
 - **Error boundary** — page errors show fallback, navigation still works
 - **Sortable DataTables** — click column headers to sort
@@ -85,7 +87,7 @@ Browser                              REST API (/api/*)
 # Install
 pnpm install
 
-# Run tests (242 tests)
+# Run tests (241 tests)
 pnpm test
 
 # Type check all packages
@@ -122,8 +124,9 @@ LOG_LEVEL=info
 
 ## MCP Connection
 
-The server exposes MCP Streamable HTTP at `/mcp`:
+The server exposes MCP Streamable HTTP at `/mcp`.
 
+**Local** (config for Claude Code, Cursor, etc.):
 ```json
 {
   "mcpServers": {
@@ -135,7 +138,15 @@ The server exposes MCP Streamable HTTP at `/mcp`:
 }
 ```
 
-Production: `https://zs.docxi.org/mcp`
+**Production:** `https://zs.docxi.org/mcp` (OAuth 2.1)
+
+**claude.ai:** Settings → Connectors → Add custom connector → paste the URL.
+
+**ChatGPT:** Settings → Apps → enable Developer Mode → Create connector → paste the URL, choose OAuth.
+
+**Cursor:** Settings → MCP Servers → Add, or edit `.cursor/mcp.json` with `{"url": "https://zs.docxi.org/mcp"}`.
+
+See Help article "Connecting to ZS" in the SPA for detailed step-by-step instructions.
 
 ## Script Example
 

@@ -8,6 +8,8 @@ import { useApi } from "../api/hooks";
 import { useT } from "../i18n/context";
 import type { TraceDetail as TraceDetailType, TraceEvent } from "../api/types";
 
+const ACTIVE_STATUSES = new Set(["running", "awaiting_user", "suspended"]);
+
 const OP_ICON: Record<string, string> = {
   start: "play", conclude: "check", status_transition: "refresh",
   survey: "search", doubt: "alert", commit: "check",
@@ -115,7 +117,14 @@ function PanelHead({ icon, title, sub, action }: { icon: string; title: string; 
 }
 
 export function TraceDetail({ id }: { id: string }) {
-  const { data: trace, loading } = useApi<TraceDetailType>(`/traces/${id}`, [id]);
+  const { data: trace, loading, refetch } = useApi<TraceDetailType>(`/traces/${id}`, [id]);
+  const isLive = trace != null && ACTIVE_STATUSES.has(trace.status);
+
+  useEffect(() => {
+    if (!isLive) return;
+    const timer = setInterval(refetch, 3000);
+    return () => clearInterval(timer);
+  }, [isLive, refetch]);
   const [activeLine, setActiveLine] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [split, setSplit] = useState(50);
@@ -169,6 +178,7 @@ export function TraceDetail({ id }: { id: string }) {
             <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
               <h1 className="mono" style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em" }}>{trace.invocation_id}</h1>
               <StatusBadge status={trace.status} />
+              {isLive && <span style={{ fontSize: "var(--fs-xs)", color: "var(--st-running)", fontWeight: 600, animation: "zs-pulse 2s infinite" }}>LIVE</span>}
             </div>
             <div className="flex flex-wrap items-center" style={{ gap: 14, marginTop: 8, fontSize: "var(--fs-sm)", color: "var(--text-2)" }}>
               <span>script <a href={"#/scripts/" + trace.script_ref} className="mono" style={{ color: "var(--accent)", fontWeight: 600 }}>{trace.script_ref}</a></span>
@@ -176,9 +186,14 @@ export function TraceDetail({ id }: { id: string }) {
               <span className="mono">{fmtDate(trace.created_at ?? 0)}</span>
             </div>
           </div>
-          <div className="zs-hide-narrow" style={{ minWidth: 200 }}>
-            <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Coverage</div>
-            <CoverageBar coverage={cov} width={200} />
+          <div className="flex items-center" style={{ gap: 12 }}>
+            <div className="zs-hide-narrow" style={{ minWidth: 200 }}>
+              <div style={{ fontSize: "var(--fs-xs)", color: "var(--text-2)", marginBottom: 6, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>Coverage</div>
+              <CoverageBar coverage={cov} width={200} />
+            </div>
+            <button onClick={refetch} title="Refresh" style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "6px 8px", cursor: "pointer", color: "var(--text-2)", display: "flex", alignItems: "center" }}>
+              <Icon name="refresh" size={15} />
+            </button>
           </div>
         </div>
       </div>

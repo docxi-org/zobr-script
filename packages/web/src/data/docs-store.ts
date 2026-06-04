@@ -5,6 +5,7 @@ const FILES = [
   "concepts/what-is-zs",
   "concepts/how-scripts-work",
   "concepts/how-execution-works",
+  "concepts/connecting",
   // Key concepts
   "concepts/trace",
   "concepts/trust-classes",

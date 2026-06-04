@@ -9,7 +9,7 @@ import {
   zRetrieveReq, zResumeReq, zRegisterReq,
   zStoreInsertReq, zStoreFindReq, zStoreUpdateReq, zStoreDeleteReq, zStoreCollectionsReq,
   zStorePutReq, zStoreGetReq, zStoreListReq, zAbortReq,
-  zGuideReq,
+  zGuideReq, zCommitReq, zCheckReq,
 } from "@zobr/protocol";
 import type { ZsService } from "@zobr/protocol";
 import type { z } from "zod";
@@ -32,10 +32,12 @@ function tool<S extends z.ZodTypeAny>(t: McpTool<S>): McpTool {
 }
 
 export const MCP_TOOLS: readonly McpTool[] = [
-  tool({ name: "zs_start", description: "Start a ZS script run; returns invocation_id + cognitive code.", input: zStartReq, role: "executor", handle: (s, a) => s.start(a) }),
-  tool({ name: "zs_sandbox", description: "Run a @sandbox function server-side; result stored by handle.", input: zSandboxReq, role: "executor", handle: (s, a) => s.sandbox(a) }),
-  tool({ name: "zs_report", description: "Fire-and-forget telemetry into the trace.", input: zReportReq, role: "executor", handle: (s, a) => s.report(a) }),
+  tool({ name: "zs_start", description: "Start a ZS script run; returns invocation_id + cognitive code + serverFunctions. Use skip_code: true if you already read the script via zs_read.", input: zStartReq, role: "executor", handle: (s, a) => s.start(a) }),
+  tool({ name: "zs_sandbox", description: "Run a @sandbox function server-side (verified trust). Use for functions listed in serverFunctions from zs_start — they appear in the script as regular calls but execute on the server.", input: zSandboxReq, role: "executor", handle: (s, a) => s.sandbox(a) }),
+  tool({ name: "zs_report", description: "Fire-and-forget telemetry into the trace. Call after substantive operations (survey, synthesize, doubt) to build a complete trace.", input: zReportReq, role: "executor", handle: (s, a) => s.report(a) }),
   tool({ name: "zs_checkpoint", description: "Synchronous gate; returns a controller Directive.", input: zCheckpointReq, role: "executor", handle: (s, a) => s.checkpoint(a) }),
+  tool({ name: "zs_commit", description: "Announce a pre-commitment for a step: what you will do, on what basis, how you will verify, and boundaries. Returns commit_seq for the subsequent zs_check.", input: zCommitReq, role: "executor", handle: (s, a) => s.commit(a) }),
+  tool({ name: "zs_check", description: "Compare results against a previously committed criteria (by commit_seq). Records the comparison in the trace.", input: zCheckReq, role: "executor", handle: (s, a) => s.check(a) }),
   tool({ name: "zs_conclude", description: "Finalize the run; validates result, returns status + coverage.", input: zConcludeReq, role: "executor", handle: (s, a) => s.conclude(a) }),
   tool({ name: "zs_status", description: "Get instance status + cursor.", input: zStatusReq, role: "executor", handle: (s, a) => s.status(a) }),
   tool({ name: "zs_ask_record", description: "Record a human-in-the-loop answer into the trace (authority).", input: zAskRecordReq, role: "executor", handle: (s, a) => s.askRecord(a) }),

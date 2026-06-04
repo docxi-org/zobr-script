@@ -35,3 +35,34 @@
 - [x] Проверить tsc typecheck (protocol, scaffold, server — clean)
 - [x] zs_register → guide приходит (тест)
 - [x] zs_guide() → возвращает полный текст (тест)
+
+---
+
+## Slice 16 — Улучшения agent experience (по результатам аудита workflow)
+
+Источник: ручной прогон workflow агента Вася (executor) — выявлены
+4 проблемы в UX агента при исполнении скриптов.
+
+### 16.1 MCP tools для commit/check ✅
+- [x] `zs_commit` — записывает event commit в трейс, возвращает commit_seq
+- [x] `zs_check` — записывает event check в трейс, принимает commit_seq + results
+- [x] Zod-схемы в protocol: `zCommitReq`, `zCommitRes`, `zCheckReq`, `zCheckRes`
+- [x] Методы commit/check в ZsService
+- [x] Tools в mcp-tools.ts с descriptions
+- [x] Обновить guide: commit/check — теперь через MCP tools
+- [x] Тесты: 241/241 pass, tsc clean
+
+### 16.2 zs_start — флаг skip_code ✅
+- [x] Добавить `skip_code?: boolean` в `zStartReq`
+- [x] Если `skip_code: true` — не возвращать cog/srv код
+- [x] По умолчанию `false` (обратная совместимость)
+- [x] Обновить description zs_start
+
+### 16.3 zs_report — уточнить description ✅
+- [x] Description: "Fire-and-forget telemetry into the trace. Call after
+  substantive operations (survey, synthesize, doubt) to build a complete trace."
+
+### 16.4 @sandbox — явный список и подсказки ✅
+- [x] `zs_start` уже возвращает `serverFunctions` агенту
+- [x] Description `zs_sandbox` обновлён
+- [x] Guide (executor) обновлён: явная инструкция по @sandbox + serverFunctions

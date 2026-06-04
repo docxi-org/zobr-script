@@ -12,6 +12,7 @@ import type {
   CheckpointReq, CheckpointRes, ConcludeReq, ConcludeRes, StatusReq, StatusRes,
   AskRecordReq, AskRecordRes, ActRecordReq, ActRecordRes,
   RetrieveReq, RetrieveRes, ResumeReq, ResumeRes,
+  CommitReq, CommitRes, CheckReq, CheckRes,
 } from "./messages";
 
 function tryParseJson(value: unknown): unknown {
@@ -96,7 +97,7 @@ export class ZsService {
 
     const res: StartRes = {
       invocation_id: inst.invocation_id,
-      code: loaded.code,
+      ...(req.skip_code ? {} : { code: loaded.code }),
       ...(this.#preamble !== undefined ? { preamble: this.#preamble } : {}),
       ...(loaded.serverFunctions !== undefined && loaded.serverFunctions.length > 0 ? { serverFunctions: [...loaded.serverFunctions] } : {}),
     };
@@ -127,6 +128,33 @@ export class ZsService {
     const data = tryParseJson(req.data);
     const r = await ctx.control.report(inst, req.label, data, shape);
     return r.ok ? { ok: true } : { ok: false, error: { kind: r.kind, message: r.message } };
+  }
+
+  commit(req: CommitReq): CommitRes {
+    const inst = this.#registry.require(req.invocation_id);
+    inst.trace.append({
+      op: "commit",
+      realizer: "server",
+      trust: "asserted",
+      inputs: [],
+      preview: req.what,
+      meta: { what: req.what, basis: req.basis, verify: req.verify, boundaries: req.boundaries },
+    });
+    return { ok: true, commit_seq: inst.trace.events.length };
+  }
+
+  check(req: CheckReq): CheckRes {
+    const inst = this.#registry.require(req.invocation_id);
+    const data = tryParseJson(req.results);
+    inst.trace.append({
+      op: "check",
+      realizer: "server",
+      trust: "asserted",
+      inputs: [],
+      preview: `check against commit seq ${req.commit_seq}`,
+      meta: { commit_seq: req.commit_seq, results: data },
+    });
+    return { ok: true };
   }
 
   async checkpoint(req: CheckpointReq): Promise<CheckpointRes> {

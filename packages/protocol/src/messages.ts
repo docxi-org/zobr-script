@@ -19,8 +19,9 @@ export const zStartReq = z.object({
   inputs: z.unknown().optional(),
   parent_invocation_id: z.string().optional(),
   idempotency_key: z.string().optional(),
+  skip_code: z.boolean().optional(),
 });
-export const zStartRes = z.object({ invocation_id: z.string(), code: z.string(), preamble: z.string().optional(), serverFunctions: z.array(z.string()).optional() });
+export const zStartRes = z.object({ invocation_id: z.string(), code: z.string().optional(), preamble: z.string().optional(), serverFunctions: z.array(z.string()).optional() });
 
 // --- zs_sandbox ---
 export const zSandboxReq = z.object({
@@ -116,7 +117,23 @@ export const zUpdateRes = zCreateRes;
 export const zDeleteReq = z.object({ script_ref: z.string() });
 export const zDeleteRes = z.object({ ok: z.boolean() });
 
-// --- zs_authoring_guide ---
+// --- zs_commit ---
+export const zCommitReq = z.object({
+  invocation_id: z.string(),
+  what: z.string(),
+  basis: z.string(),
+  verify: z.string(),
+  boundaries: z.string(),
+});
+export const zCommitRes = z.object({ ok: z.boolean(), commit_seq: z.number() });
+
+// --- zs_check ---
+export const zCheckReq = z.object({
+  invocation_id: z.string(),
+  commit_seq: z.number(),
+  results: z.unknown(),
+});
+export const zCheckRes = z.object({ ok: z.boolean() });
 
 // --- zs_abort ---
 export const zAbortReq = z.object({ invocation_id: z.string().optional() });
@@ -198,3 +215,7 @@ export type RegisterReq = z.infer<typeof zRegisterReq>;
 export type RegisterRes = z.infer<typeof zRegisterRes>;
 export type GuideReq = z.infer<typeof zGuideReq>;
 export type GuideRes = z.infer<typeof zGuideRes>;
+export type CommitReq = z.infer<typeof zCommitReq>;
+export type CommitRes = z.infer<typeof zCommitRes>;
+export type CheckReq = z.infer<typeof zCheckReq>;
+export type CheckRes = z.infer<typeof zCheckRes>;

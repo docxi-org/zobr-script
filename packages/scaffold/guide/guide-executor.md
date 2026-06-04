@@ -92,15 +92,17 @@ evaluate). Use after substantive cognitive ops to make the trace complete.
 evaluates and returns a Directive. Trust: **verified**. Honor the directive:
 `proceed` = continue, `warn` = continue with caution, `halt` = stop.
 
-**`commit(criteria)`** / **`check(criteria, results)`** — structured
-pre-commitment. `commit` before a step: what, basis, verify, boundaries.
-`check` after: compare results. These are cognitive discipline — you perform
-them in your reasoning and can report them.
+**`commit(criteria)`** → `zs_commit` — announce a pre-commitment: what, basis,
+verify, boundaries. Returns `commit_seq` for the subsequent check.
+
+**`check(criteria, results)`** → `zs_check` — compare results against the
+committed criteria (by `commit_seq`). Both are recorded in the trace.
 
 ### @sandbox Methods
 
-Public methods on the server module class. You see them declared in the script —
-call them via `zs_sandbox`. They execute on the server (deterministic, **verified**
+Functions in the script that are not cognitive operations are @sandbox methods
+from the server module. Call them via `zs_sandbox`. The `zs_start` response lists
+them in `serverFunctions`. They execute on the server (deterministic, **verified**
 trust). Same input → same output.
 
 ### Composition

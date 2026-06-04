@@ -532,8 +532,21 @@ export class ZsApp {
   }
 
   apiGetTrace(id: string) {
-    if (!this.#db) return null;
-    return this.#db.infra.getTrace(id);
+    if (this.#db) {
+      const saved = this.#db.infra.getTrace(id);
+      if (saved) return saved;
+    }
+    const inst = this.registry.get(id);
+    if (!inst) return null;
+    return {
+      invocation_id: inst.invocation_id,
+      script_ref: inst.script_ref,
+      code_snapshot: inst.code_snapshot,
+      status: inst.status,
+      events: inst.trace.events as unknown[],
+      coverage: inst.trace.coverage(),
+      created_at: inst.createdAt,
+    };
   }
 
   apiScriptStats() {

@@ -11,7 +11,7 @@ import { fmtDuration, fmtDate } from "../ui/helpers";
 import { navigate, useQueryParam } from "../router";
 import { useApi } from "../api/hooks";
 import { useT } from "../i18n/context";
-import type { TraceRow, ScriptEntry } from "../api/types";
+import type { TraceRow, ScriptEntry, Invocation } from "../api/types";
 
 // columns moved inside component for i18n access
 
@@ -30,10 +30,28 @@ export function Traces() {
     return p.toString();
   }, [scriptF, statusF]);
 
-  const { data: traceData, refetch } = useApi<{ traces: TraceRow[]; total: number }>(`/traces?${queryParams}`, [queryParams]);
+  const { data: traceData, refetch: refetchTraces } = useApi<{ traces: TraceRow[]; total: number }>(`/traces?${queryParams}`, [queryParams]);
+  const { data: invData, refetch: refetchInv } = useApi<{ invocations: Invocation[] }>("/invocations");
   const { data: scriptData } = useApi<{ scripts: ScriptEntry[] }>("/scripts");
+  const refetch = () => { refetchTraces(); refetchInv(); };
 
-  const allTraces = traceData?.traces ?? [];
+  const liveRows: TraceRow[] = useMemo(() =>
+    (invData?.invocations ?? []).map((inv) => ({
+      invocation_id: inv.invocation_id,
+      script_ref: inv.script_ref,
+      status: inv.status,
+      events_count: inv.events_count,
+      coverage: { verified: 0, asserted: 0, authority_gates: 0, grounded_claims: 0, asserted_claims: 0, final_result_trust: null },
+      created_at: inv.started_at,
+    })),
+  [invData]);
+
+  const savedTraces = traceData?.traces ?? [];
+  const savedIds = useMemo(() => new Set(savedTraces.map((t) => t.invocation_id)), [savedTraces]);
+  const allTraces = useMemo(() => [
+    ...liveRows.filter((r) => !savedIds.has(r.invocation_id)),
+    ...savedTraces,
+  ], [liveRows, savedTraces, savedIds]);
   const filtered = q ? allTraces.filter((t) => t.invocation_id.includes(q.toLowerCase())) : allTraces;
   const page = filtered.slice(offset, offset + limit);
   const scriptNames = scriptData?.scripts.map((s) => s.name) ?? [];

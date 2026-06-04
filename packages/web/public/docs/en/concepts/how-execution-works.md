@@ -13,9 +13,9 @@ An **invocation** is one run of a script by an agent. Here's what happens:
 
 ## The execution cycle
 
-1. **Register** — the agent calls `zs_register` with its name. Gets back an `agent_id` used for all subsequent calls.
-2. **Start** — `zs_start` with a `script_ref`. Server loads the script, creates an invocation, returns the cognitive code + an `invocation_id`.
-3. **Execute** — the agent reads the code and fulfills each operation (survey, doubt, etc.) by reasoning, then reports results via `zs_report`, `zs_checkpoint`, or other MCP tools.
+1. **Register** — the agent calls `zs_register` with its name. Gets back an `agent_id`, role, and the full system **guide** — everything needed to understand the protocol.
+2. **Start** — `zs_start` with a `script_ref`. Server loads the script, creates an invocation, returns the cognitive code, `invocation_id`, and `serverFunctions` (list of @sandbox methods).
+3. **Execute** — the agent reads the code and fulfills each operation (survey, doubt, etc.) by reasoning, then reports results via `zs_report`, `zs_checkpoint`, `zs_commit`, `zs_check`, or other MCP tools.
 4. **Conclude** — `zs_conclude` with the final result. Server validates it against the declared type, marks the invocation as `done`.
 
 Every step is recorded in the [trace](trace). The agent carries the `invocation_id` on every call so the server knows which run it belongs to.
@@ -56,10 +56,12 @@ A script can spawn sub-invocations. Children carry a `parent_invocation_id` and 
 A typical invocation produces these events in its [trace](trace):
 
 1. `start` — invocation created (verified)
-2. `report` — intermediate observations from the agent (asserted)
-3. `checkpoint` — server decision gate (verified), with a [directive](checkpoints)
-4. `conclude` — result validated (verified)
-5. `status_transition` — final status change to `done` (verified)
+2. `commit` — pre-commitment: what, basis, verify, boundaries (asserted)
+3. `report` — intermediate observations from the agent (asserted)
+4. `check` — comparison against committed criteria (asserted)
+5. `checkpoint` — server decision gate (verified), with a [directive](checkpoints)
+6. `conclude` — result validated (verified)
+7. `status_transition` — final status change to `done` (verified)
 
 ## See also
 

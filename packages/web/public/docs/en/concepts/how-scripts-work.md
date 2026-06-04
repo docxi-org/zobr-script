@@ -52,7 +52,8 @@ Each field of the result is explicitly mapped to a variable from a prior step. T
 |---|---|---|
 | `survey` | Explore a space, gather candidates | asserted |
 | `doubt` | Challenge, find friction, stress-test | asserted |
-| `commit` | Declare criteria and basis for a decision | verified |
+| `commit` | Declare criteria and basis for a decision | asserted |
+| `check` | Compare results against committed criteria | asserted |
 | `synthesize` | Combine findings into a pattern | asserted |
 | `contrast` | Compare alternatives | asserted |
 | `retrieve` | Fetch data from an external source (agent uses own tools) | verified* |

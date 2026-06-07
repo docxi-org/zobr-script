@@ -14,6 +14,8 @@ interface AppDef {
 
 const APPS: AppDef[] = [
   { name: "ZS Trace Progress", resourceUri: "ui://zs-trace-progress/app.html", htmlFile: "trace-progress/index.html" },
+  { name: "ZS Report", resourceUri: "ui://zs-report/app.html", htmlFile: "trace-report/index.html" },
+  { name: "ZS Conclude", resourceUri: "ui://zs-conclude/app.html", htmlFile: "trace-conclude/index.html" },
 ];
 
 export function registerZsApps(server: McpServer, appsDir?: string): void {
@@ -38,4 +40,6 @@ export const ZS_APP_RESOURCES = APPS.map((a) => ({ name: a.name, uri: a.resource
 
 export const TOOL_UI_META: Record<string, { resourceUri: string }> = {
   zs_start: { resourceUri: "ui://zs-trace-progress/app.html" },
+  zs_report: { resourceUri: "ui://zs-report/app.html" },
+  zs_conclude: { resourceUri: "ui://zs-conclude/app.html" },
 };

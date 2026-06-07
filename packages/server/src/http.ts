@@ -19,6 +19,7 @@ import { EXECUTOR_INSTRUCTION, START_PREAMBLE } from "./instructions";
 import { createApiRouter } from "./api-routes";
 import { AuthService } from "./auth";
 import type { ZsOAuthProvider } from "./oauth";
+import { registerZsApps } from "./mcp-apps";
 
 export interface OAuthConfig {
   readonly provider: ZsOAuthProvider;
@@ -77,6 +78,7 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
         },
       );
     }
+    registerZsApps(srv);
     return srv;
   }
   logger.info({ tools: MCP_TOOLS.map((t) => t.name) }, "registered MCP tools");

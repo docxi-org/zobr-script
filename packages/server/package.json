@@ -8,10 +8,13 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:apps": "vite build --config apps/vite.config.ts"
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
+    "@modelcontextprotocol/ext-apps": "^1.7.4",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@zobr/core": "workspace:*",
     "@zobr/protocol": "workspace:*",
     "@zobr/scaffold": "workspace:*",
@@ -23,15 +26,21 @@
     "jose": "^6.2.3",
     "pino": "^10.3.1",
     "pino-pretty": "^13.1.3",
-    "zod": "^4.4.3",
-    "@modelcontextprotocol/sdk": "1.29.0"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "22",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
     "@types/supertest": "^6.0.3",
-    "supertest": "^7.2.2"
+    "@vitejs/plugin-react": "^6.0.2",
+    "supertest": "^7.2.2",
+    "vite": "^8.0.14",
+    "vite-plugin-singlefile": "^2.3.3"
   }
 }

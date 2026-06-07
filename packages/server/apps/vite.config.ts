@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
-import { readdirSync } from "node:fs";
+import { readdirSync, existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const appsDir = resolve(__dirname);
@@ -10,7 +10,7 @@ const entries: Record<string, string> = {};
 for (const dir of readdirSync(appsDir, { withFileTypes: true })) {
   if (!dir.isDirectory()) continue;
   const html = join(appsDir, dir.name, "index.html");
-  try { readdirSync(join(appsDir, dir.name)).includes("index.html") && (entries[dir.name] = html); } catch {}
+  if (existsSync(html)) entries[dir.name] = html;
 }
 
 export default defineConfig({

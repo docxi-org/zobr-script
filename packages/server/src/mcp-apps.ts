@@ -4,8 +4,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const DIST_APPS = join(here, "..", "dist-apps");
+const DEFAULT_DIST_APPS = join(dirname(fileURLToPath(import.meta.url)), "..", "dist-apps");
 
 interface AppDef {
   readonly name: string;
@@ -17,9 +16,10 @@ const APPS: AppDef[] = [
   { name: "ZS Trace Progress", resourceUri: "ui://zs-trace-progress/app.html", htmlFile: "trace-progress/index.html" },
 ];
 
-export function registerZsApps(server: McpServer): void {
+export function registerZsApps(server: McpServer, appsDir?: string): void {
+  const dir = appsDir ?? DEFAULT_DIST_APPS;
   for (const app of APPS) {
-    const htmlPath = join(DIST_APPS, app.htmlFile);
+    const htmlPath = join(dir, app.htmlFile);
     if (!existsSync(htmlPath)) continue;
 
     registerAppResource(

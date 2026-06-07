@@ -1,68 +1,117 @@
 # ZS v0.2 — TODO
 
-## Slice 15 — Монолитный guide + встроенная выдача при регистрации
+## Slice 17 — A2: MCP Apps (ext-apps) — inline виджеты в чате
 
-Цель: агент получает полный guide одним вызовом `zs_register`, без необходимости
-делать 4–6 дополнительных `zs_guide({topic})`. Guide зависит от роли (executor / architect).
+Инлайн-визуализации в потоке чата через стандарт MCP Apps (`ext-apps`).
+Рендерятся в iframe, работают в Claude.ai, ChatGPT, VS Code и других хостах.
 
-### 15.1 Написать guide-executor.md ✅
-- [x] Собрать из текущих 11 топиков единый текст для executor'а
-- [x] Порядок: что такое ZS → цикл → операции (полный справочник) → trust model → дисциплина
-- [x] Убрать cross-references ("see topic X"), дублирование, architect-only секции
+### 17.1 Серверная интеграция ext-apps SDK
+- [ ] `pnpm add @modelcontextprotocol/ext-apps` в packages/server
+- [ ] Utility: `registerAppResource` + `registerAppTool` обёртки для ZS tools
+- [ ] Vite build pipeline для MCP App HTML (single-file bundle из React → HTML)
+- [ ] Структура: `packages/server/apps/` — исходники UI виджетов
 
-### 15.2 Написать guide-architect.md ✅
-- [x] Только дельта (architect reference), без дублирования executor-части
-- [x] Секции: структура скрипта, серверный модуль, store, lifecycle, композиция, паттерны
-- [x] В рантайме architect получает конкатенацию: executor + architect
+### 17.2 Виджет: Trace Progress (A2)
+- [ ] Inline-виджет прогресса прогона: coverage-bar + последние N событий + статус
+- [ ] Привязка: `zs_start` возвращает `_meta.ui.resourceUri` → хост рендерит
+- [ ] React app: `useApp` → `ontoolresult` → обновление coverage/events
+- [ ] `app.callServerTool("zs_status")` для refresh по кнопке
+- [ ] Компактный вид: занимает ~200px высоты, не перегружает чат
 
-### 15.3 zs_register — возвращать guide в ответе ✅
-- [x] При регистрации определить роль → загрузить соответствующий guide
-- [x] Добавить поле `guide: string` в ответ zs_register
-- [x] Убрать `hint: "Call zs_guide()..."` — guide уже внутри
+### 17.3 Виджет: HITL Form (A2)
+- [ ] Форма для `ask_user` — структурированный ввод с choices
+- [ ] Привязка: checkpoint с `{ ask }` директивой → сервер шлёт notification → UI показывает форму
+- [ ] `app.sendMessage({ role: "user", content: [...] })` → ответ идёт в чат → агент вызывает `zs_ask_record`
+- [ ] Поддержка: free-text и choices (radio buttons / select)
 
-### 15.4 zs_guide — упростить до повторной выдачи ✅
-- [x] Убрать параметр `topic`
-- [x] `zs_guide()` → возвращает полный guide для текущей роли агента
-- [x] Назначение: повторное чтение, или перечитывание после смены роли
+### 17.4 Виджет: Conclude Result (A2)
+- [ ] Структурированный результат `conclude` — JSON-tree + coverage-badge
+- [ ] Привязка: `zs_conclude` возвращает `_meta.ui.resourceUri`
+- [ ] `ontoolresult` → рендер Result type с подсветкой trust-класса полей
+- [ ] Кликабельные поля → раскрытие preview → полное значение
 
-### 15.5 Удалить старые guide-файлы ✅
-- [x] Удалить 11 файлов из `packages/scaffold/guide/`
-- [x] Удалить логику загрузки по топикам (guideTopics, GUIDE_META) — заменена на guideExecutor/guideArchitectExtra
-- [x] Обновить экспорты из scaffold
+### 17.5 Ресурсы и маршрутизация
+- [ ] `ui://zs-trace-progress/app.html` — trace progress виджет
+- [ ] `ui://zs-hitl-form/app.html` — HITL form виджет
+- [ ] `ui://zs-conclude-result/app.html` — conclude result виджет
+- [ ] Каждый ресурс = single-file HTML (Vite + vite-plugin-singlefile)
+- [ ] `registerAppResource` для каждого в createMcpServerInstance()
 
-### 15.6 Тесты и проверка ✅
-- [x] Обновить существующие тесты guide (3 старых → 2 новых, 241/241 pass)
-- [x] Проверить tsc typecheck (protocol, scaffold, server — clean)
-- [x] zs_register → guide приходит (тест)
-- [x] zs_guide() → возвращает полный текст (тест)
+### 17.6 Тестирование
+- [ ] Unit: tool возвращает `_meta.ui.resourceUri`
+- [ ] Unit: ресурс отдаёт HTML с правильным MIME type
+- [ ] Smoke: подключить к Claude.ai → zs_start → виджет рендерится в чате
+- [ ] Smoke: HITL → форма появляется → ответ проходит
 
 ---
 
-## Slice 16 — Улучшения agent experience (по результатам аудита workflow)
+## Slice 18 — A1: Artifact Pipeline — live дашборд в боковой панели
 
-Источник: ручной прогон workflow агента Вася (executor) — выявлены
-4 проблемы в UX агента при исполнении скриптов.
+Постоянный интерактивный дашборд в боковой панели Claude.ai.
+Работает автономно после сборки — подключается к ZS-серверу через HTTP/WS.
+Использует pipeline из `docs/artifact-pipeline/mcp-artifact-pipeline.md`.
 
-### 16.1 MCP tools для commit/check ✅
-- [x] `zs_commit` — записывает event commit в трейс, возвращает commit_seq
-- [x] `zs_check` — записывает event check в трейс, принимает commit_seq + results
-- [x] Zod-схемы в protocol: `zCommitReq`, `zCommitRes`, `zCheckReq`, `zCheckRes`
-- [x] Методы commit/check в ZsService
-- [x] Tools в mcp-tools.ts с descriptions
-- [x] Обновить guide: commit/check — теперь через MCP tools
-- [x] Тесты: 241/241 pass, tsc clean
+### 18.1 Серверные дополнения: REST API для артефакта
+- [ ] `GET /api/trace/:id/events?since=:seq` — инкрементальная дозагрузка событий
+- [ ] `GET /api/instance/:id` — метаданные инстанса (status, cursor, script_ref, depth, parent)
+- [ ] `GET /api/instance/:id/children` — дерево дочерних run
+- [ ] CORS: `Access-Control-Allow-Origin: https://claude.ai` (prod), `*` (dev)
+- [ ] Эндпоинты доступны без JWT (по artifact token) или с Bearer
 
-### 16.2 zs_start — флаг skip_code ✅
-- [x] Добавить `skip_code?: boolean` в `zStartReq`
-- [x] Если `skip_code: true` — не возвращать cog/srv код
-- [x] По умолчанию `false` (обратная совместимость)
-- [x] Обновить description zs_start
+### 18.2 WebSocket gateway для реального времени
+- [ ] `GET /ws/trace/:id` → upgrade → WS (JSON фреймы)
+- [ ] Фреймы: `{ type: "event", data: TraceEvent }`, `{ type: "status", data }`, `{ type: "coverage", data }`
+- [ ] Pub/sub: `Trace.append()` → emit → WS gateway broadcast по invocation_id
+- [ ] Reconnect: клиент переподключается и дозагружает `?since=lastSeq`
+- [ ] Heartbeat / ping-pong для keep-alive
 
-### 16.3 zs_report — уточнить description ✅
-- [x] Description: "Fire-and-forget telemetry into the trace. Call after
-  substantive operations (survey, synthesize, doubt) to build a complete trace."
+### 18.3 Artifact token
+- [ ] `zs_dashboard` tool — возвращает visualization URLs + config с artifact token
+- [ ] Token: короткоживущий (1h), привязан к invocation_id + agent_id
+- [ ] Сервер валидирует token на REST и WS эндпоинтах
+- [ ] Генерация: jose, хранение в памяти (не SQLite — эфемерный)
 
-### 16.4 @sandbox — явный список и подсказки ✅
-- [x] `zs_start` уже возвращает `serverFunctions` агенту
-- [x] Description `zs_sandbox` обновлён
-- [x] Guide (executor) обновлён: явная инструкция по @sandbox + serverFunctions
+### 18.4 GitHub-репозиторий шаблонов (zs-templates)
+- [ ] Создать репозиторий `docxi-org/zs-templates`
+- [ ] `inject.js` — универсальный инжектор (placeholder → config JSON)
+- [ ] `templates/trace-dashboard.jsx` — React-шаблон дашборда
+- [ ] Использует: React, Tailwind, Recharts, Lucide React, WebSocket API
+- [ ] Плейсхолдер: `const CONFIG = "__MCP_CONFIG_PLACEHOLDER__";`
+
+### 18.5 Шаблон дашборда: UI
+- [ ] Заголовок: script_ref, invocation_id, status (пульсирует при running), elapsed
+- [ ] Coverage-bar: % verified / % asserted / authority gates
+- [ ] Лента событий: seq, op, trust badge, realizer, preview (раскрывается)
+- [ ] Commit/check: критерии + вердикт
+- [ ] Checkpoint: directive badge (proceed/warn/halt/ask)
+- [ ] Дерево run: parent → children (кликабельно → переключает ленту)
+- [ ] Панель conclude: результат JSON-tree + финальный coverage
+- [ ] Состояния: running (лента растёт), awaiting_user, done/halted/errored (замирает)
+
+### 18.6 MCP tool `zs_dashboard`
+- [ ] Zod-схема в protocol: `zDashboardReq` (invocation_id)
+- [ ] Ответ: `{ ok, visualization: { template, injector }, config: { apiUrl, wsUrl, agentId, invocationId, token } }`
+- [ ] Регистрация в MCP_TOOLS
+- [ ] Tool description с пошаговой инструкцией для Claude (curl + node + present_files)
+
+### 18.7 Интеграция и тестирование
+- [ ] Smoke: zs_start → zs_dashboard → Claude собирает артефакт → дашборд в боковой панели
+- [ ] Smoke: исполнение скрипта → WS → дашборд обновляется в реальном времени
+- [ ] Smoke: conclude → дашборд показывает результат, лента замирает
+- [ ] Fallback: если WS отвалился → REST polling с ?since=lastSeq
+
+---
+
+## Slice 19 — Совместная работа A1 + A2
+
+### 19.1 Сценарий полного прогона
+- [ ] zs_start → A1 дашборд в боковой панели
+- [ ] Исполнение: события → A1 обновляется через WS
+- [ ] HITL: checkpoint { ask } → A2 форма в чате → ответ → A1 отражает
+- [ ] Conclude: A2 виджет результата в чате + A1 показывает финальный coverage
+- [ ] Документация: `docs/artifact-pipeline/a1-a2-integration.md`
+
+### 19.2 Общий стиль
+- [ ] Единые CSS variables для A1 и A2 (trust colors, status colors, fonts)
+- [ ] Dark/light theme respect (A2: `useHostStyles`, A1: prefers-color-scheme)
+- [ ] Согласованные иконки операций (Lucide set)

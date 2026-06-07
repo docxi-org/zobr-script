@@ -5,43 +5,38 @@
 Инлайн-визуализации в потоке чата через стандарт MCP Apps (`ext-apps`).
 Рендерятся в iframe, работают в Claude.ai, ChatGPT, VS Code и других хостах.
 
-### 17.1 Серверная интеграция ext-apps SDK
-- [ ] `pnpm add @modelcontextprotocol/ext-apps` в packages/server
-- [ ] Utility: `registerAppResource` + `registerAppTool` обёртки для ZS tools
-- [ ] Vite build pipeline для MCP App HTML (single-file bundle из React → HTML)
-- [ ] Структура: `packages/server/apps/` — исходники UI виджетов
+### 17.1 Серверная интеграция ext-apps SDK ✅
+- [x] `@modelcontextprotocol/ext-apps` + React + Vite в server
+- [x] `mcp-apps.ts`: registerZsApps() + TOOL_UI_META (декларативная привязка tool→resource)
+- [x] Vite per-app build pipeline (vite-plugin-singlefile, ZS_APP env var)
+- [x] `packages/server/apps/` — исходники виджетов, `dist-apps/` — собранные HTML
+- [x] `build:apps` script в package.json
 
-### 17.2 Виджет: Trace Progress (A2)
-- [ ] Inline-виджет прогресса прогона: coverage-bar + последние N событий + статус
-- [ ] Привязка: `zs_start` возвращает `_meta.ui.resourceUri` → хост рендерит
-- [ ] React app: `useApp` → `ontoolresult` → обновление coverage/events
-- [ ] `app.callServerTool("zs_status")` для refresh по кнопке
-- [ ] Компактный вид: занимает ~200px высоты, не перегружает чат
+### 17.2 Виджет: Trace Progress (A2) ✅
+- [x] script_ref, status badge, coverage bar, events count, refresh кнопка
+- [x] Привязка: `zs_start` → `_meta.ui.resourceUri` → `ui://zs-trace-progress/app.html`
+- [x] `ontoolinput` → agent_id + script_ref, `ontoolresult` → invocation_id + status
 
-### 17.3 Виджет: HITL Form (A2)
-- [ ] Форма для `ask_user` — структурированный ввод с choices
-- [ ] Привязка: checkpoint с `{ ask }` директивой → сервер шлёт notification → UI показывает форму
-- [ ] `app.sendMessage({ role: "user", content: [...] })` → ответ идёт в чат → агент вызывает `zs_ask_record`
-- [ ] Поддержка: free-text и choices (radio buttons / select)
+### 17.3 Виджет: HITL Form (A2) — отложен
+- [ ] Делаем в последнюю очередь (зафиксировано)
 
-### 17.4 Виджет: Conclude Result (A2)
-- [ ] Структурированный результат `conclude` — JSON-tree + coverage-badge
-- [ ] Привязка: `zs_conclude` возвращает `_meta.ui.resourceUri`
-- [ ] `ontoolresult` → рендер Result type с подсветкой trust-класса полей
-- [ ] Кликабельные поля → раскрытие preview → полное значение
+### 17.4 Виджет: Report (A2) ✅
+- [x] label, trust badge (asserted), data preview (JSON, collapsible)
+- [x] Привязка: `zs_report` → `ui://zs-report/app.html`
 
-### 17.5 Ресурсы и маршрутизация
-- [ ] `ui://zs-trace-progress/app.html` — trace progress виджет
-- [ ] `ui://zs-hitl-form/app.html` — HITL form виджет
-- [ ] `ui://zs-conclude-result/app.html` — conclude result виджет
-- [ ] Каждый ресурс = single-file HTML (Vite + vite-plugin-singlefile)
-- [ ] `registerAppResource` для каждого в createMcpServerInstance()
+### 17.5 Виджет: Conclude Result (A2) ✅
+- [x] status badge, coverage bar (verified/asserted/authority), result JSON tree
+- [x] Привязка: `zs_conclude` → `ui://zs-conclude/app.html`
 
-### 17.6 Тестирование
-- [ ] Unit: tool возвращает `_meta.ui.resourceUri`
-- [ ] Unit: ресурс отдаёт HTML с правильным MIME type
-- [ ] Smoke: подключить к Claude.ai → zs_start → виджет рендерится в чате
-- [ ] Smoke: HITL → форма появляется → ответ проходит
+### 17.6 Ресурсы и маршрутизация ✅
+- [x] 3 `ui://` ресурса зарегистрированы на каждый McpServer instance
+- [x] 3 привязки в TOOL_UI_META (zs_start, zs_report, zs_conclude)
+- [x] Каждый виджет = single-file HTML (~530KB с React)
+
+### 17.7 Тестирование
+- [x] tsc clean, 34/34 mcp-tools тесты
+- [x] `pnpm run build:apps` — 3 виджета собираются
+- [ ] Smoke: деплой → подключить к Claude.ai → прогнать скрипт → виджеты рендерятся
 
 ---
 

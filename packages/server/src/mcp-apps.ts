@@ -35,3 +35,7 @@ export function registerZsApps(server: McpServer, appsDir?: string): void {
 }
 
 export const ZS_APP_RESOURCES = APPS.map((a) => ({ name: a.name, uri: a.resourceUri }));
+
+export const TOOL_UI_META: Record<string, { resourceUri: string }> = {
+  zs_start: { resourceUri: "ui://zs-trace-progress/app.html" },
+};

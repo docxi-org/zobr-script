@@ -19,7 +19,7 @@ import { EXECUTOR_INSTRUCTION, START_PREAMBLE } from "./instructions";
 import { createApiRouter } from "./api-routes";
 import { AuthService } from "./auth";
 import type { ZsOAuthProvider } from "./oauth";
-import { registerZsApps } from "./mcp-apps";
+import { registerZsApps, TOOL_UI_META } from "./mcp-apps";
 
 export interface OAuthConfig {
   readonly provider: ZsOAuthProvider;
@@ -68,9 +68,10 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
       const inputSchema = tool.name === "zs_register"
         ? tool.input
         : (tool.input as z.ZodObject<z.ZodRawShape>).extend({ agent_id: z.string() });
+      const uiMeta = TOOL_UI_META[tool.name];
       srv.registerTool(
         tool.name,
-        { description: tool.description, inputSchema },
+        { description: tool.description, inputSchema, ...(uiMeta ? { _meta: { ui: uiMeta } } : {}) },
         async (args): Promise<CallToolResult> => {
           logger.debug({ tool: tool.name }, "tool call");
           const result = await zsApp.callTool(tool.name, args);

@@ -79,11 +79,14 @@
 - [x] Ping/pong keepalive 30s
 - [x] SPA Trace Detail: polling заменён на WebSocket (useTraceWs hook)
 
-### 18.3 Artifact token
-- [ ] `zs_dashboard` tool — возвращает visualization URLs + config с artifact token
-- [ ] Token: короткоживущий (1h), привязан к invocation_id + agent_id
-- [ ] Сервер валидирует token на REST и WS эндпоинтах
-- [ ] Генерация: jose, хранение в памяти (не SQLite — эфемерный)
+### 18.3 Artifact token ✅
+- [x] createArtifactToken / verifyArtifactToken — jose HS256, отдельный секрет (base + ":artifact")
+- [x] TTL конфигурируемый: `ZS_ARTIFACT_TOKEN_TTL` (default "1h")
+- [x] REST middleware: token из ?token= или Bearer header, scope check (invocation_id vs :id)
+- [x] WS upgrade: token из ?token= query param
+- [x] JWT cookie bypass: SPA-пользователи с zs_token проходят без artifact token
+- [x] Shared parseCookieToken utility (убран дубликат из api-routes)
+- [x] createArtifactToken экспортирован — готов для zs_dashboard (18.6)
 
 ### 18.4 GitHub-репозиторий шаблонов (zs-templates)
 - [ ] Создать репозиторий `docxi-org/zs-templates`

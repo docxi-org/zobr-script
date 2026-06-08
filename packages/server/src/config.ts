@@ -35,6 +35,8 @@ export const config = {
   rateLimitRefresh: 10,
   rateLimitPassword: 5,
 
+  artifactTokenTtl: env("ZS_ARTIFACT_TOKEN_TTL", "1h"),
+
   tracesDefaultLimit: 20,
   tracesMaxLimit: 100,
 

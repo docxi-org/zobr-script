@@ -1,18 +1,18 @@
 import * as jose from "jose";
+import { config } from "./config";
 
 const ALG = "HS256";
 const ISSUER = "zs-artifact";
 const AUDIENCE = "zs-artifact-viewer";
-const DEFAULT_TTL = "1h";
 
-let secret: Uint8Array | undefined;
+let artifactSecret: Uint8Array | undefined;
 
 function getSecret(): Uint8Array {
-  if (!secret) {
-    const env = process.env["ZS_JWT_SECRET"];
-    secret = env ? new TextEncoder().encode(env) : jose.base64url.decode(jose.generateSecret(ALG).toString());
+  if (!artifactSecret) {
+    const base = process.env["ZS_JWT_SECRET"] ?? "";
+    artifactSecret = new TextEncoder().encode(base + ":artifact");
   }
-  return secret;
+  return artifactSecret;
 }
 
 export interface ArtifactTokenPayload {
@@ -21,12 +21,13 @@ export interface ArtifactTokenPayload {
 }
 
 export async function createArtifactToken(payload: ArtifactTokenPayload): Promise<string> {
+  const ttl = config.artifactTokenTtl ?? "1h";
   return new jose.SignJWT({ inv: payload.invocation_id, agt: payload.agent_id })
     .setProtectedHeader({ alg: ALG })
     .setIssuedAt()
     .setIssuer(ISSUER)
     .setAudience(AUDIENCE)
-    .setExpirationTime(DEFAULT_TTL)
+    .setExpirationTime(ttl)
     .sign(getSecret());
 }
 
@@ -40,4 +41,10 @@ export async function verifyArtifactToken(token: string): Promise<ArtifactTokenP
   } catch {
     return null;
   }
+}
+
+export function parseCookieToken(cookie: string | undefined, name: string): string | undefined {
+  if (!cookie) return undefined;
+  const match = cookie.match(new RegExp(`(?:^|;)\\s*${name}=([^;]*)`));
+  return match?.[1];
 }

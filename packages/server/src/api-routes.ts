@@ -4,6 +4,7 @@ import type { ZsApp } from "./app";
 import type { Logger } from "./logger";
 import { AuthService, type Role, type UserRecord } from "./auth";
 import { config } from "./config";
+import { parseCookieToken } from "./artifact-token";
 
 export function rateLimit(windowMs: number, max: number) {
   const hits = new Map<string, { count: number; resetAt: number }>();
@@ -49,11 +50,6 @@ function clearTokenCookies(res: Response): void {
   ]);
 }
 
-function parseCookieValue(header: string | undefined, name: string): string | undefined {
-  if (!header) return undefined;
-  const match = header.match(new RegExp(`(?:^|;)\\s*${name}=([^;]*)`));
-  return match?.[1];
-}
 
 export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger): Router {
   const router = Router();
@@ -82,7 +78,7 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
   });
 
   router.post("/auth/refresh", refreshLimiter, async (req, res) => {
-    const refreshToken = parseCookieValue(req.headers.cookie, "zs_refresh")
+    const refreshToken = parseCookieToken(req.headers.cookie, "zs_refresh")
       ?? (req.body as { refreshToken?: string } | undefined)?.refreshToken;
     if (!refreshToken) {
       res.status(400).json({ error: { code: "BAD_REQUEST", message: "refresh token required" } });

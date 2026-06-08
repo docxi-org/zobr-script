@@ -2,7 +2,7 @@ import { EventEmitter } from "node:events";
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "node:http";
 import type { Logger } from "./logger";
-import { verifyArtifactToken } from "./artifact-token";
+import { verifyArtifactToken, parseCookieToken } from "./artifact-token";
 import type { AuthService } from "./auth";
 
 export interface TraceEvent {
@@ -35,9 +35,8 @@ export function setupTraceWs(server: Server, logger: Logger, authService?: AuthS
       const token = url.searchParams.get("token");
       if (token) return (await verifyArtifactToken(token)) !== null;
       if (authService) {
-        const cookie = req.headers.cookie;
-        const jwtMatch = cookie?.match(/(?:^|;)\s*zs_token=([^;]*)/);
-        if (jwtMatch?.[1]) return (await authService.verifyRequest(jwtMatch[1])) !== null;
+        const jwt = parseCookieToken(req.headers.cookie, "zs_token");
+        if (jwt) return (await authService.verifyRequest(jwt)) !== null;
       }
       return false;
     };

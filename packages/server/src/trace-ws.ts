@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:events";
-import { WebSocketServer, WebSocket } from "ws";
+import * as ws from "ws";
+const { WebSocketServer, WebSocket } = ws;
 import type { Server } from "node:http";
 import type { Logger } from "./logger";
 import { verifyArtifactToken, parseCookieToken } from "./artifact-token";

@@ -167,6 +167,8 @@ export class ZsApp {
             status: "running",
             ...(agentId !== undefined ? { agent_id: agentId } : {}),
           });
+          const dashboardConfig = await this.dashboard(agentId!, res.invocation_id);
+          return { ...res, dashboard: dashboardConfig.ok ? { visualization: dashboardConfig.visualization, config: dashboardConfig.config } : undefined };
         }
         return res;
       }

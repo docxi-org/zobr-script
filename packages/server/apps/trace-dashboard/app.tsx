@@ -384,6 +384,8 @@ function FullscreenView({ data, onCollapse }: { data: DashboardData; onCollapse?
 
       {/* Code */}
       {trace?.code_snapshot && <CodePanel code={trace.code_snapshot} />}
+
+      <div style={{ height: 80 }} />
     </div>
   );
 }

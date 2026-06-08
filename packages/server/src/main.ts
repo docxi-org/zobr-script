@@ -4,6 +4,7 @@ import "dotenv/config";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import express from "express";
+import cors from "cors";
 import { createZsHttpApp } from "./http";
 import { FsScriptSourceReader } from "./reader";
 import { materializeScaffold } from "./scaffold";
@@ -32,7 +33,7 @@ if (C.oauth) {
   log.info({ mcpUrl, oauthDbPath }, "OAuth enabled");
 }
 
-const { app, authService } = await createZsHttpApp({
+const { app, zsApp, authService } = await createZsHttpApp({
   library: new FsScriptSourceReader(LIB_ROOT),
   dbPath: STORE_PATH,
   invocationTtlMs: C.invocationTtlMs,
@@ -43,6 +44,14 @@ const { app, authService } = await createZsHttpApp({
   oauth,
 });
 authServiceRef = authService;
+
+const CORS_ORIGINS = C.production
+  ? ["https://claude.ai", "https://chatgpt.com"]
+  : true;
+app.use("/artifact", cors({ origin: CORS_ORIGINS, credentials: true }));
+
+const { createArtifactRouter } = await import("./artifact-routes");
+app.use("/artifact", createArtifactRouter(zsApp, log));
 
 const SPA_DIR = join(import.meta.dirname, "../../web/dist");
 if (existsSync(SPA_DIR)) {

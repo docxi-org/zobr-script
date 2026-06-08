@@ -18,7 +18,7 @@ import type { ListRes, ReadRes, ValidateReq, ValidateRes, CreateReq, CreateRes, 
 import { log as defaultLog } from "./logger";
 import type { Logger } from "./logger";
 import { emitTraceEvent, emitTraceStatus } from "./trace-ws";
-import { createArtifactToken } from "./artifact-token";
+
 import { config as serverConfig } from "./config";
 
 const STATE_CHANGING_TOOLS = new Set(["zs_sandbox", "zs_checkpoint", "zs_report", "zs_ask_record", "zs_act_record"]);
@@ -142,7 +142,6 @@ export class ZsApp {
       case "zs_update": return this.createScript(parsed as unknown as CreateReq);
       case "zs_delete": return this.deleteScript(parsed["script_ref"] as string);
       case "zs_abort": return this.abort(agentId!, parsed["invocation_id"] as string | undefined);
-      case "zs_dashboard": return this.dashboard(agentId!, parsed["invocation_id"] as string);
       case "zs_register": {
         await this.sweepExpired();
         return this.register(parsed["name"] as string);
@@ -167,8 +166,6 @@ export class ZsApp {
             status: "running",
             ...(agentId !== undefined ? { agent_id: agentId } : {}),
           });
-          const dashboardConfig = await this.dashboard(agentId!, res.invocation_id);
-          return { ...res, dashboard: dashboardConfig.ok ? { visualization: dashboardConfig.visualization, config: dashboardConfig.config } : undefined };
         }
         return res;
       }
@@ -177,6 +174,11 @@ export class ZsApp {
         const inst = this.registry.get(invId);
         const res = await this.service.conclude(parsed as ConcludeReq);
         this.agents.removeActiveInvocation(agentId!, invId);
+        const traceSnapshot = inst ? {
+          events: inst.trace.events.length <= 200 ? inst.trace.events : inst.trace.events.slice(-200),
+          script_ref: inst.script_ref,
+          code_snapshot: inst.code_snapshot,
+        } : undefined;
         if (this.#db !== undefined && inst !== undefined) {
           this.#db.transaction(() => {
             this.#db!.infra.finishInvocation(invId, inst.status);
@@ -192,7 +194,7 @@ export class ZsApp {
             });
           });
         }
-        return res;
+        return { ...res, _trace: traceSnapshot };
       }
       case "zs_resume": {
         const resumeInvId = parsed["invocation_id"] as string;
@@ -434,28 +436,6 @@ export class ZsApp {
       aborted.push(id);
     }
     return { ok: true, aborted };
-  }
-
-  async dashboard(agentId: string, invocationId: string) {
-    const inst = this.registry.get(invocationId);
-    if (!inst) return { ok: false, error: "Invocation not found" };
-    const token = await createArtifactToken({ invocation_id: invocationId, agent_id: agentId });
-    const publicBase = serverConfig.publicUrl ?? `http://${serverConfig.host}:${serverConfig.port}`;
-    const wsProto = publicBase.startsWith("https") ? "wss" : "ws";
-    const wsBase = publicBase.replace(/^https?/, wsProto);
-    return {
-      ok: true,
-      visualization: {
-        template: "https://raw.githubusercontent.com/docxi-org/zs-templates/main/templates/trace-dashboard.jsx",
-        injector: "https://raw.githubusercontent.com/docxi-org/zs-templates/main/inject.js",
-      },
-      config: {
-        apiUrl: `${publicBase}/artifact`,
-        wsUrl: `${wsBase}/artifact/ws`,
-        invocationId,
-        token,
-      },
-    };
   }
 
   #guideForRole(role: string): string {

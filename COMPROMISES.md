@@ -13,7 +13,17 @@
 
 ## Slice 18 — A1 Artifact Pipeline
 
-- [ ] `/artifact/*` эндпоинты открыты без авторизации. Закроется artifact token'ом (18.3).
-- [ ] WebSocket upgrade не проверяет origin. Закроется artifact token'ом (18.3) — token в query string.
-- [ ] CORS origins hardcoded (`claude.ai`, `chatgpt.com`). Пересмотреть после 18.3 — с token'ом можно ставить `*` или env-переменную. Зафиксировано в ISSUES.md.
+- [x] `/artifact/*` эндпоинты открыты без авторизации. → Закрыто: artifact token (18.3).
+- [x] WebSocket upgrade не проверяет origin. → Закрыто: artifact token в query string (18.3).
+- [x] CORS origins hardcoded. → Закрыто: `origin: true` безопасно с artifact token.
 - [ ] Import `ws` как named import из CJS — работает на Node 22 + pnpm + tsx, но хрупко. Менять на `import * as ws` если сломается.
+
+## Slice 19 — Fullscreen A2 Dashboard
+
+- [x] Structured cards per operation type (commit, check, checkpoint, report, sandbox, retrieve). → Закрыто: EventDetail компонент с switch по op/realizer.
+- [x] Code panel без syntax highlighting. → Закрыто: highlight.js (core + typescript) бандлится через Vite, тема github-dark. +30KB.
+- [x] `trace-conclude/` app в APPS массиве и build:apps. → Закрыто: убран из APPS и build:apps. Директория оставлена (не вредит).
+- [x] `trace-dashboard.jsx` в корне проекта с захардкоженным token. → Закрыто: удалён.
+- [ ] `zs-templates` GitHub repo оставлен как архив. Не влияет на работу, но мёртвый код.
+- [x] Dark/light theme. → Закрыто: `useHostStyles` + объект `T` с CSS variables и fallback. Trust-цвета (ZS-семантика) остаются фиксированными.
+- [ ] Visual smoke test dashboard виджета в claude.ai не проведён (19.8).

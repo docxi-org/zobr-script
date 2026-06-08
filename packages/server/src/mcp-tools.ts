@@ -9,7 +9,7 @@ import {
   zRetrieveReq, zResumeReq, zRegisterReq,
   zStoreInsertReq, zStoreFindReq, zStoreUpdateReq, zStoreDeleteReq, zStoreCollectionsReq,
   zStorePutReq, zStoreGetReq, zStoreListReq, zAbortReq,
-  zGuideReq, zCommitReq, zCheckReq, zDashboardReq,
+  zGuideReq, zCommitReq, zCheckReq,
 } from "@zobr/protocol";
 import type { ZsService } from "@zobr/protocol";
 import type { z } from "zod";
@@ -32,7 +32,7 @@ function tool<S extends z.ZodTypeAny>(t: McpTool<S>): McpTool {
 }
 
 export const MCP_TOOLS: readonly McpTool[] = [
-  tool({ name: "zs_start", description: "Start a ZS script run; returns invocation_id + cognitive code + serverFunctions. Use skip_code: true if you already read the script via zs_read. IMPORTANT: if the response contains a 'dashboard' field AND you have sandbox/present_files access — build the live dashboard BEFORE executing the script (see guide for steps).", input: zStartReq, role: "executor", handle: (s, a) => s.start(a) }),
+  tool({ name: "zs_start", description: "Start a ZS script run; returns invocation_id + cognitive code + serverFunctions. Use skip_code: true if you already read the script via zs_read.", input: zStartReq, role: "executor", handle: (s, a) => s.start(a) }),
   tool({ name: "zs_sandbox", description: "Run a @sandbox function server-side (verified trust). Use for functions listed in serverFunctions from zs_start — they appear in the script as regular calls but execute on the server.", input: zSandboxReq, role: "executor", handle: (s, a) => s.sandbox(a) }),
   tool({ name: "zs_report", description: "Fire-and-forget telemetry into the trace. Call after substantive operations (survey, synthesize, doubt) to build a complete trace.", input: zReportReq, role: "executor", handle: (s, a) => s.report(a) }),
   tool({ name: "zs_checkpoint", description: "Synchronous gate; returns a controller Directive.", input: zCheckpointReq, role: "executor", handle: (s, a) => s.checkpoint(a) }),
@@ -61,7 +61,6 @@ export const MCP_TOOLS: readonly McpTool[] = [
   tool({ name: "zs_store_get", description: "Get a note by key.", input: zStoreGetReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_list", description: "List notes, optionally filtered by type.", input: zStoreListReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_guide", description: "Re-read the full system guide for your current role. Use after role change or to refresh.", input: zGuideReq, role: "executor", handle: () => "dispatched_by_app" }),
-  tool({ name: "zs_dashboard", description: "Open a live trace dashboard in the sidebar. Returns template URLs and config. After receiving the response, build the artifact: (1) curl -s <visualization.template> -o /tmp/template.jsx, (2) curl -s <visualization.injector> -o /tmp/inject.js, (3) node /tmp/inject.js /tmp/template.jsx '<config_json>' /mnt/user-data/outputs/trace-dashboard.jsx, (4) present_files.", input: zDashboardReq, role: "executor", handle: () => "dispatched_by_app" }),
 ] as const;
 
 /** Parse + dispatch one tool call by name (used by the Nest adapter and tests). */

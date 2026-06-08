@@ -20,7 +20,7 @@ const APPS: AppDef[] = [
   { name: "ZS Commit", resourceUri: "ui://zs-commit/app.html", htmlFile: "trace-commit/index.html" },
   { name: "ZS Check", resourceUri: "ui://zs-check/app.html", htmlFile: "trace-check/index.html" },
   { name: "ZS Retrieve", resourceUri: "ui://zs-retrieve/app.html", htmlFile: "trace-retrieve/index.html" },
-  { name: "ZS Conclude", resourceUri: "ui://zs-conclude/app.html", htmlFile: "trace-conclude/index.html" },
+  { name: "ZS Dashboard", resourceUri: "ui://zs-conclude-dashboard/app.html", htmlFile: "trace-dashboard/index.html" },
 ];
 
 export function registerZsApps(server: McpServer, appsDir?: string): void {
@@ -51,5 +51,5 @@ export const TOOL_UI_META: Record<string, { resourceUri: string }> = {
   zs_commit: { resourceUri: "ui://zs-commit/app.html" },
   zs_check: { resourceUri: "ui://zs-check/app.html" },
   zs_retrieve: { resourceUri: "ui://zs-retrieve/app.html" },
-  zs_conclude: { resourceUri: "ui://zs-conclude/app.html" },
+  zs_conclude: { resourceUri: "ui://zs-conclude-dashboard/app.html" },
 };

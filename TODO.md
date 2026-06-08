@@ -79,75 +79,47 @@ Ext-apps спецификация поддерживает три display mode: 
 Проблема: в `ontoolresult` нет полного списка events — только coverage summary
 и result. Для полного дашборда нужны все events.
 
-### 19.1 Расширить ответ zs_conclude — включить trace events
-- [ ] В `_input` или в основной ответ `zs_conclude` добавить `events: TraceEvent[]`
-- [ ] Включить `code_snapshot` (исходный код скрипта)
-- [ ] Включить `script_ref`, `invocation_id`
-- [ ] Ограничить размер: последние N events или полный trace если < 100 events
-- [ ] Изменения в `app.ts` callTool dispatch для zs_conclude
-- [ ] Проверить что виджет получает данные через ontoolresult
+### 19.1 Расширить ответ zs_conclude ✅
+- [x] `_trace: { events, script_ref, code_snapshot }` в ответе zs_conclude (app.ts)
+- [x] `invocation_id` добавлен в `_input` (http.ts)
+- [x] Лимит 200 events
 
-### 19.2 Новый conclude-dashboard виджет
-- [ ] Новый app в `packages/server/apps/trace-dashboard/`
-- [ ] Заменяет текущий `trace-conclude` виджет (или новый resource URI)
-- [ ] Привязка: `zs_conclude` → `ui://zs-conclude-dashboard/app.html`
-- [ ] `availableDisplayModes: ["inline", "fullscreen"]` в `appCapabilities`
-- [ ] React app: `useApp` → `ontoolresult` → рендер полного дашборда
+### 19.2–19.4 Виджет trace-dashboard ✅
+- [x] `packages/server/apps/trace-dashboard/` — новый React app
+- [x] `ui://zs-conclude-dashboard/app.html` resource, TOOL_UI_META переключён
+- [x] `availableDisplayModes: ["inline", "fullscreen"]` в capabilities
+- [x] Inline: coverage donut, status badge, result fields, expand button
+- [x] Fullscreen: header, coverage, result, event timeline (expandable), code panel
+- [x] `app.requestDisplayMode()` + `onhostcontextchanged` для переключения
+- [x] Build: 540KB single-file, добавлен в `build:apps` и deploy workflow
 
-### 19.3 UI дашборда (inline режим — компактный)
-- [ ] Заголовок: script_ref, invocation_id, status badge
-- [ ] Coverage donut chart (verified / asserted / authority)
-- [ ] Result: structured fields с trust-цветами
-- [ ] Кнопка "Expand" или хост показывает свою кнопку fullscreen
-- [ ] Компактный вид: ~300px высоты, ключевая информация
+### 19.5 Серверные изменения ✅
+- [x] Объединено с 19.1 — данные уже в ответе zs_conclude
 
-### 19.4 UI дашборда (fullscreen режим — полный)
-- [ ] Всё из inline +
-- [ ] Лента событий: полный timeline с expandable rows
-  - seq, timestamp, op icon, operation name, trust badge
-  - Preview (свёрнуто по умолчанию, раскрывается по клику)
-  - Для commit: what/basis/verify/boundaries structured card
-  - Для check: commit_seq reference, results, PASS/FAIL
-  - Для checkpoint: directive badge (proceed/warn/halt)
-  - Для sandbox: fn(), args, result
-  - Для report: label, параметры из data
-- [ ] Code snapshot: подсветка синтаксиса (highlight.js из CDN — разрешён CSP)
-- [ ] Coverage breakdown: verified count, asserted count, authority gates
-- [ ] Result panel: JSON tree с раскрытием полей
-- [ ] Timeline visualization: вертикальная линия с точками событий
-- [ ] Переключатель inline ↔ fullscreen через `app.requestDisplayMode()`
-
-### 19.5 Серверные изменения
-- [ ] Обновить TOOL_UI_META: `zs_conclude` → новый resource URI
-- [ ] Зарегистрировать новый resource `ui://zs-conclude-dashboard/app.html`
-- [ ] В ответ zs_conclude: добавить trace events (через расширение _input или
-  отдельное поле в CallToolResult)
-- [ ] Возможно: добавить третий content block в tool result с trace JSON
-  (первый — основной JSON, второй — ACTION REQUIRED для dashboard если есть,
-  третий — trace data для виджета)
-
-### 19.6 Очистка A1 артефактов
-- [ ] Убрать dashboard config из ответа zs_start (или оставить для будущего)
-- [ ] Убрать ACTION REQUIRED block из tool result zs_start
-- [ ] Убрать hint про dashboard из START_PREAMBLE
-- [ ] Убрать секцию "Live Dashboard" из guide-executor.md
-- [ ] Обновить zs_dashboard tool description (или удалить tool)
-- [ ] Решить: оставить zs-templates repo как архив или удалить
+### 19.6 Очистка A1 артефактов ✅
+- [x] Dashboard config убран из ответа zs_start (app.ts)
+- [x] ACTION REQUIRED block убран (http.ts)
+- [x] Dashboard hint убран из START_PREAMBLE (instructions.ts)
+- [x] Секция "Live Dashboard" удалена из guide-executor.md
+- [x] zs_start description: убран IMPORTANT
+- [x] zs_dashboard description: переориентирован на SPA
+- [ ] zs-templates repo — оставлен как архив (не влияет)
+- [ ] trace-conclude/ app — оставлен (TOOL_UI_META уже не ссылается)
 
 ### 19.7 Стиль и UX
-- [ ] Dark/light theme: `useHostStyles` из ext-apps React SDK
-- [ ] Согласованные цвета: trust (verified=#22c55e, asserted=#f59e0b, authority=#3b82f6)
-- [ ] Иконки операций: emoji set из текущих виджетов
-- [ ] Responsive: inline компактный, fullscreen — полная раскладка
-- [ ] Анимация перехода inline → fullscreen
+- [x] Цвета: trust (verified=#22c55e, asserted=#f59e0b, authority=#3b82f6) — из существующих виджетов
+- [x] Иконки операций: emoji set (OP_ICONS)
+- [x] Responsive: inline ~480px, fullscreen ~720px centered
+- [ ] Dark/light theme через `useHostStyles` — для следующей итерации
+- [ ] Анимация перехода inline → fullscreen — зависит от хоста
 
 ### 19.8 Тестирование
-- [ ] tsc clean, build:apps собирает новый виджет
-- [ ] Smoke: claude.ai — conclude → inline виджет с coverage + result
-- [ ] Smoke: claude.ai — expand → fullscreen с полным timeline
-- [ ] Smoke: ChatGPT — проверить что ext-apps fullscreen работает
-- [ ] Проверить что данные events корректны и полны
-- [ ] Проверить что CDN-ресурсы (highlight.js) загружаются из CSP whitelist
+- [x] tsc clean
+- [x] 241 тест зелёный
+- [x] build:apps собирает trace-dashboard (540KB)
+- [ ] Smoke: claude.ai — conclude → inline виджет
+- [ ] Smoke: claude.ai — expand → fullscreen
+- [ ] Деплой и прод-тест
 
 ---
 

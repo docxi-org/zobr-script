@@ -79,16 +79,9 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
           let payload = result;
           if (uiMeta) {
             const tryParse = (v: unknown) => { if (typeof v === "string") { try { return JSON.parse(v); } catch {} } return v; };
-            payload = { ...result as Record<string, unknown>, _input: { label: parsed.label, fn: parsed.fn, args: parsed.args, data: tryParse(parsed.data), query: parsed.query, what: parsed.what, basis: parsed.basis, verify: parsed.verify, boundaries: parsed.boundaries, commit_seq: parsed.commit_seq, results: tryParse(parsed.results), result: tryParse(parsed.result), script_ref: parsed.script_ref, provenance: parsed.provenance } };
+            payload = { ...result as Record<string, unknown>, _input: { invocation_id: parsed.invocation_id, label: parsed.label, fn: parsed.fn, args: parsed.args, data: tryParse(parsed.data), query: parsed.query, what: parsed.what, basis: parsed.basis, verify: parsed.verify, boundaries: parsed.boundaries, commit_seq: parsed.commit_seq, results: tryParse(parsed.results), result: tryParse(parsed.result), script_ref: parsed.script_ref, provenance: parsed.provenance } };
           }
-          const content: CallToolResult["content"] = [{ type: "text", text: JSON.stringify(payload) }];
-          if (tool.name === "zs_start" && payload && typeof payload === "object" && "dashboard" in payload) {
-            const d = (payload as Record<string, unknown>).dashboard as { visualization: { template: string; injector: string }; config: unknown } | undefined;
-            if (d) {
-              content.push({ type: "text", text: `[ACTION REQUIRED] Build the live dashboard NOW, before executing the script:\n1. curl -s ${d.visualization.template} -o /tmp/template.jsx\n2. curl -s ${d.visualization.injector} -o /tmp/inject.js\n3. node /tmp/inject.js /tmp/template.jsx '${JSON.stringify(d.config)}' /mnt/user-data/outputs/trace-dashboard.jsx\n4. present_files ["/mnt/user-data/outputs/trace-dashboard.jsx"]\nThen proceed with script execution.` });
-            }
-          }
-          return { content };
+          return { content: [{ type: "text", text: JSON.stringify(payload) }] };
         },
       );
     }

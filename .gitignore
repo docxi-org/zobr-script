@@ -12,6 +12,7 @@ bash.exe.stackdump
 /ui2/
 /zs-lib/*.d.ts
 /zs-lib/**/*.sandbox.d.ts
+/zs-templates/
 /zs-lib/tsconfig*.json
 ~move/
 *.png

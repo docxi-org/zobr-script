@@ -125,14 +125,13 @@ Ext-apps спецификация поддерживает три display mode: 
 
 ---
 
-## Slice 20 — HITL Form виджет (A2)
+## Slice 20 — HITL Form виджет (A2) — ОТЛОЖЕН
 
-Отложен из slice 17.3. Делаем после fullscreen dashboard.
-
-- [ ] Форма для `ask_user` — структурированный ввод с choices
-- [ ] Привязка: checkpoint с `{ ask }` директивой
-- [ ] `app.sendMessage()` → ответ в чат → агент вызывает `zs_ask_record`
-- [ ] Free-text и choices (radio buttons / select)
+Виджет с кнопками для choices — косметика без enforcement.
+Серверная валидация answer (onAskUser, pendingAsk) — overhead для кооперативного агента.
+Текущий ask_user работает: агент видит question+choices в коде, спрашивает в чате,
+записывает через zs_ask_record. Пересмотреть когда появится реальная потребность
+в структурированном HITL или серверном контроле ответов.
 
 ---
 

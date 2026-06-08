@@ -336,7 +336,6 @@ function InlineView({ data, onExpand }: { data: DashboardData; onExpand?: () => 
           ⛶ Full Dashboard
         </button>
       )}
-      <div style={{ height: 80 }} />
     </div>
   );
 }

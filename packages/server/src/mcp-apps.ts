@@ -15,6 +15,11 @@ interface AppDef {
 const APPS: AppDef[] = [
   { name: "ZS Trace Progress", resourceUri: "ui://zs-trace-progress/app.html", htmlFile: "trace-progress/index.html" },
   { name: "ZS Report", resourceUri: "ui://zs-report/app.html", htmlFile: "trace-report/index.html" },
+  { name: "ZS Checkpoint", resourceUri: "ui://zs-checkpoint/app.html", htmlFile: "trace-checkpoint/index.html" },
+  { name: "ZS Sandbox", resourceUri: "ui://zs-sandbox/app.html", htmlFile: "trace-sandbox/index.html" },
+  { name: "ZS Commit", resourceUri: "ui://zs-commit/app.html", htmlFile: "trace-commit/index.html" },
+  { name: "ZS Check", resourceUri: "ui://zs-check/app.html", htmlFile: "trace-check/index.html" },
+  { name: "ZS Retrieve", resourceUri: "ui://zs-retrieve/app.html", htmlFile: "trace-retrieve/index.html" },
   { name: "ZS Conclude", resourceUri: "ui://zs-conclude/app.html", htmlFile: "trace-conclude/index.html" },
 ];
 
@@ -41,5 +46,10 @@ export const ZS_APP_RESOURCES = APPS.map((a) => ({ name: a.name, uri: a.resource
 export const TOOL_UI_META: Record<string, { resourceUri: string }> = {
   zs_start: { resourceUri: "ui://zs-trace-progress/app.html" },
   zs_report: { resourceUri: "ui://zs-report/app.html" },
+  zs_checkpoint: { resourceUri: "ui://zs-checkpoint/app.html" },
+  zs_sandbox: { resourceUri: "ui://zs-sandbox/app.html" },
+  zs_commit: { resourceUri: "ui://zs-commit/app.html" },
+  zs_check: { resourceUri: "ui://zs-check/app.html" },
+  zs_retrieve: { resourceUri: "ui://zs-retrieve/app.html" },
   zs_conclude: { resourceUri: "ui://zs-conclude/app.html" },
 };

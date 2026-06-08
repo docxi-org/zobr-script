@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "vitest run",
-    "build:apps": "node --input-type=module -e \"import{execSync}from'child_process';for(const a of['trace-progress','trace-report','trace-conclude'])execSync('npx vite build --config apps/vite.config.ts',{stdio:'inherit',env:{...process.env,ZS_APP:a}})\""
+    "build:apps": "node --input-type=module -e \"import{execSync}from'child_process';for(const a of['trace-progress','trace-report','trace-checkpoint','trace-sandbox','trace-commit','trace-check','trace-retrieve','trace-conclude'])execSync('npx vite build --config apps/vite.config.ts',{stdio:'inherit',env:{...process.env,ZS_APP:a}})\""
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",

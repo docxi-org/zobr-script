@@ -13,7 +13,7 @@ import type { Db } from "./db";
 import { checkShape, Instance, isTerminal } from "@zobr/core";
 import type { Shape, InstanceSnapshot } from "@zobr/core";
 import { cognitiveAmbient, serverAmbient, guideExecutor, guideArchitectExtra } from "@zobr/scaffold";
-import { validateScript, extractStoreSchema, extractCogShapes, extractClassInfo } from "@zobr/validator";
+import { validateScript, extractStoreSchema, extractCogShapes, extractClassInfo, generateMethodAmbient } from "@zobr/validator";
 import type { ListRes, ReadRes, ValidateReq, ValidateRes, CreateReq, CreateRes, DeleteRes, RegisterRes, StartReq, ConcludeReq, ResumeReq } from "@zobr/protocol";
 import { log as defaultLog } from "./logger";
 import type { Logger } from "./logger";
@@ -494,9 +494,19 @@ export class ZsApp {
     await mkdir(dirname(cogPath), { recursive: true });
     const cogContent = req.cog[0]?.content ?? req.cog.map((f) => f.content).join("\n\n");
     await writeFile(cogPath, cogContent, "utf8");
+    const sandboxDtsPath = join(this.#library.libraryRoot, req.script_ref + ".sandbox.d.ts");
     if (req.srv.length > 0) {
       const srvContent = req.srv[0]?.content ?? req.srv.map((f) => f.content).join("\n\n");
       await writeFile(join(this.#library.libraryRoot, req.script_ref + ".srv.ts"), srvContent, "utf8");
+      const srvFiles = req.srv.map((f) => ({ name: `/zs/${f.name}`, content: f.content }));
+      const classInfo = extractClassInfo(srvFiles, serverAmbient);
+      if (classInfo && classInfo.methods.length > 0) {
+        await writeFile(sandboxDtsPath, generateMethodAmbient(classInfo) + "\n", "utf8");
+      } else {
+        await import("node:fs/promises").then((fs) => fs.unlink(sandboxDtsPath).catch(() => {}));
+      }
+    } else {
+      await import("node:fs/promises").then((fs) => fs.unlink(sandboxDtsPath).catch(() => {}));
     }
     return { ok: true };
   }

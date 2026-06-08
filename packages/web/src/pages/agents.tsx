@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Icon } from "../ui/icon";
+import { ConfirmModal } from "../ui/modal";
 import { Badge, StatusBadge } from "../ui/badge";
 import { Card } from "../ui/card";
 import { DataTable, type Column } from "../ui/data-table";
@@ -77,6 +78,13 @@ export function AgentsList() {
   const agents = data?.agents ?? [];
   const t = useT();
   const p = usePlural();
+  const [deleteTarget, setDeleteTarget] = useState<Agent | null>(null);
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    await api.del(`/agents/${deleteTarget.agent_id}`);
+    setDeleteTarget(null);
+    refetch();
+  }, [deleteTarget, refetch]);
 
   const columns = useMemo((): Column<Agent>[] => [
     { key: "name", label: t("col.name"), sortable: true, sortVal: (r) => r.name, render: (r) => (
@@ -91,13 +99,13 @@ export function AgentsList() {
     { key: "active", label: t("col.active"), align: "right", sortable: true, sortVal: (r) => r.active_invocations, render: (r) => r.active_invocations > 0 ? <Badge color="var(--st-running)">{r.active_invocations}</Badge> : <span className="mono" style={{ color: "var(--text-3)" }}>0</span> },
     { key: "total", label: t("col.total_runs"), align: "right", mono: true, sortable: true, sortVal: (r) => r.total_runs, render: (r) => r.total_runs },
     { key: "actions", label: "", width: 40, render: (r) => r.active_invocations === 0 ? (
-      <button onClick={async (e) => { e.stopPropagation(); if (confirm(`Delete agent "${r.name}"?`)) { await api.del(`/agents/${r.agent_id}`); refetch(); } }}
+      <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(r); }}
         className="cursor-pointer rounded border-none" style={{ padding: "2px 6px", background: "transparent", color: "var(--text-3)" }}
         title="Delete agent">
         <Icon name="x" size={14} />
       </button>
     ) : null },
-  ], [t, refetch]);
+  ], [t]);
 
   return (
     <div>
@@ -106,12 +114,22 @@ export function AgentsList() {
         <p style={{ margin: "4px 0 0", color: "var(--text-2)", fontSize: "var(--fs-sm)" }}>{`${agents.length} ${p(agents.length, t("p.agents").split("|"))}`}</p>
       </div>
       <DataTable rowKey={(r) => r.agent_id} onRowClick={(r) => navigate("/agents/" + r.agent_id)} columns={columns} rows={agents} />
+      <ConfirmModal
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete agent"
+        message={`Delete agent "${deleteTarget?.name}"? Invocation history will be preserved.`}
+        confirmLabel="Delete"
+        danger
+      />
     </div>
   );
 }
 
 export function AgentDetailPage({ id }: { id: string }) {
   const { data: agent, loading, refetch } = useApi<AgentDetail>(`/agents/${id}`, [id]);
+  const [showDelete, setShowDelete] = useState(false);
 
   const t = useT();
 
@@ -154,7 +172,7 @@ export function AgentDetailPage({ id }: { id: string }) {
           </div>
           <div className="flex items-center" style={{ gap: 8 }}>
             <RoleSegmented value={agent.role ?? "executor"} onChange={changeRole} />
-            <button onClick={async () => { if (confirm(`Delete agent "${agent.name}"?`)) { await api.del(`/agents/${id}`); navigate("/agents"); } }}
+            <button onClick={() => setShowDelete(true)}
               className="cursor-pointer rounded-[var(--r-md)] border border-[var(--border)]"
               style={{ padding: "5px 10px", background: "transparent", color: "var(--text-3)", fontSize: "var(--fs-xs)", fontWeight: 600 }}
               title="Delete agent">
@@ -182,6 +200,15 @@ export function AgentDetailPage({ id }: { id: string }) {
           { key: "started", label: t("col.started"), align: "right", mono: true, muted: true, sortable: true, sortVal: (r) => r.started_at, render: (r) => fmtDate(r.started_at) },
         ]}
         rows={history}
+      />
+      <ConfirmModal
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        onConfirm={async () => { await api.del(`/agents/${id}`); navigate("/agents"); }}
+        title="Delete agent"
+        message={`Delete agent "${agent.name}"? Invocation history will be preserved.`}
+        confirmLabel="Delete"
+        danger
       />
     </div>
   );

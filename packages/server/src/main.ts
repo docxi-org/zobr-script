@@ -45,10 +45,7 @@ const { app, zsApp, authService } = await createZsHttpApp({
 });
 authServiceRef = authService;
 
-const CORS_ORIGINS = C.production
-  ? ["https://claude.ai", "https://chatgpt.com"]
-  : true;
-app.use("/artifact", cors({ origin: CORS_ORIGINS, credentials: true }));
+app.use("/artifact", cors({ origin: true }));
 
 const { createArtifactRouter } = await import("./artifact-routes");
 app.use("/artifact", createArtifactRouter(zsApp, log, authService));

@@ -87,6 +87,16 @@ export class AgentRegistry {
     return true;
   }
 
+  delete(agentId: string): boolean {
+    const entry = this.#agents.get(agentId);
+    if (!entry) return false;
+    if (entry.activeInvocations.size > 0) return false;
+    this.#agents.delete(agentId);
+    this.#byName.delete(entry.name);
+    this.#db?.infra.deleteAgent(agentId);
+    return true;
+  }
+
   all(): { agent_id: string; name: string; registered_at: number; role: AgentRole }[] {
     return [...this.#agents.values()].map((a) => ({
       agent_id: a.agentId,

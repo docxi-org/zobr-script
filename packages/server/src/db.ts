@@ -48,6 +48,7 @@ export interface InfraStore {
   saveAgent(agent: AgentRecord): void;
   loadAgents(): AgentRecord[];
   setAgentRole(agentId: string, role: AgentRole): boolean;
+  deleteAgent(agentId: string): boolean;
   saveSnapshot(invocation_id: string, script_ref: string, state: string): void;
   deleteSnapshot(invocation_id: string): void;
   loadSnapshot(invocation_id: string): { script_ref: string; state: string } | null;
@@ -318,6 +319,10 @@ export function createDb(path: string): Db {
 
     setAgentRole(agentId: string, role: AgentRole): boolean {
       return db.prepare("UPDATE zs_agents SET role = ? WHERE agent_id = ?").run(role, agentId).changes > 0;
+    },
+
+    deleteAgent(agentId: string): boolean {
+      return db.prepare("DELETE FROM zs_agents WHERE agent_id = ?").run(agentId).changes > 0;
     },
 
     saveSnapshot(invocation_id: string, script_ref: string, state: string): void {

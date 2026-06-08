@@ -90,6 +90,13 @@ export function AgentsList() {
     { key: "registered", label: t("col.registered"), mono: true, muted: true, sortable: true, sortVal: (r) => r.registered_at, render: (r) => timeAgo(r.registered_at, NOW) + " " + t("common.ago") },
     { key: "active", label: t("col.active"), align: "right", sortable: true, sortVal: (r) => r.active_invocations, render: (r) => r.active_invocations > 0 ? <Badge color="var(--st-running)">{r.active_invocations}</Badge> : <span className="mono" style={{ color: "var(--text-3)" }}>0</span> },
     { key: "total", label: t("col.total_runs"), align: "right", mono: true, sortable: true, sortVal: (r) => r.total_runs, render: (r) => r.total_runs },
+    { key: "actions", label: "", width: 40, render: (r) => r.active_invocations === 0 ? (
+      <button onClick={async (e) => { e.stopPropagation(); if (confirm(`Delete agent "${r.name}"?`)) { await api.del(`/agents/${r.agent_id}`); refetch(); } }}
+        className="cursor-pointer rounded border-none" style={{ padding: "2px 6px", background: "transparent", color: "var(--text-3)" }}
+        title="Delete agent">
+        <Icon name="x" size={14} />
+      </button>
+    ) : null },
   ], [t, refetch]);
 
   return (
@@ -145,7 +152,15 @@ export function AgentDetailPage({ id }: { id: string }) {
             <span style={{ fontWeight: 600 }}>{t("agents.role")}</span>
             <span style={{ color: "var(--text-3)", fontSize: "var(--fs-xs)" }}>{t("agents.role_hint")}</span>
           </div>
-          <RoleSegmented value={agent.role ?? "executor"} onChange={changeRole} />
+          <div className="flex items-center" style={{ gap: 8 }}>
+            <RoleSegmented value={agent.role ?? "executor"} onChange={changeRole} />
+            <button onClick={async () => { if (confirm(`Delete agent "${agent.name}"?`)) { await api.del(`/agents/${id}`); navigate("/agents"); } }}
+              className="cursor-pointer rounded-[var(--r-md)] border border-[var(--border)]"
+              style={{ padding: "5px 10px", background: "transparent", color: "var(--text-3)", fontSize: "var(--fs-xs)", fontWeight: 600 }}
+              title="Delete agent">
+              <Icon name="x" size={13} />
+            </button>
+          </div>
         </div>
       </Card>
 

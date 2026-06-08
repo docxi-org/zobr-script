@@ -300,6 +300,15 @@ export function createApiRouter(zsApp: ZsApp, auth: AuthService, logger: Logger)
     res.json({ ok: true, role });
   });
 
+  router.delete("/agents/:id", auth.middleware(["admin", "architect"]), (req, res) => {
+    const ok = zsApp.agents.delete(req.params["id"] as string);
+    if (!ok) {
+      res.status(400).json({ error: { code: "BAD_REQUEST", message: "Agent not found or has active invocations" } });
+      return;
+    }
+    res.json({ ok: true });
+  });
+
   router.get("/agents/:id", (req, res) => {
     const agent = zsApp.apiGetAgentDetail(req.params["id"] as string);
     if (!agent) {

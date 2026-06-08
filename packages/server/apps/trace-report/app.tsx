@@ -68,9 +68,12 @@ function TraceReportApp() {
       };
       a.ontoolresult = async (result) => {
         const text = result.content?.find((c) => c.type === "text");
-        if (text) {
-          try { setOk((JSON.parse((text as { text: string }).text) as { ok?: boolean }).ok ?? true); } catch {}
-        }
+        if (!text) return;
+        try {
+          const d = JSON.parse((text as { text: string }).text) as { ok?: boolean; _input?: Record<string, unknown> };
+          setOk(d.ok ?? true);
+          if (d._input) setInput((prev) => prev ?? { label: d._input!.label as string, data: d._input!.data });
+        } catch {}
       };
     },
   });

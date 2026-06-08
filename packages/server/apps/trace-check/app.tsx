@@ -18,10 +18,10 @@ function ResultPreview({ results }: { results: unknown }) {
   );
 }
 
+interface State { commit_seq?: number; results?: unknown; ok?: boolean }
+
 function App() {
-  const [commitSeq, setCommitSeq] = useState<number | null>(null);
-  const [results, setResults] = useState<unknown>(null);
-  const [ok, setOk] = useState<boolean | null>(null);
+  const [state, setState] = useState<State>({});
 
   useApp({
     appInfo: { name: "ZS Check", version: "1.0.0" },
@@ -30,39 +30,43 @@ function App() {
       a.ontoolinput = async (input) => {
         if (input && typeof input === "object") {
           const r = input as Record<string, unknown>;
-          setCommitSeq(r.commit_seq as number);
-          setResults(r.results);
+          setState((s) => ({ ...s, commit_seq: r.commit_seq as number, results: r.results }));
         }
       };
       a.ontoolresult = async (result) => {
         const text = result.content?.find((c) => c.type === "text");
         if (!text) return;
         try {
-          const d = JSON.parse((text as { text: string }).text) as { ok?: boolean };
-          setOk(d.ok ?? null);
+          const d = JSON.parse((text as { text: string }).text) as { ok?: boolean; _input?: Record<string, unknown> };
+          setState((s) => ({
+            ...s,
+            ok: d.ok,
+            commit_seq: s.commit_seq ?? d._input?.commit_seq as number,
+            results: s.results ?? d._input?.results,
+          }));
         } catch {}
       };
     },
   });
 
-  if (commitSeq == null && results == null) return <div style={{ padding: 10, fontSize: 12, color: "#94a3b8" }}>Waiting...</div>;
+  if (state.commit_seq == null && state.ok == null) return <div style={{ padding: 10, fontSize: 12, color: "#94a3b8" }}>Waiting...</div>;
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", padding: 12, maxWidth: 440, lineHeight: 1.4 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
         <span style={{ fontSize: 16 }}>✅</span>
         <span style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>Check</span>
-        {commitSeq != null && <span style={{ fontSize: 10, fontFamily: "monospace", color: "#94a3b8" }}>vs commit seq {commitSeq}</span>}
-        {ok !== null && (
+        {state.commit_seq != null && <span style={{ fontSize: 10, fontFamily: "monospace", color: "#94a3b8" }}>vs commit seq {state.commit_seq}</span>}
+        {state.ok != null && (
           <span style={{
             marginLeft: "auto", padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700,
-            background: ok ? "#22c55e22" : "#ef444422", color: ok ? "#16a34a" : "#dc2626",
+            background: state.ok ? "#22c55e22" : "#ef444422", color: state.ok ? "#16a34a" : "#dc2626",
           }}>
-            {ok ? "PASS" : "FAIL"}
+            {state.ok ? "PASS" : "FAIL"}
           </span>
         )}
       </div>
-      <ResultPreview results={results} />
+      <ResultPreview results={state.results} />
     </div>
   );
 }

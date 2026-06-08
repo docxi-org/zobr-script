@@ -1,7 +1,6 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 const DIR_STYLE: Record<string, { bg: string; fg: string; icon: string }> = {
   proceed: { bg: "#22c55e22", fg: "#16a34a", icon: "✓" },
@@ -25,10 +24,10 @@ function DataPreview({ data }: { data: unknown }) {
   );
 }
 
+interface State { label?: string; data?: unknown; directive?: string; ok?: boolean }
+
 function App() {
-  const [label, setLabel] = useState<string | null>(null);
-  const [data, setData] = useState<unknown>(null);
-  const [directive, setDirective] = useState<string | null>(null);
+  const [state, setState] = useState<State>({});
 
   useApp({
     appInfo: { name: "ZS Checkpoint", version: "1.0.0" },
@@ -37,37 +36,42 @@ function App() {
       a.ontoolinput = async (args) => {
         if (args && typeof args === "object") {
           const r = args as Record<string, unknown>;
-          setLabel(r.label as string);
-          setData(r.data);
+          setState((s) => ({ ...s, label: r.label as string, data: r.data }));
         }
       };
       a.ontoolresult = async (result) => {
         const text = result.content?.find((c) => c.type === "text");
         if (!text) return;
         try {
-          const d = JSON.parse((text as { text: string }).text) as { directive?: string };
-          if (d.directive) setDirective(d.directive);
+          const d = JSON.parse((text as { text: string }).text) as { directive?: string; ok?: boolean; _input?: Record<string, unknown> };
+          setState((s) => ({
+            ...s,
+            directive: d.directive,
+            ok: d.ok,
+            label: s.label ?? d._input?.label as string,
+            data: s.data ?? d._input?.data,
+          }));
         } catch {}
       };
     },
   });
 
-  if (!label) return <div style={{ padding: 10, fontSize: 12, color: "#94a3b8" }}>Waiting...</div>;
+  if (!state.label && state.directive == null) return <div style={{ padding: 10, fontSize: 12, color: "#94a3b8" }}>Waiting...</div>;
 
-  const dir = directive ?? "pending";
+  const dir = state.directive ?? "pending";
   const style = DIR_STYLE[dir] ?? { bg: "#64748b22", fg: "#64748b", icon: "⏳" };
 
   return (
     <div style={{ fontFamily: "system-ui, sans-serif", padding: 12, maxWidth: 440, lineHeight: 1.4 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ fontSize: 16 }}>🚦</span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>{state.label ?? "checkpoint"}</span>
         <span style={{ padding: "1px 6px", borderRadius: 3, fontSize: 10, fontWeight: 600, background: "#22c55e22", color: "#16a34a" }}>verified</span>
         <span style={{ marginLeft: "auto", padding: "2px 10px", borderRadius: 4, fontSize: 12, fontWeight: 700, background: style.bg, color: style.fg }}>
           {style.icon} {dir}
         </span>
       </div>
-      <DataPreview data={data} />
+      <DataPreview data={state.data} />
     </div>
   );
 }

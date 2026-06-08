@@ -23,7 +23,15 @@ function App() {
       a.ontoolresult = async (result) => {
         const text = result.content?.find((c) => c.type === "text");
         if (!text) return;
-        try { setOk((JSON.parse((text as { text: string }).text) as { ok?: boolean }).ok ?? true); } catch {}
+        try {
+          const d = JSON.parse((text as { text: string }).text) as { ok?: boolean; _input?: Record<string, unknown> };
+          setOk(d.ok ?? true);
+          if (d._input) {
+            setQuery((q) => q ?? d._input!.query as string);
+            setData((prev) => prev ?? d._input!.data);
+            if (d._input.provenance && typeof d._input.provenance === "object") setProvenance((p) => p ?? d._input!.provenance as Record<string, unknown>);
+          }
+        } catch {}
       };
     },
   });

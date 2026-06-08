@@ -75,7 +75,11 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
         async (args): Promise<CallToolResult> => {
           logger.debug({ tool: tool.name }, "tool call");
           const result = await zsApp.callTool(tool.name, args);
-          return { content: [{ type: "text", text: JSON.stringify(result) }] };
+          const parsed = args as Record<string, unknown>;
+          const payload = uiMeta
+            ? { ...result as Record<string, unknown>, _input: { label: parsed.label, fn: parsed.fn, data: parsed.data, query: parsed.query, what: parsed.what, basis: parsed.basis, verify: parsed.verify, boundaries: parsed.boundaries, commit_seq: parsed.commit_seq, results: parsed.results, script_ref: parsed.script_ref, provenance: parsed.provenance } }
+            : result;
+          return { content: [{ type: "text", text: JSON.stringify(payload) }] };
         },
       );
     }

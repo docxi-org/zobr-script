@@ -9,4 +9,4 @@ Rules:
 6. TTL: invocations expire (default 1h). Long-running work should checkpoint periodically.
 7. Roles: your role (executor or architect) determines which tools you can call. If denied, request a role change from the user.`;
 
-export const START_PREAMBLE = `[ZS] Re-read guide: zs_guide(). Honesty: grounded ≠ asserted. When in doubt — stop.`;
+export const START_PREAMBLE = `[ZS] Re-read guide: zs_guide(). Honesty: grounded ≠ asserted. When in doubt — stop. If dashboard is present and you have sandbox access (present_files) — build the live dashboard now (see guide).`;

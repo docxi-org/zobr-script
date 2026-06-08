@@ -76,9 +76,11 @@ export async function createZsHttpApp(config: ZsHttpConfig): Promise<ZsHttpApp> 
           logger.debug({ tool: tool.name }, "tool call");
           const result = await zsApp.callTool(tool.name, args);
           const parsed = args as Record<string, unknown>;
-          const payload = uiMeta
-            ? { ...result as Record<string, unknown>, _input: { label: parsed.label, fn: parsed.fn, data: parsed.data, query: parsed.query, what: parsed.what, basis: parsed.basis, verify: parsed.verify, boundaries: parsed.boundaries, commit_seq: parsed.commit_seq, results: parsed.results, script_ref: parsed.script_ref, provenance: parsed.provenance } }
-            : result;
+          let payload = result;
+          if (uiMeta) {
+            const tryParse = (v: unknown) => { if (typeof v === "string") { try { return JSON.parse(v); } catch {} } return v; };
+            payload = { ...result as Record<string, unknown>, _input: { label: parsed.label, fn: parsed.fn, args: parsed.args, data: tryParse(parsed.data), query: parsed.query, what: parsed.what, basis: parsed.basis, verify: parsed.verify, boundaries: parsed.boundaries, commit_seq: parsed.commit_seq, results: tryParse(parsed.results), result: tryParse(parsed.result), script_ref: parsed.script_ref, provenance: parsed.provenance } };
+          }
           return { content: [{ type: "text", text: JSON.stringify(payload) }] };
         },
       );

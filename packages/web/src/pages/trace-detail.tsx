@@ -116,15 +116,36 @@ function PanelHead({ icon, title, sub, action }: { icon: string; title: string; 
   );
 }
 
-export function TraceDetail({ id }: { id: string }) {
-  const { data: trace, loading, refetch } = useApi<TraceDetailType>(`/traces/${id}`, [id]);
-  const isLive = trace != null && ACTIVE_STATUSES.has(trace.status);
+function useTraceWs(id: string, isLive: boolean, onEvent: (ev: TraceEvent) => void, onStatus: (status: string) => void) {
+  const cbRef = useRef({ onEvent, onStatus });
+  cbRef.current = { onEvent, onStatus };
 
   useEffect(() => {
     if (!isLive) return;
-    const timer = setInterval(refetch, 3000);
-    return () => clearInterval(timer);
-  }, [isLive, refetch]);
+    const proto = location.protocol === "https:" ? "wss:" : "ws:";
+    const ws = new WebSocket(`${proto}//${location.host}/artifact/ws/trace/${id}`);
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data) as { type: string; data: unknown };
+        if (msg.type === "event") cbRef.current.onEvent(msg.data as TraceEvent);
+        if (msg.type === "status") cbRef.current.onStatus((msg.data as { status: string }).status);
+      } catch {}
+    };
+    ws.onclose = () => {};
+    return () => ws.close();
+  }, [id, isLive]);
+}
+
+export function TraceDetail({ id }: { id: string }) {
+  const { data: trace, loading, refetch } = useApi<TraceDetailType>(`/traces/${id}`, [id]);
+  const [liveEvents, setLiveEvents] = useState<TraceEvent[]>([]);
+  const [liveStatus, setLiveStatus] = useState<string | null>(null);
+  const isLive = (liveStatus ?? trace?.status ?? "") !== "" && ACTIVE_STATUSES.has(liveStatus ?? trace?.status ?? "");
+
+  useTraceWs(id, isLive, (ev) => setLiveEvents((prev) => {
+    if (prev.some((e) => e.seq === ev.seq)) return prev;
+    return [...prev, ev];
+  }), (status) => setLiveStatus(status));
   const [activeLine, setActiveLine] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [split, setSplit] = useState(50);
@@ -156,7 +177,10 @@ export function TraceDetail({ id }: { id: string }) {
     </div>
   );
 
-  const evs = trace.events ?? [];
+  const baseEvents = trace.events ?? [];
+  const maxBaseSeq = baseEvents.length > 0 ? baseEvents[baseEvents.length - 1]!.seq : 0;
+  const evs = [...baseEvents, ...liveEvents.filter((e) => e.seq > maxBaseSeq)];
+  const effectiveStatus = liveStatus ?? trace.status;
   const vCount = evs.filter((e) => e.trust === "verified").length;
   const aCount = evs.filter((e) => e.trust === "asserted").length;
   const cov = trace.coverage ?? { verified: 0, asserted: 0, authority_gates: 0, grounded_claims: 0, asserted_claims: 0 };
@@ -177,7 +201,7 @@ export function TraceDetail({ id }: { id: string }) {
           <div>
             <div className="flex flex-wrap items-center" style={{ gap: 10 }}>
               <h1 className="mono" style={{ margin: 0, fontSize: "var(--fs-h1)", fontWeight: 700, letterSpacing: "-0.01em" }}>{trace.invocation_id}</h1>
-              <StatusBadge status={trace.status} />
+              <StatusBadge status={effectiveStatus} />
               {isLive && <span style={{ fontSize: "var(--fs-xs)", color: "var(--st-running)", fontWeight: 600, animation: "zs-pulse 2s infinite" }}>LIVE</span>}
             </div>
             <div className="flex flex-wrap items-center" style={{ gap: 14, marginTop: 8, fontSize: "var(--fs-sm)", color: "var(--text-2)" }}>

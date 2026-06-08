@@ -64,19 +64,20 @@
 Работает автономно после сборки — подключается к ZS-серверу через HTTP/WS.
 Использует pipeline из `docs/artifact-pipeline/mcp-artifact-pipeline.md`.
 
-### 18.1 Серверные дополнения: REST API для артефакта
-- [ ] `GET /api/trace/:id/events?since=:seq` — инкрементальная дозагрузка событий
-- [ ] `GET /api/instance/:id` — метаданные инстанса (status, cursor, script_ref, depth, parent)
-- [ ] `GET /api/instance/:id/children` — дерево дочерних run
-- [ ] CORS: `Access-Control-Allow-Origin: https://claude.ai` (prod), `*` (dev)
-- [ ] Эндпоинты доступны без JWT (по artifact token) или с Bearer
+### 18.1 REST API для артефакта ✅
+- [x] `/artifact/trace/:id` — полный трейс (live из registry или saved)
+- [x] `/artifact/trace/:id/events?since=N` — инкрементальная дозагрузка
+- [x] `/artifact/instance/:id` — метаданные инстанса (status, depth, parent)
+- [x] `/artifact/instance/:id/children` — дерево дочерних run
+- [x] CORS: claude.ai + chatgpt.com в prod, permissive в dev
+- [x] Отдельный prefix `/artifact/` — без JWT (token в 18.3)
 
-### 18.2 WebSocket gateway для реального времени
-- [ ] `GET /ws/trace/:id` → upgrade → WS (JSON фреймы)
-- [ ] Фреймы: `{ type: "event", data: TraceEvent }`, `{ type: "status", data }`, `{ type: "coverage", data }`
-- [ ] Pub/sub: `Trace.append()` → emit → WS gateway broadcast по invocation_id
-- [ ] Reconnect: клиент переподключается и дозагружает `?since=lastSeq`
-- [ ] Heartbeat / ping-pong для keep-alive
+### 18.2 WebSocket gateway ✅
+- [x] `/artifact/ws/trace/:id` → upgrade → WS (JSON фреймы)
+- [x] Фреймы: `{ type: "event", data }`, `{ type: "status", data }`
+- [x] Pub/sub: EventEmitter, emit после каждого callTool (refactored → #dispatchTool)
+- [x] Ping/pong keepalive 30s
+- [x] SPA Trace Detail: polling заменён на WebSocket (useTraceWs hook)
 
 ### 18.3 Artifact token
 - [ ] `zs_dashboard` tool — возвращает visualization URLs + config с artifact token

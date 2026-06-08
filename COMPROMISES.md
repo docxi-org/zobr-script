@@ -7,10 +7,5 @@
 
 ## Slice 17 — A2 MCP Apps
 
-- [ ] Smoke test виджетов check/sandbox/checkpoint визуально не подтверждён в claude.ai. Данные в `_input` верны (проверено прогоном), рендер в iframe не видели.
-- [ ] `tryParse` в http.ts дублирует `tryParseJson` в ZsService. Нормализация `z.unknown()` строк делается в двух местах. Не ломает, но при рефакторинге — убрать одно из двух (B: нормализовать после parse, убрать из service).
-- [ ] Build:apps — список виджетов в двух местах (mcp-apps.ts + package.json). При добавлении нового виджета править оба. Решение: build script сканирует папки автоматически.
-
-## Slice 19 — Fullscreen A2 Dashboard
-
-- [ ] Import `ws` как named import из CJS — работает на Node 22 + pnpm + tsx, но хрупко. Менять на `import * as ws` если сломается.
+- [ ] `tryParse` в http.ts дублирует `tryParseJson` в ZsService. Не критично, оставлено осознанно.
+- [ ] Build:apps — список виджетов в двух местах (mcp-apps.ts + package.json). Не критично, оставлено осознанно.

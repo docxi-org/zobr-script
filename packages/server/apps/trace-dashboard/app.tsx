@@ -114,6 +114,21 @@ function CoverageSummary({ coverage, events, compact }: { coverage?: Coverage; e
   );
 }
 
+function ResultField({ k, v }: { k: string; v: unknown }) {
+  const text = typeof v === "string" ? v : JSON.stringify(v);
+  const long = text.length > 120;
+  const [open, setOpen] = useState(!long);
+  return (
+    <div style={{ fontSize: 12, display: "flex", gap: 6 }}>
+      <span style={{ fontWeight: 600, color: T.text2, minWidth: 80, flexShrink: 0 }}>{k}</span>
+      <span style={{ fontFamily: T.mono, color: T.text1, wordBreak: "break-word", cursor: long ? "pointer" : "default" }}
+        onClick={long ? () => setOpen(o => !o) : undefined}>
+        {open ? text : text.slice(0, 117) + "…"}
+      </span>
+    </div>
+  );
+}
+
 function ResultFields({ result }: { result: unknown }) {
   if (result == null) return null;
   if (typeof result !== "object") return <span style={{ fontFamily: T.mono, fontSize: 12 }}>{String(result)}</span>;
@@ -121,14 +136,7 @@ function ResultFields({ result }: { result: unknown }) {
   if (entries.length === 0) return null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      {entries.map(([k, v]) => (
-        <div key={k} style={{ fontSize: 12, display: "flex", gap: 6 }}>
-          <span style={{ fontWeight: 600, color: T.text2, minWidth: 80 }}>{k}</span>
-          <span style={{ fontFamily: T.mono, color: T.text1, wordBreak: "break-word" }}>
-            {typeof v === "string" ? (v.length > 120 ? v.slice(0, 117) + "…" : v) : JSON.stringify(v)}
-          </span>
-        </div>
-      ))}
+      {entries.map(([k, v]) => <ResultField key={k} k={k} v={v} />)}
     </div>
   );
 }
@@ -328,6 +336,7 @@ function InlineView({ data, onExpand }: { data: DashboardData; onExpand?: () => 
           ⛶ Full Dashboard
         </button>
       )}
+      <div style={{ height: 80 }} />
     </div>
   );
 }

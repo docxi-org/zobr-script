@@ -13,6 +13,4 @@
 
 ## Slice 19 — Fullscreen A2 Dashboard
 
-- [ ] `zs-templates` GitHub repo оставлен. Удалит пользователь вручную.
-- [x] Visual smoke test dashboard виджета в claude.ai. → Закрыто: inline + fullscreen работают, host theme подхвачен.
 - [ ] Import `ws` как named import из CJS — работает на Node 22 + pnpm + tsx, но хрупко. Менять на `import * as ws` если сломается.

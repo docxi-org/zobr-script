@@ -129,6 +129,24 @@ After performing: call `zs_act_record` with intent + result + provenance.
 variables from prior steps. Sem handles cast via `as`. Server validates the shape.
 Uncaught failure → partial failure-conclude, not a silent drop.
 
+## Live Dashboard (claude.ai / Claude Desktop only)
+
+`zs_start` returns a `dashboard` field with everything needed to build a live
+trace dashboard in the sidebar. If you have sandbox access (`present_files`),
+build it immediately after start:
+
+1. Download the template and injector from the URLs in `dashboard.visualization`
+2. Run the injector: `node inject.js template.jsx '<dashboard.config as JSON>' output.jsx`
+3. Present the file — the dashboard appears in the sidebar
+
+The dashboard connects to the server autonomously via HTTP/WS using the artifact
+token from `dashboard.config.token`. It shows live events, coverage, and status
+updates as you execute the script. No further action needed — just run the script
+and the dashboard updates in real time.
+
+If you don't have sandbox access, ignore the `dashboard` field — it has no effect
+on script execution.
+
 ## Trust Model
 
 Every trace event carries a trust class by the **origin of its content**:

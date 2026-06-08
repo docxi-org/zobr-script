@@ -9,7 +9,7 @@ import {
   zRetrieveReq, zResumeReq, zRegisterReq,
   zStoreInsertReq, zStoreFindReq, zStoreUpdateReq, zStoreDeleteReq, zStoreCollectionsReq,
   zStorePutReq, zStoreGetReq, zStoreListReq, zAbortReq,
-  zGuideReq, zCommitReq, zCheckReq,
+  zGuideReq, zCommitReq, zCheckReq, zDashboardReq,
 } from "@zobr/protocol";
 import type { ZsService } from "@zobr/protocol";
 import type { z } from "zod";
@@ -61,6 +61,7 @@ export const MCP_TOOLS: readonly McpTool[] = [
   tool({ name: "zs_store_get", description: "Get a note by key.", input: zStoreGetReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_store_list", description: "List notes, optionally filtered by type.", input: zStoreListReq, role: "executor", handle: () => "dispatched_by_app" }),
   tool({ name: "zs_guide", description: "Re-read the full system guide for your current role. Use after role change or to refresh.", input: zGuideReq, role: "executor", handle: () => "dispatched_by_app" }),
+  tool({ name: "zs_dashboard", description: "Open a live trace dashboard in the sidebar. Returns template URLs and config. After receiving the response, build the artifact: (1) curl -s <visualization.template> -o /tmp/template.jsx, (2) curl -s <visualization.injector> -o /tmp/inject.js, (3) node /tmp/inject.js /tmp/template.jsx '<config_json>' /mnt/user-data/outputs/trace-dashboard.jsx, (4) present_files.", input: zDashboardReq, role: "executor", handle: () => "dispatched_by_app" }),
 ] as const;
 
 /** Parse + dispatch one tool call by name (used by the Nest adapter and tests). */

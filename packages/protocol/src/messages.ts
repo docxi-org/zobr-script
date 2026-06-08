@@ -135,6 +135,9 @@ export const zCheckReq = z.object({
 });
 export const zCheckRes = z.object({ ok: z.boolean() });
 
+// --- zs_dashboard ---
+export const zDashboardReq = z.object({ invocation_id: z.string() });
+
 // --- zs_abort ---
 export const zAbortReq = z.object({ invocation_id: z.string().optional() });
 

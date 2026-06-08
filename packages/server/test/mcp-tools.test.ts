@@ -22,7 +22,7 @@ async function registered(a: ZsApp): Promise<string> {
 describe("MCP tool registry", () => {
   it("declares the expected zs_* tools", () => {
     const names = MCP_TOOLS.map((t) => t.name);
-    expect(names).toEqual(["zs_start", "zs_sandbox", "zs_report", "zs_checkpoint", "zs_commit", "zs_check", "zs_conclude", "zs_status", "zs_ask_record", "zs_act_record", "zs_list", "zs_read", "zs_validate", "zs_create", "zs_update", "zs_delete", "zs_retrieve", "zs_resume", "zs_register", "zs_store_insert", "zs_store_find", "zs_store_update", "zs_store_delete", "zs_store_collections", "zs_abort", "zs_store_put", "zs_store_get", "zs_store_list", "zs_guide"]);
+    expect(names).toEqual(["zs_start", "zs_sandbox", "zs_report", "zs_checkpoint", "zs_commit", "zs_check", "zs_conclude", "zs_status", "zs_ask_record", "zs_act_record", "zs_list", "zs_read", "zs_validate", "zs_create", "zs_update", "zs_delete", "zs_retrieve", "zs_resume", "zs_register", "zs_store_insert", "zs_store_find", "zs_store_update", "zs_store_delete", "zs_store_collections", "zs_abort", "zs_store_put", "zs_store_get", "zs_store_list", "zs_guide", "zs_dashboard"]);
     for (const t of MCP_TOOLS) expect(t.description.length).toBeGreaterThan(0);
   });
 

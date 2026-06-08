@@ -51,7 +51,7 @@ const CORS_ORIGINS = C.production
 app.use("/artifact", cors({ origin: CORS_ORIGINS, credentials: true }));
 
 const { createArtifactRouter } = await import("./artifact-routes");
-app.use("/artifact", createArtifactRouter(zsApp, log));
+app.use("/artifact", createArtifactRouter(zsApp, log, authService));
 
 const SPA_DIR = join(import.meta.dirname, "../../web/dist");
 if (existsSync(SPA_DIR)) {
@@ -76,4 +76,4 @@ const httpServer = app.listen(PORT, HOST, () => {
   }, "ZS MCP server started");
 });
 
-setupTraceWs(httpServer, log);
+setupTraceWs(httpServer, log, authService);

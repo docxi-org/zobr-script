@@ -2,6 +2,8 @@ import { EventEmitter } from "node:events";
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "node:http";
 import type { Logger } from "./logger";
+import { verifyArtifactToken } from "./artifact-token";
+import type { AuthService } from "./auth";
 
 export interface TraceEvent {
   seq: number;
@@ -20,7 +22,7 @@ export function emitTraceStatus(invocationId: string, status: string, coverage?:
   traceEmitter.emit(`status:${invocationId}`, { status, coverage });
 }
 
-export function setupTraceWs(server: Server, logger: Logger): void {
+export function setupTraceWs(server: Server, logger: Logger, authService?: AuthService): void {
   const wss = new WebSocketServer({ noServer: true });
   const log = logger.child({ module: "trace-ws" });
 
@@ -29,9 +31,23 @@ export function setupTraceWs(server: Server, logger: Logger): void {
     const match = url.pathname.match(/^\/artifact\/ws\/trace\/(.+)$/);
     if (!match) { socket.destroy(); return; }
 
-    wss.handleUpgrade(req, socket, head, (ws) => {
-      const invocationId = match[1]!;
-      log.info({ invocationId }, "WS client connected");
+    const authorize = async (): Promise<boolean> => {
+      const token = url.searchParams.get("token");
+      if (token) return (await verifyArtifactToken(token)) !== null;
+      if (authService) {
+        const cookie = req.headers.cookie;
+        const jwtMatch = cookie?.match(/(?:^|;)\s*zs_token=([^;]*)/);
+        if (jwtMatch?.[1]) return (await authService.verifyRequest(jwtMatch[1])) !== null;
+      }
+      return false;
+    };
+
+    authorize().then((ok) => {
+      if (!ok) { socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n"); socket.destroy(); return; }
+
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        const invocationId = match![1]!;
+        log.info({ invocationId }, "WS client connected");
 
       const onEvent = (event: TraceEvent) => {
         if (ws.readyState === WebSocket.OPEN) {
@@ -61,7 +77,8 @@ export function setupTraceWs(server: Server, logger: Logger): void {
       ws.on("error", (err) => {
         log.warn({ invocationId, err: err.message }, "WS error");
       });
-    });
+      });
+    }).catch(() => { socket.destroy(); });
   });
 
   log.info("WebSocket trace gateway ready");

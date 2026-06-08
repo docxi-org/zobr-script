@@ -1,10 +1,35 @@
 import { Router, json } from "express";
+import type { Request, Response, NextFunction } from "express";
 import type { ZsApp } from "./app";
 import type { Logger } from "./logger";
+import { verifyArtifactToken } from "./artifact-token";
+import type { AuthService } from "./auth";
 
-export function createArtifactRouter(zsApp: ZsApp, logger: Logger): Router {
+function artifactAuth(authService?: AuthService) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    if (authService) {
+      const cookie = req.headers.cookie;
+      const tokenMatch = cookie?.match(/(?:^|;)\s*zs_token=([^;]*)/);
+      if (tokenMatch?.[1]) {
+        const user = await authService.verifyRequest(tokenMatch[1]);
+        if (user) { next(); return; }
+      }
+    }
+
+    const token = (req.query["token"] as string | undefined)
+      ?? req.headers.authorization?.replace(/^Bearer\s+/i, "");
+    if (!token) { res.status(401).json({ error: "Missing artifact token" }); return; }
+    const payload = await verifyArtifactToken(token);
+    if (!payload) { res.status(401).json({ error: "Invalid or expired artifact token" }); return; }
+    (req as Request & { artifactPayload?: typeof payload }).artifactPayload = payload;
+    next();
+  };
+}
+
+export function createArtifactRouter(zsApp: ZsApp, logger: Logger, authService?: AuthService): Router {
   const router = Router();
   router.use(json());
+  router.use(artifactAuth(authService));
   const log = logger.child({ module: "artifact" });
 
   router.get("/trace/:id", (req, res) => {

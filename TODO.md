@@ -102,15 +102,17 @@ Ext-apps спецификация поддерживает три display mode: 
 - [x] Dashboard hint убран из START_PREAMBLE (instructions.ts)
 - [x] Секция "Live Dashboard" удалена из guide-executor.md
 - [x] zs_start description: убран IMPORTANT
-- [x] zs_dashboard description: переориентирован на SPA
-- [ ] zs-templates repo — оставлен как архив (не влияет)
-- [ ] trace-conclude/ app — оставлен (TOOL_UI_META уже не ссылается)
+- [x] `zs_dashboard` tool удалён (29 tools), метод `dashboard()` удалён, import `createArtifactToken` убран
+- [x] `trace-conclude` убран из APPS и build:apps
+- [ ] zs-templates repo — удалит пользователь вручную
 
-### 19.7 Стиль и UX
-- [x] Цвета: trust (verified=#22c55e, asserted=#f59e0b, authority=#3b82f6) — из существующих виджетов
+### 19.7 Стиль и UX ✅
+- [x] Structured cards: commit, check, checkpoint, report, sandbox, retrieve
+- [x] highlight.js (core + typescript, github-dark) в Code Panel
+- [x] `useHostStyles` + объект `T` с CSS variables и fallback
+- [x] Цвета: trust (verified=#22c55e, asserted=#f59e0b, authority=#3b82f6) — фиксированные (ZS-семантика)
 - [x] Иконки операций: emoji set (OP_ICONS)
 - [x] Responsive: inline ~480px, fullscreen ~720px centered
-- [ ] Dark/light theme через `useHostStyles` — для следующей итерации
 - [ ] Анимация перехода inline → fullscreen — зависит от хоста
 
 ### 19.8 Тестирование

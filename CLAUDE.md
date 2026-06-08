@@ -270,7 +270,7 @@ Monaco и tsc видят @sandbox функции без ручного declare.
 ## TODO / ISSUES
 
 - `TODO.md` — срезы 15–19 завершены. Следующий: slice 20 (HITL).
-- `ISSUES.md` — открытые задачи: run composition, act gating, commit/check серверная сверка, config.json per-folder, trace hierarchy, примеры скриптов.
+- `ISSUES.md` — отложенные задачи (ждут потребителя): run composition, config.json, trace hierarchy, примеры скриптов.
 - `COMPROMISES.md` — 4 открытых пункта: slice 17 (smoke test, tryParse duplication, build list) + slice 19 (ws import).
 - `reviews/` — system review (8 отчётов + SUMMARY) + MCP refactor review. Оба закрыты.
 

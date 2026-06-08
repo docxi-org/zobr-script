@@ -64,7 +64,9 @@ app.get("/health", (_req, res) => { res.json({ ok: true }); });
 
 const HOST = C.host;
 
-app.listen(PORT, HOST, () => {
+import { setupTraceWs } from "./trace-ws";
+
+const httpServer = app.listen(PORT, HOST, () => {
   log.info({
     url: `http://${HOST}:${PORT}`,
     mcp: `http://${HOST}:${PORT}/mcp`,
@@ -73,3 +75,5 @@ app.listen(PORT, HOST, () => {
     budgets: { steps: C.budgetSteps, iterations: C.budgetIterations },
   }, "ZS MCP server started");
 });
+
+setupTraceWs(httpServer, log);

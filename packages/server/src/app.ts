@@ -17,6 +17,7 @@ import { validateScript, extractStoreSchema, extractCogShapes, extractClassInfo,
 import type { ListRes, ReadRes, ValidateReq, ValidateRes, CreateReq, CreateRes, DeleteRes, RegisterRes, StartReq, ConcludeReq, ResumeReq } from "@zobr/protocol";
 import { log as defaultLog } from "./logger";
 import type { Logger } from "./logger";
+import { emitTraceEvent, emitTraceStatus } from "./trace-ws";
 
 const STATE_CHANGING_TOOLS = new Set(["zs_sandbox", "zs_checkpoint", "zs_report", "zs_ask_record", "zs_act_record"]);
 
@@ -113,6 +114,23 @@ export class ZsApp {
       }
     }
 
+    const preEventCount = invId ? (this.registry.get(invId)?.trace.events.length ?? 0) : 0;
+
+    const result = await this.#dispatchTool(name, parsed, agentId, tool);
+
+    if (invId) {
+      const inst = this.registry.get(invId);
+      if (inst) {
+        const newEvents = inst.trace.events.slice(preEventCount);
+        for (const ev of newEvents) emitTraceEvent(invId, ev as { seq: number; op: string });
+        if (isTerminal(inst.status)) emitTraceStatus(invId, inst.status, inst.trace.coverage());
+      }
+    }
+
+    return result;
+  }
+
+  async #dispatchTool(name: string, parsed: Record<string, unknown>, agentId: string | undefined, tool: typeof MCP_TOOLS[number]): Promise<unknown> {
     switch (name) {
       case "zs_guide": return this.guide(agentId!);
       case "zs_list": return this.list();

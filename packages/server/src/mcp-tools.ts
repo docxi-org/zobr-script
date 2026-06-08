@@ -32,7 +32,7 @@ function tool<S extends z.ZodTypeAny>(t: McpTool<S>): McpTool {
 }
 
 export const MCP_TOOLS: readonly McpTool[] = [
-  tool({ name: "zs_start", description: "Start a ZS script run; returns invocation_id + cognitive code + serverFunctions. Use skip_code: true if you already read the script via zs_read.", input: zStartReq, role: "executor", handle: (s, a) => s.start(a) }),
+  tool({ name: "zs_start", description: "Start a ZS script run; returns invocation_id + cognitive code + serverFunctions. Use skip_code: true if you already read the script via zs_read. IMPORTANT: if the response contains a 'dashboard' field AND you have sandbox/present_files access — build the live dashboard BEFORE executing the script (see guide for steps).", input: zStartReq, role: "executor", handle: (s, a) => s.start(a) }),
   tool({ name: "zs_sandbox", description: "Run a @sandbox function server-side (verified trust). Use for functions listed in serverFunctions from zs_start — they appear in the script as regular calls but execute on the server.", input: zSandboxReq, role: "executor", handle: (s, a) => s.sandbox(a) }),
   tool({ name: "zs_report", description: "Fire-and-forget telemetry into the trace. Call after substantive operations (survey, synthesize, doubt) to build a complete trace.", input: zReportReq, role: "executor", handle: (s, a) => s.report(a) }),
   tool({ name: "zs_checkpoint", description: "Synchronous gate; returns a controller Directive.", input: zCheckpointReq, role: "executor", handle: (s, a) => s.checkpoint(a) }),

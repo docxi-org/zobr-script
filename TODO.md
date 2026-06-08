@@ -119,9 +119,9 @@ Ext-apps спецификация поддерживает три display mode: 
 - [x] tsc clean
 - [x] 241 тест зелёный
 - [x] build:apps собирает trace-dashboard (540KB)
-- [ ] Smoke: claude.ai — conclude → inline виджет
-- [ ] Smoke: claude.ai — expand → fullscreen
-- [ ] Деплой и прод-тест
+- [x] Smoke: claude.ai — conclude → inline виджет ✅
+- [x] Smoke: claude.ai — expand → fullscreen ✅
+- [x] Деплой и прод-тест ✅
 
 ---
 

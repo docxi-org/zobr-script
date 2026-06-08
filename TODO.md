@@ -28,15 +28,33 @@
 - [x] status badge, coverage bar (verified/asserted/authority), result JSON tree
 - [x] Привязка: `zs_conclude` → `ui://zs-conclude/app.html`
 
-### 17.6 Ресурсы и маршрутизация ✅
-- [x] 3 `ui://` ресурса зарегистрированы на каждый McpServer instance
-- [x] 3 привязки в TOOL_UI_META (zs_start, zs_report, zs_conclude)
-- [x] Каждый виджет = single-file HTML (~530KB с React)
+### 17.6 Дополнительные виджеты ✅
+- [x] Checkpoint: 🚦 label, data, directive badge (proceed/warn/halt), verified
+- [x] Sandbox: ⚙️ fn(), args, result, verified
+- [x] Commit: 📋 what/basis/verify/boundaries structured card
+- [x] Check: ✅ commit_seq, results, PASS/FAIL
+- [x] Retrieve: 📡 query, provenance, trust badge
 
-### 17.7 Тестирование
+### 17.7 Ресурсы и маршрутизация ✅
+- [x] 8 `ui://` ресурсов зарегистрированы на каждый McpServer instance
+- [x] 8 привязок в TOOL_UI_META (start, report, checkpoint, sandbox, commit, check, retrieve, conclude)
+- [x] Каждый виджет = single-file HTML (~530KB с React)
+- [x] CI: `build:apps` в deploy pipeline
+
+### 17.8 Улучшения виджетов ✅
+- [x] Start: JSDoc описание, entry function, serverFunctions
+- [x] Report: иконка + цвет операции, параметры из data
+- [x] Conclude: donut chart, structured result fields
+- [x] _input в tool result: сервер включает input-поля для fallback (ontoolinput не всегда срабатывает)
+- [x] tryParse: десериализация stringified data/results
+- [x] Авто-генерация .sandbox.d.ts для @sandbox методов (Monaco + tsc)
+
+### 17.9 Тестирование ✅
 - [x] tsc clean, 34/34 mcp-tools тесты
-- [x] `pnpm run build:apps` — 3 виджета собираются
-- [ ] Smoke: деплой → подключить к Claude.ai → прогнать скрипт → виджеты рендерятся
+- [x] `pnpm run build:apps` — 8 виджетов собираются
+- [x] Smoke: claude.ai — start + conclude виджеты работают
+- [x] Smoke: прогон test/widget-test через prod MCP — все _input корректны
+- [x] `examples/widget-test` в git — деплоится автоматически
 
 ---
 

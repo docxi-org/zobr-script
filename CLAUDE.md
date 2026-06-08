@@ -269,9 +269,9 @@ Monaco и tsc видят @sandbox функции без ручного declare.
 
 ## TODO / ISSUES
 
-- `TODO.md` — срезы 15–19 завершены (ожидает smoke test на проде). Следующий: slice 20 (HITL).
-- `ISSUES.md` — открытые задачи: run composition, act gating, commit/check серверная сверка, config.json per-folder, trace hierarchy, примеры скриптов, CORS после token.
-- `COMPROMISES.md` — 7 пунктов: widget smoke test, tryParse duplication, build list, open artifact endpoints, WS origin, CORS hardcode, ws import.
+- `TODO.md` — срезы 15–19 завершены. Следующий: slice 20 (HITL).
+- `ISSUES.md` — открытые задачи: run composition, act gating, commit/check серверная сверка, config.json per-folder, trace hierarchy, примеры скриптов.
+- `COMPROMISES.md` — 4 открытых пункта: slice 17 (smoke test, tryParse duplication, build list) + slice 19 (ws import).
 - `reviews/` — system review (8 отчётов + SUMMARY) + MCP refactor review. Оба закрыты.
 
 ## Ключевые решения
@@ -299,7 +299,7 @@ Monaco и tsc видят @sandbox функции без ручного declare.
 - **MCP OAuth 2.1** — `ZS_OAUTH=true` opt-in. SDK OAuthServerProvider + mcpAuthRouter, SQLite хранилище клиентов/токенов, login page в стиле сайта. Per-session McpServer. Executor-пользователь не может назначить architect-агента
 - **zs_commit / zs_check** — MCP tools для структурированного пре-коммитмента (commit/check дисциплина). Events записываются в трейс
 - **zs_start skip_code** — `skip_code: true` при старте, если агент уже прочитал скрипт через `zs_read`
-- **A2 MCP Apps** — 8 inline виджетов через `@modelcontextprotocol/ext-apps`. Данные через MCP (ontoolresult), не fetch. `_input` fallback в tool result
+- **A2 MCP Apps** — 9 виджетов (8 inline + 1 fullscreen dashboard) через `@modelcontextprotocol/ext-apps`. Данные через MCP (ontoolresult), не fetch. `_input` fallback в tool result
 - **A1 pipeline отменён и вычищен** — CSP sandbox claude.ai блокирует connect-src. Серверная инфраструктура (REST + WS + token) сохранена для SPA
 - **.sandbox.d.ts авто-генерация** — extractClassInfo + generateMethodAmbient при create/update/startup
 - **Fullscreen A2 dashboard** — conclude виджет `trace-dashboard` с `availableDisplayModes: ["inline", "fullscreen"]`, полный trace timeline, events, code snapshot. `_trace` в ответе zs_conclude

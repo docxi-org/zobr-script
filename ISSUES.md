@@ -283,6 +283,26 @@ Trace events — плоский массив, упорядоченный по se
 
 ---
 
+## Artifact CORS: hardcoded origins → конфигурируемые после token'а
+
+`/artifact/*` эндпоинты используют CORS с hardcoded origins:
+```ts
+const CORS_ORIGINS = C.production
+  ? ["https://claude.ai", "https://chatgpt.com"]
+  : true;
+```
+
+Сейчас это осознанное решение: artifact token (18.3) ещё не реализован,
+`Access-Control-Allow-Origin: *` без авторизации открыл бы трейсы всем.
+
+- [ ] **После реализации 18.3 (artifact token):** пересмотреть CORS-политику.
+  С token'ом CORS перестаёт быть линией защиты — авторизует token, не origin.
+  Варианты: `*` (простейший), env-переменная `ZS_CORS_ORIGINS` (гибкий),
+  или оставить whitelist (строгий). Решение зависит от того, какие хосты
+  реально используют artifact API.
+
+---
+
 ## MCP Guide: расширить паттерны через примеры
 
 `packages/scaffold/guide/08-patterns.md` содержит 4 паттерна: hello, insight,

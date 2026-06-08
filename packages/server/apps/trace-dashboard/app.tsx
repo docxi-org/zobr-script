@@ -349,7 +349,7 @@ function FullscreenView({ data, onCollapse }: { data: DashboardData; onCollapse?
   const events = trace?.events ?? [];
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   return (
-    <div style={{ fontFamily: T.sans, padding: 20, maxWidth: 720, margin: "0 auto", lineHeight: 1.5, color: T.text1 }}>
+    <div style={{ fontFamily: T.sans, padding: "20px 20px 100px", maxWidth: 720, margin: "0 auto", lineHeight: 1.5, color: T.text1 }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
         <span style={{ fontSize: 22 }}>📜</span>
@@ -392,8 +392,6 @@ function FullscreenView({ data, onCollapse }: { data: DashboardData; onCollapse?
 
       {/* Code */}
       {trace?.code_snapshot && <CodePanel code={trace.code_snapshot} />}
-
-      <div style={{ height: 80 }} />
     </div>
   );
 }
